@@ -1,0 +1,9 @@
+{
+  "from": "FSSAI Online <no-reply@fssaionline.co.in>",
+  "smtp": {
+    "host": "smtp.example.com",
+    "port": 587,
+    "secure": false,
+    "auth": { "user": "SMTP_USER", "pass": "SMTP_PASSWORD" }
+  }
+}

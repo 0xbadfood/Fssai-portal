@@ -1,0 +1,18 @@
+# dependencies and build output
+node_modules/
+dist/
+
+# user data: encrypted uploaded documents (personal data) — never commit
+storage/
+
+# secrets
+config/database.json
+config/secrets/
+config/mail.json
+.env
+.env.*
+
+# large media (re-downloadable from FoSCoS, see documents/README.md)
+documents/*.mp4
+
+*.log

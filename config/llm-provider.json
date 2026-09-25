@@ -1,0 +1,29 @@
+{
+  "provider": "openai-compatible",
+  "baseUrl": "http://10.8.0.5:8001/v1",
+  "model": "gemma4-12b-it-mtp",
+  "apiKey": "",
+  "temperature": 0,
+  "maxTokens": 1200,
+  "timeoutMs": 90000,
+  "jsonMode": true,
+  "maxImageBytes": 6000000,
+  "tasks": {
+    "verifyDocument": {
+      "maxTokens": 1500,
+      "extraBody": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    "intake": {
+      "maxTokens": 600,
+      "extraBody": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    }
+  }
+}

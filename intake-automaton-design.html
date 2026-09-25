@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intake Automaton Design</title>
+<style>
+  :root {
+    --bg: #fbfaff; --paper: #ffffff; --ink: #1e1b2e; --muted: #5d5a70; --line: #e7e3f3;
+    --accent: #7c3aed; --accent-soft: #f3edff; --warm: #f97316; --ok: #059669; --warn: #b45309; --warn-soft: #fff7e6;
+    --code: #f4f1fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #13111c; --paper: #1b1827; --ink: #ece9f6; --muted: #a9a4bf; --line: #2f2a42;
+      --accent: #a78bfa; --accent-soft: #2a2143; --warm: #fb923c; --ok: #34d399; --warn: #fbbf24; --warn-soft: #2d2413;
+      --code: #241f35;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 56px 20px 96px; }
+  header p.kicker { color: var(--accent); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: 13px; margin: 0; }
+  h1 { font-size: 40px; line-height: 1.15; margin: 8px 0 12px; letter-spacing: -0.02em; }
+  h1 span { background: linear-gradient(90deg, #7c3aed, #d946ef, #f97316); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { font-size: 19px; color: var(--muted); margin: 0 0 8px; }
+  .meta { color: var(--muted); font-size: 14px; }
+  h2 { font-size: 26px; margin: 56px 0 8px; letter-spacing: -0.01em; }
+  h2 small { display: block; color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+  h3 { font-size: 19px; margin: 28px 0 4px; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  code { background: var(--code); padding: 1px 6px; border-radius: 6px; font-size: 0.88em; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .toc { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; margin: 28px 0; }
+  .toc ol { margin: 6px 0 0; padding-left: 20px; columns: 2; column-gap: 28px; }
+  .toc li { font-size: 15px; break-inside: avoid; }
+  .callout { background: var(--accent-soft); border-radius: 14px; padding: 14px 18px; margin: 20px 0; }
+  .callout.warn { background: var(--warn-soft); }
+  .callout b:first-child { color: var(--accent); }
+  .callout.warn b:first-child { color: var(--warn); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+  .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 24px; letter-spacing: -0.02em; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 15px; background: var(--paper); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--code); }
+  tr:last-child td { border-bottom: none; }
+  figure { margin: 24px 0; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { font-family: ui-sans-serif, system-ui, sans-serif; fill: var(--ink); }
+  svg .box { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+  svg .q { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+  svg .end { fill: var(--accent); }
+  svg .end + text, svg text.on-accent { fill: #fff; }
+  svg .skip { stroke: var(--muted); stroke-dasharray: 4 4; fill: none; }
+  svg .arrow { stroke: var(--muted); stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+  svg .small { font-size: 11px; fill: var(--muted); }
+  svg .warm { fill: var(--warn-soft); stroke: var(--warm); stroke-width: 1.5; }
+  .idea { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; margin: 10px 0; }
+  .idea b { display: block; }
+  .idea span { color: var(--muted); font-size: 15px; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 2px; }
+  .tag.now { background: #dcfce7; color: #166534; }
+  .tag.soon { background: #e0e7ff; color: #3730a3; }
+  .tag.later { background: #f1f5f9; color: #475569; }
+  @media (prefers-color-scheme: dark) {
+    .tag.now { background: #14532d; color: #bbf7d0; } .tag.soon { background: #312e81; color: #c7d2fe; } .tag.later { background: #334155; color: #e2e8f0; }
+  }
+  footer { margin-top: 64px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+  @media (max-width: 640px) {
+    h1 { font-size: 31px; } .stats { grid-template-columns: repeat(2, 1fr); } .toc ol { columns: 1; }
+    table { font-size: 14px; } th, td { padding: 8px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <p class="kicker">FSSAI Online · design note</p>
+  <h1>The intake <span>automaton</span></h1>
+  <p class="lede">How the portal works out which FSSAI licence a food business needs: a small finite machine of tap questions, a consistency layer that notices when answers disagree, and a layered reader for typed answers that uses the language model as little as possible.</p>
+  <p class="meta">Written 25 September 2026 · code in <code>src/lib/intakeQuestions.js</code>, <code>src/lib/answerRules.js</code>, <code>server/intakeInterpreter.js</code>, <code>scripts/check-intake.mjs</code></p>
+</header>
+
+<div class="stats">
+  <div class="stat"><b>9 + 1</b><span>questions, plus the "Just checking" question</span></div>
+  <div class="stat"><b>17,574</b><span>tap paths, every one checked</span></div>
+  <div class="stat"><b>5</b><span>consistency rules</span></div>
+  <div class="stat"><b>3</b><span>layers for typed answers</span></div>
+</div>
+
+<nav class="toc">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#why">Why an automaton</a></li>
+    <li><a href="#shape">The shape of it</a></li>
+    <li><a href="#questions">The questions</a></li>
+    <li><a href="#reconcile">Changing your mind</a></li>
+    <li><a href="#consistency">The consistency arm</a></li>
+    <li><a href="#layers">Reading typed answers</a></li>
+    <li><a href="#proof">Checking every path</a></li>
+    <li><a href="#decisions">Judgement calls</a></li>
+    <li><a href="#next">What I'd improve next</a></li>
+  </ol>
+</nav>
+
+<h2 id="why"><small>1 · Rationale</small>Why an automaton, and not just a chatbot</h2>
+<p>The obvious way to build "an AI that tells you which licence you need" is to hand the conversation to a language model. I deliberately didn't, for four reasons.</p>
+<ul>
+  <li><b>The answer is the law, not an opinion.</b> The licence type follows fixed rules: turnover thresholds, mandatory Central Licence categories, deemed registration for street vendors. A rule written as code gives the same answer every time and can be explained line by line. A model's answer can drift between runs, and a wrong licence costs the user real money and time.</li>
+  <li><b>Our users tap more than they type.</b> A chaat-cart owner or a home baker shouldn't need to write a paragraph. Big tap cards with examples ("Kirana shop, distributor, cold storage…") work for low literacy, small screens and patchy networks.</li>
+  <li><b>A finite machine can be tested completely.</b> The set of possible tap journeys is finite (about 17,500), so a script can walk every one of them and prove that each ends in a sensible verdict. You can't do that with a free-form chat.</li>
+  <li><b>The model still has a job, just a narrower one.</b> It only <i>translates</i> free text ("cloud kitchen in Pune, about 80 lakh, we're on Swiggy") into the same facts a tap would produce. It never decides the licence.</li>
+</ul>
+<div class="callout"><b>The one-line philosophy:</b> rules decide, taps are the main road, and the model is an interpreter at the side of the road, used only when needed and remembered once used.</div>
+<p>The same file runs in the browser (for instant taps and the landing-page chat) and on the server (which is the source of truth), so the two can never disagree.</p>
+
+<h2 id="shape"><small>2 · Approach</small>The shape of it</h2>
+<p>The machine's state is a small object of <b>facts</b>: what the business does, where it runs, how many places, which states, whether it sells online, yearly sales. Each <b>question</b> is a transition that fills some facts, and it declares four things:</p>
+<table>
+  <tr><th>Piece</th><th>What it answers</th><th>Example (the "place" question)</th></tr>
+  <tr><td><code>relevant(facts)</code></td><td>Does this question apply to this business at all?</td><td>Only for food businesses</td></tr>
+  <tr><td><code>answered(facts)</code></td><td>Do we already know the answer?</td><td><code>facts.place</code> is set</td></tr>
+  <tr><td><code>options(facts)</code></td><td>Which choices make sense <i>given earlier answers</i>?</td><td>A manufacturer is never offered "cart or street stall"</td></tr>
+  <tr><td><code>apply(choice)</code></td><td>Which facts does a tap set?</td><td>"A factory" → <code>place: 'premises'</code></td></tr>
+</table>
+<p>The next question is simply <b>the first question that is relevant and not yet answered</b>. When none is left, the licence rules run on the facts and produce the verdict. There's no hard-coded "go to question 5" anywhere; the route emerges from the facts, which is what makes the machine easy to extend.</p>
+
+<figure>
+<svg viewBox="0 0 720 560" role="img" aria-label="Flow of intake questions">
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b86a3"/></marker></defs>
+  <!-- main spine -->
+  <rect class="q" x="250" y="10" width="220" height="44" rx="12"/><text x="360" y="37" text-anchor="middle" font-size="13" font-weight="700">1 · What do you do with food?</text>
+  <path class="arrow" d="M360,54 L360,80"/>
+  <rect class="q" x="250" y="82" width="220" height="40" rx="12"/><text x="360" y="107" text-anchor="middle" font-size="13" font-weight="700">2 · What kind of selling?</text>
+  <text x="480" y="106" class="small">only if "sell"</text>
+  <path class="arrow" d="M360,122 L360,146"/>
+  <rect class="q" x="250" y="148" width="220" height="40" rx="12"/><text x="360" y="173" text-anchor="middle" font-size="13" font-weight="700">3 · Where do you run it?</text>
+  <text x="480" y="166" class="small">options depend on 1 and 2</text>
+  <path class="arrow" d="M360,188 L360,212"/>
+  <rect class="q" x="250" y="214" width="220" height="40" rx="12"/><text x="360" y="239" text-anchor="middle" font-size="13" font-weight="700">4 · How many places?</text>
+  <text x="480" y="232" class="small">skipped for a home (implied: one)</text>
+  <path class="arrow" d="M360,254 L360,278"/>
+  <rect class="q" x="250" y="280" width="220" height="40" rx="12"/><text x="360" y="305" text-anchor="middle" font-size="13" font-weight="700">5 · Which state(s)?</text>
+  <text x="480" y="298" class="small">one tap, or several if multi-state</text>
+  <path class="arrow" d="M360,320 L360,344"/>
+  <rect class="q" x="250" y="346" width="220" height="40" rx="12"/><text x="360" y="371" text-anchor="middle" font-size="13" font-weight="700">6 · Do you sell online?</text>
+  <text x="480" y="364" class="small">skipped for storage / transport only</text>
+  <path class="arrow" d="M360,386 L360,410"/>
+  <rect class="q" x="250" y="412" width="220" height="40" rx="12"/><text x="360" y="437" text-anchor="middle" font-size="13" font-weight="700">7 · Yearly sales?</text>
+  <text x="480" y="430" class="small">skipped when Central is</text><text x="480" y="444" class="small">already mandatory</text>
+  <path class="arrow" d="M360,452 L360,480"/>
+  <rect class="end" x="250" y="482" width="220" height="44" rx="12"/><text class="on-accent" x="360" y="503" text-anchor="middle" font-size="13" font-weight="700">Verdict</text>
+  <text class="on-accent" x="360" y="518" text-anchor="middle" font-size="11">Registration · State · Central</text>
+
+  <!-- not food branch -->
+  <path class="arrow" d="M250,32 L150,32 L150,66"/>
+  <text x="156" y="50" class="small">"None of these"</text>
+  <rect class="box" x="60" y="68" width="180" height="36" rx="12"/><text x="150" y="91" text-anchor="middle" font-size="13" font-weight="600">Which is closest?</text>
+  <path class="arrow" d="M150,104 L150,116"/>
+  <rect class="end" x="60" y="118" width="180" height="32" rx="12"/><text class="on-accent" x="150" y="139" text-anchor="middle" font-size="13" font-weight="700">No approval needed</text>
+
+  <!-- street vendor branch -->
+  <path class="arrow" d="M250,172 L150,172 L150,226"/>
+  <text x="158" y="204" class="small">cart / stall</text>
+  <rect class="box" x="60" y="228" width="180" height="40" rx="12"/><text x="150" y="253" text-anchor="middle" font-size="13" font-weight="600">Municipal certificate?</text>
+  <path class="arrow" d="M150,268 L150,296"/>
+  <text x="158" y="288" class="small">yes</text>
+  <rect class="end" x="60" y="298" width="180" height="36" rx="12"/><text class="on-accent" x="150" y="321" text-anchor="middle" font-size="13" font-weight="700">Deemed registered</text>
+  <path class="skip" d="M240,248 L250,248"/>
+
+  <!-- check question -->
+  <rect class="warm" x="40" y="400" width="190" height="72" rx="12"/>
+  <text x="135" y="424" text-anchor="middle" font-size="13" font-weight="700">"Just checking"</text>
+  <text x="135" y="442" text-anchor="middle" class="small">can appear after any answer</text>
+  <text x="135" y="457" text-anchor="middle" class="small">that disagrees with another</text>
+  <path class="skip" d="M230,436 L250,436"/>
+</svg>
+<figcaption>The main road is 7 questions at most; most businesses see 5 or 6. Dashed lines are the consistency checks, which can step in anywhere.</figcaption>
+</figure>
+
+<h2 id="questions"><small>3 · Approach</small>The questions, and why each exists</h2>
+<p>Each question maps to a step on the FSSAI 2026 workflow chart (<code>fssai_registration_flow_chart.png</code>), so an expert can check the machine against the chart.</p>
+<table>
+  <tr><th>Question</th><th>Chart step</th><th>Why it's there</th></tr>
+  <tr><td>What do you do with food?</td><td>5 · Kind of Business</td><td>Cook, make, sell/store/transport, import. Drives almost every later option. "None of these" opens the not-a-food-business branch (step 1).</td></tr>
+  <tr><td>What kind of selling?</td><td>5</td><td>A kirana shop, a wholesaler, a cold store and a transporter need different premises and documents, so "sell" is split four ways.</td></tr>
+  <tr><td>Where do you run it?</td><td>3, 4, 8</td><td>Cart, home, own premises, airport/railway/seaport, or vehicles only. Only offers what fits: no cart for a factory, no home kitchen for an importer, "vehicles only" just for transporters. A seller at home sees "From my home", not "home kitchen".</td></tr>
+  <tr><td>Municipal certificate?</td><td>3 · Deemed registration</td><td>Only for carts and stalls. A registered street vendor is deemed registered and needs nothing more.</td></tr>
+  <tr><td>How many places?</td><td>7 · Multiple premises</td><td>Each premise needs its own approval; places in several states trigger the Central Licence for the head office.</td></tr>
+  <tr><td>Which state(s)?</td><td>2</td><td>One tap for one state, several for multi-state. Needed for the form and for the multi-state rule.</td></tr>
+  <tr><td>Do you sell online?</td><td>4</td><td>Selling on Swiggy is ordinary; <i>running</i> a food marketplace makes a Central Licence mandatory.</td></tr>
+  <tr><td>Yearly sales?</td><td>6 · Turnover</td><td>Three bands: up to ₹1.5 crore, ₹1.5–50 crore, above ₹50 crore. Asked last, and only when no mandatory Central rule already applies, so importers and airport outlets never see it.</td></tr>
+</table>
+
+<h2 id="reconcile"><small>4 · Approach</small>Changing your mind without breaking anything</h2>
+<p>Users go back: they tap "change" on the summary, press undo, or type something that corrects an earlier answer. Because options depend on earlier answers, a change can make a later answer impossible. For example, someone picks "cart", then changes their activity to "make or pack", and a factory can't be a cart.</p>
+<p>After <i>every</i> change, <code>reconcile</code> walks the questions and clears any answer that the current options no longer allow. The cleared question simply becomes "unanswered" again, so it's asked next. Nothing needs special-case code; the machine heals itself. The same step upgrades old saved applications to the current fact shape when they're read, which is how existing users picked up new questions without a migration.</p>
+
+<h2 id="consistency"><small>5 · Approach</small>The consistency arm</h2>
+<p>Removing impossible options isn't enough. Some combinations are <i>possible</i> but suspicious, and typed answers can quietly contradict taps. This arm catches three kinds of divergence and asks one friendly "Just checking" question to resolve each.</p>
+<table>
+  <tr><th>Kind</th><th>Example</th><th>What happens</th></tr>
+  <tr><td><b>Implied</b></td><td>A home kitchen is one place</td><td>"How many places?" isn't asked. If "several places" arrives anyway, the user picks: "Just one place: my home kitchen" or "Change where I run it".</td></tr>
+  <tr><td><b>Unlikely</b></td><td>Home kitchen or cart selling over ₹1.5 crore; carts in several states; a cart running a food marketplace</td><td>"Is that right?" with <i>Yes</i> (remembered, never asked again) or <i>Change…</i> for each answer involved.</td></tr>
+  <tr><td><b>Contradiction</b></td><td>Tapped "restaurant", later typed "from my home kitchen"</td><td>"Earlier you said X, but that sounds like Y. Which is right?" If the text only <i>adds</i> something ("we also make pickles"), it asks "Should I add it?" instead.</td></tr>
+</table>
+<p>The check is a real question inside the machine, placed first in the list, and relevant whenever an issue is open. So the path checker walks its branches like any other, and no journey can end with an unresolved issue.</p>
+<div class="callout"><b>Principle:</b> the system never silently overwrites something the user said. It either fills a gap, or asks.</div>
+
+<h2 id="layers"><small>6 · Approach</small>Reading typed answers, in layers</h2>
+<p>Typing is always allowed ("None of these? Tell me in your own words"). A typed answer passes through up to three layers and stops at the first that can answer.</p>
+
+<figure>
+<svg viewBox="0 0 720 230" role="img" aria-label="Three layers for typed answers">
+  <defs><marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b86a3"/></marker></defs>
+  <rect class="box" x="10" y="80" width="120" height="60" rx="12"/><text x="70" y="107" text-anchor="middle" font-size="13" font-weight="700">Typed answer</text><text x="70" y="124" text-anchor="middle" class="small">"about 30k a month"</text>
+  <path d="M130,110 L168,110" stroke="#8b86a3" stroke-width="1.5" marker-end="url(#arr2)"/>
+  <rect class="q" x="170" y="20" width="160" height="180" rx="14"/>
+  <text x="250" y="48" text-anchor="middle" font-size="15" font-weight="700">1 · Rules</text>
+  <text x="250" y="72" text-anchor="middle" class="small">227 phrases (incl. Hinglish),</text>
+  <text x="250" y="87" text-anchor="middle" class="small">money and state parsers</text>
+  <text x="250" y="118" text-anchor="middle" font-size="22" font-weight="800">~60 ms</text>
+  <text x="250" y="146" text-anchor="middle" class="small">used only if every word</text>
+  <text x="250" y="161" text-anchor="middle" class="small">is understood</text>
+  <path d="M330,110 L368,110" stroke="#8b86a3" stroke-width="1.5" marker-end="url(#arr2)"/><text x="349" y="100" text-anchor="middle" class="small">miss</text>
+  <rect class="q" x="370" y="20" width="160" height="180" rx="14"/>
+  <text x="450" y="48" text-anchor="middle" font-size="15" font-weight="700">2 · Cache</text>
+  <text x="450" y="72" text-anchor="middle" class="small">earlier model answers:</text>
+  <text x="450" y="87" text-anchor="middle" class="small">same text, or same words</text>
+  <text x="450" y="102" text-anchor="middle" class="small">in any order</text>
+  <text x="450" y="132" text-anchor="middle" font-size="22" font-weight="800">~70 ms</text>
+  <text x="450" y="160" text-anchor="middle" class="small">keyed by question + options</text>
+  <path d="M530,110 L568,110" stroke="#8b86a3" stroke-width="1.5" marker-end="url(#arr2)"/><text x="549" y="100" text-anchor="middle" class="small">miss</text>
+  <rect class="warm" x="570" y="20" width="140" height="180" rx="14"/>
+  <text x="640" y="48" text-anchor="middle" font-size="15" font-weight="700">3 · Model</text>
+  <text x="640" y="72" text-anchor="middle" class="small">turns text into facts</text>
+  <text x="640" y="87" text-anchor="middle" class="small">+ an option choice</text>
+  <text x="640" y="118" text-anchor="middle" font-size="22" font-weight="800">~2 s</text>
+  <text x="640" y="146" text-anchor="middle" class="small">result saved to the</text>
+  <text x="640" y="161" text-anchor="middle" class="small">cache for next time</text>
+</svg>
+<figcaption>Each layer returns the same shape (option ids plus facts), so everything downstream (merging, consistency, reconcile) is identical whichever layer answered.</figcaption>
+</figure>
+
+<ul>
+  <li><b>Rules are cautious on purpose.</b> "bakery" or "haan" or "30k a month" are answered instantly. "Cloud kitchen in Pune, 80 lakh, Swiggy" is <i>not</i>, because the rules would only catch "cook" and lose the city, sales and online facts. Longer sentences go to the cache or the model, which read everything.</li>
+  <li><b>The cache learns from real users.</b> The second person to type a sentence gets the answer in about 70 ms instead of 2 s. Reordered wording still matches ("we sell on Swiggy, cloud kitchen, Pune…").</li>
+  <li><b>Versioned.</b> Changing the prompt or the fact schema means bumping <code>PROMPT_VERSION</code>, and older cached readings stop being used automatically.</li>
+  <li><b>The public landing chat uses layers 1 and 2 only.</b> Visitors without an account can never make the server call the model, so it can't be abused as a free LLM. Anything unknown is handed over after sign-up, where the model reads it and caches the result for everyone after.</li>
+</ul>
+
+<h2 id="proof"><small>7 · Approach</small>Checking every path</h2>
+<p><code>node scripts/check-intake.mjs</code> walks every possible tap journey, including every "Just checking" branch, in about 3 seconds. For each finished journey it verifies:</p>
+<ul>
+  <li>it ends in a verdict (a licence, deemed registration, or "not needed");</li>
+  <li>no question repeats, except through a legitimate "change" or "back";</li>
+  <li>no forbidden combination is reachable: a factory on a cart, a transporter at home, a home kitchen with several places, several states for a single-state business, and a few more;</li>
+  <li>no journey ends with an open consistency issue;</li>
+  <li>mandatory Central Licence cases never get anything smaller;</li>
+  <li>changing any still-relevant answer always leads back into a valid journey.</li>
+</ul>
+<table>
+  <tr><th>Verdict</th><th>Journeys</th></tr>
+  <tr><td>Central Licence</td><td>8,838</td></tr>
+  <tr><td>FSSAI Registration</td><td>3,690</td></tr>
+  <tr><td>State Licence</td><td>3,642</td></tr>
+  <tr><td>Deemed registered (street vendor)</td><td>1,398</td></tr>
+  <tr><td>No approval needed</td><td>6</td></tr>
+</table>
+<p>(Central dominates because it's reached by many independent routes: import, marketplaces, airports, multiple states, and large turnover. It doesn't mean most users get it.)</p>
+<div class="callout"><b>Why this matters:</b> it turned "does the flow still make sense?" from a manual click-through into a 3-second check. Every rule change since has been made with it running, and it has caught real mistakes, including a loop and a question that could never be answered.</div>
+
+<h2 id="decisions"><small>8 · Trade-offs</small>Judgement calls worth knowing about</h2>
+<p>A few rules are my reading of the chart plus common sense. They're easy to change, but an FSSAI expert should confirm them.</p>
+<ul>
+  <li><b>Airport, railway and seaport outlets</b> are offered only to businesses that cook or sell to customers, and they always get a Central Licence (chart step 4).</li>
+  <li><b>Street carts</b> are offered only for cooking or retail, never for manufacturing, wholesale, storage or import.</li>
+  <li><b>A home</b> is never offered to importers, wholesalers, stores or transporters, and always counts as one place.</li>
+  <li><b>Sales between ₹12 lakh and ₹1.5 crore</b> are one band: the 2026 rules removed the old ₹12 lakh cut-off.</li>
+  <li><b>Several places in one state</b> currently gets one application plus a note that each place needs its own approval; the app doesn't yet create one application per place.</li>
+  <li><b>Typed facts only grow lists</b> ("we also make pickles" adds, never removes). Removing something needs a tap or undo, which is harder to do by accident.</li>
+</ul>
+
+<h2 id="next"><small>9 · Future</small>What I'd improve next</h2>
+<p>Roughly in the order I'd do them. <span class="tag now">now</span> means small and valuable, <span class="tag soon">soon</span> needs a decision or some build, <span class="tag later">later</span> is worth it once there's traffic.</p>
+
+<h3>Correctness and coverage</h3>
+<div class="idea"><b>Expert review of the rule table <span class="tag now">now</span></b><span>Walk an FSSAI consultant through section 8 and the "unlikely" rules. Cheap, and it turns my judgement calls into confirmed rules.</span></div>
+<div class="idea"><b>Kinds of business the chart doesn't cover <span class="tag soon">soon</span></b><span>Exporters and merchant exporters, 100% EOUs, health supplements and other non-specified foods, and capacity thresholds for dairy, meat and oil. Each is an option or a question plus a rule; the checker will show what it breaks.</span></div>
+<div class="idea"><b>One application per premise <span class="tag soon">soon</span></b><span>Make "several places" real: a head-office Central Licence plus one application per unit, each with its own turnover and address.</span></div>
+<div class="idea"><b>State-specific differences <span class="tag later">later</span></b><span>Some states ask for extra NOCs or documents. A per-state overlay on the document rules would keep the core machine national.</span></div>
+
+<h3>Making the intelligence smarter and cheaper</h3>
+<div class="idea"><b>Let the model help write rules, offline <span class="tag now">now</span></b><span>The final fact combinations are finite. Run the model once over all of them, ask it to flag implausible ones, and review its suggestions as new consistency rules. The model's judgement is captured once, and no model call is needed at run time.</span></div>
+<div class="idea"><b>Promote the cache into rules <span class="tag soon">soon</span></b><span>Answers that keep hitting the cache ("tiffin wala", "achaar banate hain") should become lexicon phrases after a quick human look, so they need neither the cache nor the model. A small admin page listing top cache hits would make this a five-minute weekly job.</span></div>
+<div class="idea"><b>Confidence, not just yes/no <span class="tag later">later</span></b><span>Have the model return a confidence per fact. Low-confidence facts become a quick "Did you mean…?" confirmation instead of being accepted outright.</span></div>
+<div class="idea"><b>Hindi and regional languages <span class="tag later">later</span></b><span>The machine is language-free (ids and facts); only labels and the lexicon are English/Hinglish. Translating labels plus a per-language lexicon would open it to far more users without touching the rules.</span></div>
+
+<h3>Understanding users</h3>
+<div class="idea"><b>Per-question analytics <span class="tag soon">soon</span></b><span>Record which question people drop off at, how often they type instead of tap, and which layer answered. That shows which questions confuse people, and how much the cache is saving.</span></div>
+<div class="idea"><b>"Why am I being asked this?" <span class="tag later">later</span></b><span>Each question already knows why it's relevant. A small link that says "because you sell from a cart" would build trust and cut drop-off.</span></div>
+
+<h3>Engineering hygiene</h3>
+<div class="idea"><b>Rules as data <span class="tag later">later</span></b><span>The questions and consistency rules live in JavaScript today. Moving the tables (options per activity, unlikely combinations) into a JSON file would let an expert edit them with the checker as a safety net, without touching code.</span></div>
+<div class="idea"><b>Typed-answer regression set <span class="tag soon">soon</span></b><span>A list of real typed sentences with their expected facts, replayed through the rules and cache on every change. It's the typed-answer equivalent of the path checker.</span></div>
+<div class="idea"><b>Cache privacy <span class="tag soon">soon</span></b><span>The cache stores the normalised typed text. If people start typing names, phone numbers or addresses, skip caching answers that contain them.</span></div>
+
+<footer>
+  <p>FSSAI Online is a private compliance-assistance service, not affiliated with FSSAI. The rules described here reflect the FSSAI 2026 workflow chart in the repository and should be confirmed by an FSSAI expert before real users rely on them.</p>
+</footer>
+</main>
+</body>
+</html>

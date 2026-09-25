@@ -1,0 +1,8 @@
+{
+  "host": "localhost",
+  "port": 5432,
+  "database": "fssai",
+  "user": "fssai",
+  "password": "CHANGE_ME",
+  "storageDir": "storage/documents"
+}

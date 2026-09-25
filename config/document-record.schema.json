@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UserDocument",
+  "description": "API shape of a row in the documents table (PostgreSQL). Image bytes live in storageDir (config/database.json); fetch via GET /api/documents/:id/file.",
+  "type": "object",
+  "required": ["id", "userId", "docTypeId", "status", "file", "uploadedAt"],
+  "properties": {
+    "id": { "type": "string" },
+    "userId": { "type": "string" },
+    "applicationRef": { "type": ["string", "null"], "description": "Application/workflow this doc was uploaded for; null = vault only" },
+    "docTypeId": { "type": "string", "description": "Key into config/document-types.json" },
+    "status": { "enum": ["verifying", "accepted", "review", "rejected", "error"] },
+    "file": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "mime": { "type": "string" },
+        "sizeBytes": { "type": "integer" }
+      }
+    },
+    "verification": {
+      "type": ["object", "null"],
+      "properties": {
+        "model": { "type": "string" },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "detectedType": { "type": "string" },
+        "matchesExpected": { "type": "boolean" },
+        "qualityScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "question": { "type": "string" },
+              "answer": { "type": "boolean" },
+              "evidence": { "type": "string" },
+              "passed": { "type": "boolean" }
+            }
+          }
+        },
+        "extracted": { "type": "object", "additionalProperties": { "type": ["string", "null"] } },
+        "issues": { "type": "array", "items": { "type": "string" }, "description": "User-facing reasons for rejection / review" },
+        "decision": { "enum": ["accepted", "review", "rejected"] }
+      }
+    },
+    "uploadedAt": { "type": "string", "format": "date-time" }
+  }
+}

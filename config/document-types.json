@@ -1,0 +1,292 @@
+{
+  "quality": {
+    "minScore": 60,
+    "reviewBand": 10,
+    "blockingFlags": [
+      "unreadable",
+      "cropped",
+      "screenshot_of_screen",
+      "not_a_document"
+    ]
+  },
+  "types": {
+    "identity": {
+      "label": "Identity Proof",
+      "description": "Government-issued photo identity of the proprietor/director: Aadhaar card, PAN card, Passport, Voter ID or Driving Licence.",
+      "extract": [
+        "holder_name",
+        "id_type",
+        "id_number_last4",
+        "date_of_birth"
+      ],
+      "questions": [
+        {
+          "id": "govt_id",
+          "q": "Is this a government-issued identity document (Aadhaar, PAN, Passport, Voter ID or Driving Licence)?",
+          "fail": "This does not look like a government-issued ID."
+        },
+        {
+          "id": "name_visible",
+          "q": "Is the holder's full name clearly visible?",
+          "fail": "The holder's name is not clearly visible."
+        },
+        {
+          "id": "number_visible",
+          "q": "Is the document/ID number visible and readable?",
+          "fail": "The ID number is not readable."
+        },
+        {
+          "id": "all_corners",
+          "q": "Are all four edges/corners of the document inside the frame?",
+          "fail": "The document is cropped - capture all four corners."
+        }
+      ],
+      "extractHints": {
+        "holder_name": "full name exactly as printed",
+        "date_of_birth": "YYYY-MM-DD if visible"
+      }
+    },
+    "address": {
+      "label": "Address Proof",
+      "description": "Proof of business address: recent electricity/water/telephone bill, property tax receipt, or a bank statement showing the address.",
+      "extract": [
+        "holder_name",
+        "address_line",
+        "city",
+        "state",
+        "pincode",
+        "document_date",
+        "issuer"
+      ],
+      "questions": [
+        {
+          "id": "utility_or_address_doc",
+          "q": "Is this a utility bill, tax receipt, bank statement or similar document that shows a postal address?",
+          "fail": "This does not look like an address proof document."
+        },
+        {
+          "id": "address_visible",
+          "q": "Is a complete postal address clearly visible?",
+          "fail": "A complete address is not visible."
+        },
+        {
+          "id": "recent",
+          "q": "Is the document dated within the last 3 months (relative to today, {{today}})? If no date is visible answer false.",
+          "fail": "The document is older than 3 months or has no visible date.",
+          "required": false
+        }
+      ],
+      "extractHints": {
+        "address_line": "house/shop number, building, street and locality only - without city, state or PIN code",
+        "state": "Indian state or union territory name",
+        "pincode": "6-digit PIN code",
+        "document_date": "bill / issue date as YYYY-MM-DD"
+      }
+    },
+    "premise": {
+      "label": "Premise Proof",
+      "description": "Proof of right to use the premises: sale deed / ownership document, registered rent or lease agreement, or NOC from the owner.",
+      "extract": [
+        "owner_name",
+        "occupant_name",
+        "property_address",
+        "document_date"
+      ],
+      "questions": [
+        {
+          "id": "premise_doc",
+          "q": "Is this a sale deed, rent/lease agreement, ownership record or owner NOC for a property?",
+          "fail": "This does not look like an ownership, rent or NOC document."
+        },
+        {
+          "id": "property_address",
+          "q": "Is the property address stated and readable?",
+          "fail": "The property address is not readable."
+        },
+        {
+          "id": "signed",
+          "q": "Does the document appear to carry signatures or a stamp/seal?",
+          "fail": "No signature or stamp is visible.",
+          "required": false
+        }
+      ]
+    },
+    "products": {
+      "label": "Product List",
+      "description": "A list of food products to be manufactured, sold or handled by the business.",
+      "extract": [
+        "business_name",
+        "product_count"
+      ],
+      "questions": [
+        {
+          "id": "product_list",
+          "q": "Is this a list/table of food products or food categories?",
+          "fail": "This does not look like a food product list."
+        },
+        {
+          "id": "legible_list",
+          "q": "Are the product names readable?",
+          "fail": "The product names are not readable."
+        }
+      ]
+    },
+    "layout": {
+      "label": "Layout Plan",
+      "description": "A floor/layout plan of the food premises showing rooms, processing areas, storage, entry/exit and dimensions.",
+      "extract": [
+        "business_name",
+        "total_area"
+      ],
+      "questions": [
+        {
+          "id": "floor_plan",
+          "q": "Is this a floor plan or layout drawing of a building/premises?",
+          "fail": "This does not look like a premises layout plan."
+        },
+        {
+          "id": "areas_labelled",
+          "q": "Are the rooms/areas labelled (e.g. processing, storage, washing)?",
+          "fail": "Areas in the plan are not labelled."
+        },
+        {
+          "id": "dimensions",
+          "q": "Are dimensions or area measurements shown?",
+          "fail": "No dimensions are shown.",
+          "required": false
+        }
+      ]
+    },
+    "noc": {
+      "label": "NOC from Local Authority",
+      "description": "No-Objection Certificate from the municipal corporation, panchayat, fire or other local authority.",
+      "extract": [
+        "issuing_authority",
+        "applicant_name",
+        "document_date"
+      ],
+      "questions": [
+        {
+          "id": "noc_doc",
+          "q": "Is this a No-Objection Certificate or permission letter from an authority/owner?",
+          "fail": "This does not look like an NOC."
+        },
+        {
+          "id": "authority_seal",
+          "q": "Is an issuing authority name, stamp or signature visible?",
+          "fail": "No issuing authority, stamp or signature is visible."
+        }
+      ]
+    },
+    "importer-docs": {
+      "label": "Importer Documents",
+      "description": "Importer Exporter Code (IEC) certificate or import details such as bill of entry / import licence.",
+      "extract": [
+        "iec_number",
+        "firm_name",
+        "issue_date"
+      ],
+      "questions": [
+        {
+          "id": "iec_or_import",
+          "q": "Is this an IEC certificate, bill of entry, or import licence?",
+          "fail": "This does not look like an IEC or import document."
+        },
+        {
+          "id": "number_visible",
+          "q": "Is the IEC / reference number readable?",
+          "fail": "The IEC / reference number is not readable."
+        }
+      ]
+    },
+    "water-test": {
+      "label": "Water Test Report",
+      "description": "Laboratory report of potable water analysis (chemical and microbiological) for the food premises, from an accredited lab.",
+      "extract": [
+        "lab_name",
+        "sample_date",
+        "result_summary"
+      ],
+      "questions": [
+        {
+          "id": "water_report",
+          "q": "Is this a laboratory water analysis / potability test report?",
+          "fail": "This does not look like a water test report."
+        },
+        {
+          "id": "lab_identity",
+          "q": "Is the laboratory name visible?",
+          "fail": "The laboratory name is not visible."
+        },
+        {
+          "id": "recent",
+          "q": "Is the sample/report date within the last 12 months (today is {{today}})? If no date is visible answer false.",
+          "fail": "The report is older than 12 months or undated."
+        }
+      ]
+    },
+    "authority-letter": {
+      "label": "Authority Letter / Board Resolution",
+      "description": "Letter of authorisation or board resolution nominating a person to sign FSSAI applications for the company.",
+      "extract": [
+        "company_name",
+        "authorised_person",
+        "document_date"
+      ],
+      "questions": [
+        {
+          "id": "auth_letter",
+          "q": "Is this an authorisation letter or board resolution?",
+          "fail": "This does not look like an authority letter or board resolution."
+        },
+        {
+          "id": "signed",
+          "q": "Is it signed or stamped by the company?",
+          "fail": "No signature or company stamp is visible."
+        }
+      ]
+    },
+    "hracc": {
+      "label": "HRACC Certificate",
+      "description": "Hygiene Rating / HACCP-style compliance certificate for food service (HRACC / FoSTaC / audit certificate).",
+      "extract": [
+        "certificate_number",
+        "valid_until",
+        "issuer"
+      ],
+      "questions": [
+        {
+          "id": "cert",
+          "q": "Is this a hygiene/food safety compliance or training certificate (HRACC, FoSTaC, HACCP or similar)?",
+          "fail": "This does not look like an HRACC / food safety certificate."
+        },
+        {
+          "id": "valid",
+          "q": "Is a validity/issue date visible and not expired relative to today ({{today}})?",
+          "fail": "The certificate is expired or has no visible date."
+        }
+      ]
+    },
+    "transporter-proof": {
+      "label": "Turnover Proof / Vehicle Declaration",
+      "description": "Turnover proof (ITR, CA certificate) or a vehicle declaration/RC for a food transporter.",
+      "extract": [
+        "entity_name",
+        "amount_or_vehicle_no",
+        "document_date"
+      ],
+      "questions": [
+        {
+          "id": "turnover_or_vehicle",
+          "q": "Is this an ITR, CA turnover certificate, vehicle RC or vehicle declaration?",
+          "fail": "This does not look like a turnover or vehicle document."
+        },
+        {
+          "id": "readable_figures",
+          "q": "Are the key figures or vehicle number readable?",
+          "fail": "Key figures are not readable."
+        }
+      ]
+    }
+  }
+}
