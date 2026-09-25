@@ -8,7 +8,9 @@ export default function DetailsStep({ app, flow, r, docs }) {
   const { session } = useAuth()
   const [info, setInfo] = useState(() => prefillInfo(app.facts, session || {}, app.info, docs).info)
   // Documents load asynchronously; fill any remaining gaps once they arrive.
-  useEffect(() => setInfo((cur) => prefillInfo(app.facts, session || {}, cur, docs).info), [docs])
+  useEffect(() => {
+    setInfo((cur) => prefillInfo(app.facts, session || {}, cur, docs).info)
+  }, [docs])
   const suggested = prefillInfo(app.facts, session || {}, {}, docs)
   const sourceOf = (id) => (info[id] !== undefined && JSON.stringify(info[id]) === JSON.stringify(suggested.info[id]) ? suggested.sources[id] : null)
   const fields = fieldsFor(app.facts, r.e)

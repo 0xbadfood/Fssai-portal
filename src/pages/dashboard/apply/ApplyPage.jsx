@@ -26,7 +26,10 @@ export default function ApplyPage() {
   const { docs, put } = useUserDocuments()
   const { app } = flow
 
-  useEffect(() => window.scrollTo({ top: 0, behavior: 'smooth' }), [app?.step])
+  // Braces matter: an effect's return value is its cleanup, and Chrome's smooth scrollTo returns a Promise.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [app?.step])
 
   if (!app) {
     return (

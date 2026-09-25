@@ -23,7 +23,10 @@ export default function IntakeStep({ app, flow, docs }) {
     setTyping(false)
     setText('')
   }, [q?.id])
-  useEffect(() => bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }), [app.transcript.length, flow.busy])
+  // Braces matter: an effect's return value is its cleanup, and Chrome's smooth scrollIntoView returns a Promise.
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [app.transcript.length, flow.busy])
 
   if (!q) return null
 

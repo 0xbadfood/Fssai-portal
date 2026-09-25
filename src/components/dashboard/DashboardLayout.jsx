@@ -16,7 +16,9 @@ const NAV = [
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
-  useEffect(() => setSidebarOpen(false), [location.pathname])
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
 
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-violet-50/70 via-slate-50 to-slate-50">
