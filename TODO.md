@@ -68,6 +68,23 @@ Machines:
 - CLM runs locally (stop `:7001` first, since the 3090 has no room for both) or on Spark.
 - **Never use `10.8.0.5`**: it is the production document checker.
 
+## FoSCoS filing: survey done, document cross-check next
+
+Survey (2026-09-25): `~/fssai-robot/docs/FOSCOS_SURVEY.md` + `FOSCOS_SURVEY_ADDENDUM.md`.
+- **Automatable up to the human gates:** route, kind of business, Form A/B, uploads, tracking.
+- **Needs a person:**
+  - CAPTCHA: the FSM or ops operator;
+  - OTPs, Aadhaar e-Sign, the final declaration and payment: the **business owner**;
+  - authority queries: the FSM together with the owner.
+- **Filing on someone's behalf is allowed only through a certified Food Safety Mitra** (Guidance FAQ Q10). The FSM's number goes on each application, and FSM charges are capped (₹100 per registration, ₹500 per licence filing). **Decide the FSM and pricing model with the expert.**
+- **Document cross-check** (a post-check in our workflow, before the robot or an FSM files). For the chosen route, state and kinds of business, compare three lists and block filing on any gap:
+  - what we collected;
+  - what our graph requires (`graph.v2` `requires_doc`, the March 2021 order);
+  - what FoSCoS actually asks for: its public document pages (`/document-required/SL`, `/document-required/CL`, the registration list) and, when the robot reaches it, the live upload step of the application, including state-specific "other documents".
+
+  Check the live file limits (type; size 2/3/5 MB across sources, so trust the live page) at the same time.
+- A logged-in look around the dashboard, drafts and the upload step, with a person solving the CAPTCHA, can wait (test credentials in `creds`, git-ignored).
+
 ## Intake automaton & layered answers
 
 - **Bug (found in the cache-fill pilot, 2026-09-25):** `normalizeText` in `src/lib/answerRules.js` keeps only `a-z0-9`, so any answer typed in Devanagari normalises to `""`. In the pilot, 38 of 41 Hindi-script answers became an empty cache key. Such answers never hit the cache (`interpretCheap` returns null on an empty key), and after a model call they are all stored under the same empty-text key for that question. Fix: keep Unicode letters and digits (`/[^\p{L}\p{M}\p{N}.'\s]/gu`), as `~/fssai-intake-lab/loop/records.mjs` does, and bump `PROMPT_VERSION` so old keys are not reused.
