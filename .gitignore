@@ -16,3 +16,6 @@ config/mail.json
 documents/*.mp4
 
 *.log
+
+# FoSCoS test credentials (local only)
+creds
