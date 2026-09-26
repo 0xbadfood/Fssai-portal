@@ -4,29 +4,37 @@ import DocumentUploadCard from '../../../components/documents/DocumentUploadCard
 import { DOC_TYPES, isDocOk } from '../../../lib/documents.js'
 import { BigButton } from './ApplyPage.jsx'
 
-const PHOTOS = [
-  { id: 'identity', label: 'Your photo ID', why: 'Aadhaar, PAN, Voter ID, Passport or Driving Licence' },
-  { id: 'address', label: 'Electricity bill of your premises', why: 'A recent bill for the place where you run the business' },
-]
+// Every licence needs the photo ID, so it is the one photo asked for up front. A bill is optional here: it only
+// lets us read the premises address. Whether address proof is required depends on the licence, so the
+// Documents step asks for it when it is.
 const READ_LABELS = { applicant_name: 'Name', premises_address: 'Address', city: 'City', pincode: 'PIN code', state: 'State' }
 
 export default function PhotosStep({ flow, r, docs, putDoc, go }) {
   const read = r.readFromDocs
-  const done = PHOTOS.every((p) => isDocOk(docs[p.id]))
+  const done = isDocOk(docs.identity)
 
   return (
     <div className="space-y-5">
       <div className="rounded-3xl bg-pink-50 p-5 sm:p-7">
-        <h2 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">Let's start with 2 photos 📸</h2>
+        <h2 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">Let's start with a photo of your ID 📸</h2>
         <p className="mt-2 text-lg text-slate-600">
-          We read your name and address from them, so you type less later. Take a clear photo, or upload the PDF if you have one (e-Aadhaar, e-bill).
+          We read your name from it, so you type less later. Take a clear photo, or upload the PDF if you have one (e-Aadhaar).
         </p>
       </div>
 
-      <div className="space-y-3">
-        {PHOTOS.map((p) => (
-          <DocumentUploadCard key={p.id} docTypeId={p.id} label={p.label || DOC_TYPES[p.id].label} tag={p.why} doc={docs[p.id]} onSave={putDoc} />
-        ))}
+      <DocumentUploadCard docTypeId="identity" label="Your photo ID" tag="Aadhaar, PAN, Voter ID, Passport or Driving Licence" doc={docs.identity} onSave={putDoc} />
+
+      <div className="space-y-2">
+        <p className="text-base text-slate-500">
+          <b className="text-slate-700">Optional:</b> add a recent bill for your premises and we'll read the address from it too.
+        </p>
+        <DocumentUploadCard
+          docTypeId="address"
+          label={`${DOC_TYPES.address.label} (optional)`}
+          tag="Electricity, water or phone bill, or a bank statement"
+          doc={docs.address}
+          onSave={putDoc}
+        />
       </div>
 
       {Object.keys(read).length > 0 && (
@@ -50,7 +58,7 @@ export default function PhotosStep({ flow, r, docs, putDoc, go }) {
         <BigButton disabled={flow.busy} onClick={() => go('intake')} tone={done ? 'violet' : 'white'}>
           {done ? 'Continue' : 'Skip for now'} <ArrowRight size={20} />
         </BigButton>
-        {!done && <p className="text-base text-slate-500">You can add them later — we'll ask again at the Documents step.</p>}
+        {!done && <p className="text-base text-slate-500">You can add it later — we'll ask again at the Documents step.</p>}
       </div>
     </div>
   )
