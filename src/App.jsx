@@ -1,6 +1,6 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { ProtectedRoute } from './lib/auth.jsx'
+import { OpsRoute, ProtectedRoute } from './lib/auth.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
@@ -15,6 +15,9 @@ import DocumentsPage from './pages/dashboard/DocumentsPage.jsx'
 import PremisesPage from './pages/dashboard/PremisesPage.jsx'
 import SupportPage from './pages/dashboard/SupportPage.jsx'
 import PaymentsPage from './pages/dashboard/PaymentsPage.jsx'
+import OpsLayout from './pages/ops/OpsLayout.jsx'
+import OpsQueue from './pages/ops/OpsQueue.jsx'
+import OpsCasePage from './pages/ops/OpsCasePage.jsx'
 
 export default function App() {
   return (
@@ -44,6 +47,18 @@ export default function App() {
         {['licences', 'notices', 'ai-assistant'].map((p) => (
           <Route key={p} path={p} element={<Navigate to="/dashboard" replace />} />
         ))}
+      </Route>
+
+      <Route
+        path="/ops"
+        element={
+          <OpsRoute>
+            <OpsLayout />
+          </OpsRoute>
+        }
+      >
+        <Route index element={<OpsQueue />} />
+        <Route path="cases/:id" element={<OpsCasePage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

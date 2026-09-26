@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
 import Logo from '../components/Logo.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
-import { useAuth } from '../lib/auth.jsx'
+import { isOpsRole, useAuth } from '../lib/auth.jsx'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -23,7 +23,9 @@ export default function LoginPage() {
       setError(res.error)
       return
     }
-    navigate(location.state?.from || '/dashboard', { replace: true })
+    const from = location.state?.from
+    const ops = isOpsRole(res.user?.role)
+    navigate(ops ? (from?.startsWith('/ops') ? from : '/ops') : from && !from.startsWith('/ops') ? from : '/dashboard', { replace: true })
   }
 
   return (

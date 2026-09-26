@@ -3,6 +3,7 @@ import { listDocuments, readDocumentFile, uploadDocument } from './documentsServ
 import { answerSession, previewSession, rateSession, restartSession, resumeSession, undoSession } from './intake/sessions.js'
 import { createSupportRequest, listSupportRequests } from './supportService.js'
 import { currentQuote, listPayments, payApplication } from './paymentsService.js'
+import { isOps, listCases, takeCase, transferCase } from './opsService.js'
 import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
 
 const MAX_BODY = 30_000_000
@@ -127,6 +128,19 @@ async function handler(req, res, next) {
       return json(res, 200, { user: publicUser })
     }
     if (!user) return json(res, 401, { error: 'Sign in required' })
+
+    // Operations console (ops team and admin only). Ops accounts use nothing else: no applications of their own.
+    if (url.startsWith('/api/ops/')) {
+      if (!isOps(user)) return json(res, 403, { error: 'Operations team only.' })
+      if (req.method === 'GET' && url === '/api/ops/cases') return json(res, 200, await listCases(user))
+      const act = url.match(/^\/api\/ops\/cases\/([^/]+)\/(take|transfer)$/)
+      if (req.method === 'POST' && act) {
+        const body = JSON.parse((await readBody(req)) || '{}')
+        return json(res, 200, act[2] === 'take' ? await takeCase(user, act[1]) : await transferCase(user, act[1], body))
+      }
+      return json(res, 404, { error: 'Not found' })
+    }
+    if (isOps(user)) return json(res, 403, { error: 'Operations accounts use the operations console.' })
 
     const file = url.match(/^\/api\/documents\/([^/]+)\/(file|preview)$/)
     if (req.method === 'GET' && url === '/api/documents') return json(res, 200, await listDocuments(user.id))

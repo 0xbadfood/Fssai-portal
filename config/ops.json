@@ -1,0 +1,5 @@
+{
+  "note": "Operations console settings. companyMobile: the company's number, entered on FoSCoS as the secondary mobile during filing sessions (the customer's is the primary).",
+  "companyMobile": "",
+  "sessionHours": 12
+}

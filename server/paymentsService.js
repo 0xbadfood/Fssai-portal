@@ -8,6 +8,7 @@ import { ensureSchema, pool, repoRoot } from './db.js'
 import { listDocuments } from './documentsService.js'
 import { cleanFacts } from './intake/index.js'
 import { planFor } from './intake/plan.js'
+import { openCase } from './opsService.js'
 
 const httpError = (status, message) => Object.assign(new Error(message), { status })
 const METHODS = ['upi', 'card', 'netbanking']
@@ -83,6 +84,8 @@ export async function payApplication(userId, { applicationId, method, outcome })
     )
     if (status === 'paid') {
       await client.query("UPDATE applications SET status = 'ready', step = 'ready', ready_at = now(), updated_at = now() WHERE id = $1", [row.id])
+      // The paid application now appears in the operations queue.
+      await openCase(client, row.id, userId, { payment: rows[0].id, reference, amount: q.total, mode: q.mode })
     }
     await client.query('COMMIT')
     return { payment: toPayment(rows[0]) }

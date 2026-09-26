@@ -9,7 +9,7 @@ const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'ap
 const MAX_PDF_BYTES = 10 * 1024 * 1024
 const httpError = (status, message) => Object.assign(new Error(message), { status })
 
-const toRecord = (r) => ({
+export const toRecord = (r) => ({
   id: r.id,
   userId: r.user_id,
   applicationRef: r.application_ref,
@@ -17,6 +17,7 @@ const toRecord = (r) => ({
   status: r.status,
   file: { name: r.file_name, mime: r.mime, sizeBytes: r.size_bytes, pageCount: r.page_count },
   verification: r.verification,
+  pdfEncrypted: !!r.pdf_encrypted,
   uploadedAt: r.uploaded_at,
 })
 
@@ -25,6 +26,18 @@ export async function listDocuments(userId) {
   const { rows } = await pool.query('SELECT * FROM documents WHERE user_id = $1 AND superseded_at IS NULL ORDER BY uploaded_at', [userId])
   return rows.map(toRecord)
 }
+
+/** Current documents for several users (the ops queue): { userId: { docTypeId: record } }. */
+export async function documentsByUser(userIds) {
+  await ensureSchema()
+  const { rows } = await pool.query('SELECT * FROM documents WHERE user_id = ANY($1) AND superseded_at IS NULL ORDER BY uploaded_at', [userIds])
+  const out = {}
+  for (const r of rows) (out[r.user_id] ||= {})[r.doc_type_id] = toRecord(r)
+  return out
+}
+
+/** A PDF with an /Encrypt entry needs a password to open (the password itself is never stored). */
+export const isEncryptedPdf = (bytes) => bytes.includes('/Encrypt')
 
 const decodeDataUrl = (url) => ({ mime: url.slice(5, url.indexOf(';')), bytes: Buffer.from(url.slice(url.indexOf(',') + 1), 'base64') })
 
@@ -62,10 +75,10 @@ export async function uploadDocument(userId, { docTypeId, pages, original, pdfTe
     await client.query('BEGIN')
     await client.query('UPDATE documents SET superseded_at = now() WHERE user_id = $1 AND doc_type_id = $2 AND superseded_at IS NULL', [userId, docTypeId])
     const { rows } = await client.query(
-      `INSERT INTO documents (id, user_id, doc_type_id, status, file_name, mime, size_bytes, storage_path, preview_path, page_count, sha256, model, quality_score, verification)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+      `INSERT INTO documents (id, user_id, doc_type_id, status, file_name, mime, size_bytes, storage_path, preview_path, page_count, sha256, model, quality_score, verification, pdf_encrypted)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
       [id, userId, docTypeId, verification.decision, String(fileName || 'upload').slice(0, 200), stored.mime, Number(sizeBytes) || stored.bytes.length, relPath,
-        previewRel, pageCount, createHash('sha256').update(stored.bytes).digest('hex'), verification.model, verification.qualityScore, verification],
+        previewRel, pageCount, createHash('sha256').update(stored.bytes).digest('hex'), verification.model, verification.qualityScore, verification, !!pdf && isEncryptedPdf(pdf.bytes)],
     )
     await client.query('COMMIT')
     return toRecord(rows[0])

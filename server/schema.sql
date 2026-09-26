@@ -160,3 +160,50 @@ CREATE TABLE IF NOT EXISTS intake_events (
   detail          jsonb
 );
 CREATE INDEX IF NOT EXISTS intake_events_at_idx ON intake_events (at DESC);
+
+-- Roles: customers sign up on the site; ops team members and the admin are created on the CLI
+-- (scripts/ops.mjs). A deactivated account can't sign in and its sessions stop working.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'customer';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS active boolean NOT NULL DEFAULT true;
+DO $$ BEGIN
+  ALTER TABLE users ADD CONSTRAINT users_role_chk CHECK (role IN ('customer', 'ops', 'admin'));
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- A password-protected PDF is stored as uploaded (the password is never stored); ops asks for it when filing.
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS pdf_encrypted boolean NOT NULL DEFAULT false;
+
+-- Operations: one case per paid application, worked by the ops team.
+CREATE TABLE IF NOT EXISTS cases (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  application_id  uuid NOT NULL UNIQUE REFERENCES applications(id) ON DELETE CASCADE,
+  user_id         uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status          text NOT NULL DEFAULT 'new',
+  assignee_id     uuid REFERENCES users(id) ON DELETE SET NULL,
+  arn             text,              -- FoSCoS application reference number, once filed
+  licence_number  text,
+  session_at      timestamptz,       -- the filing session with the customer
+  session_link    text,
+  opened_at       timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now()
+);
+DO $$ BEGIN
+  ALTER TABLE cases ADD CONSTRAINT cases_status_chk CHECK (status IN
+    ('new', 'in_review', 'needs_customer', 'ready_to_file', 'session_scheduled', 'filed', 'with_fssai', 'granted', 'rejected'));
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+CREATE INDEX IF NOT EXISTS cases_status_idx ON cases (status, opened_at DESC);
+
+-- Everything that happens to a case, including who opened which document: the audit log and the timeline.
+CREATE TABLE IF NOT EXISTS case_events (
+  id        bigserial PRIMARY KEY,
+  case_id   uuid NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  at        timestamptz NOT NULL DEFAULT now(),
+  actor_id  uuid REFERENCES users(id) ON DELETE SET NULL,   -- null: the system or the customer
+  kind      text NOT NULL,
+  detail    jsonb
+);
+CREATE INDEX IF NOT EXISTS case_events_case_idx ON case_events (case_id, at);
+
+-- Applications paid before cases existed get one (idempotent).
+INSERT INTO cases (application_id, user_id, opened_at)
+  SELECT p.application_id, p.user_id, min(p.created_at) FROM payments p WHERE p.status = 'paid' GROUP BY p.application_id, p.user_id
+  ON CONFLICT (application_id) DO NOTHING;

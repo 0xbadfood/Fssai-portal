@@ -64,5 +64,19 @@ export function ProtectedRoute({ children }) {
   if (!session) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
+  // Operations accounts work in the console, never in a customer dashboard.
+  if (isOpsRole(session.role)) return <Navigate to="/ops" replace />
+  return children
+}
+
+export const isOpsRole = (role) => role === 'ops' || role === 'admin'
+
+/** Operations console: ops team and admin only. */
+export function OpsRoute({ children }) {
+  const { session, ready } = useAuth()
+  const location = useLocation()
+  if (!ready) return null
+  if (!session) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  if (!isOpsRole(session.role)) return <Navigate to="/dashboard" replace />
   return children
 }

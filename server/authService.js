@@ -26,7 +26,9 @@ async function verifyPassword(password, stored) {
 }
 
 let dummyHash
-const publicUser = (u) => ({ name: u.name, email: u.email, phone: u.phone, businessName: u.business_name })
+const publicUser = (u) => ({ name: u.name, email: u.email, phone: u.phone, businessName: u.business_name, role: u.role || 'customer' })
+// Ops team and admin sessions are short; customer sessions last a week.
+const OPS_SESSION_HOURS = 12
 
 // Failed-login throttle: 5 failures per 15 min per (ip, email).
 const attempts = new Map()
@@ -39,13 +41,14 @@ function throttle(key) {
 }
 const recordFailure = (key) => attempts.set(key, [...(attempts.get(key) || []), Date.now()])
 
-async function createSession(userId, userAgent) {
+async function createSession(userId, userAgent, role = 'customer') {
   const token = randomBytes(32).toString('base64url')
+  const hours = role === 'customer' ? SESSION_DAYS * 24 : OPS_SESSION_HOURS
   await pool.query(
-    "INSERT INTO sessions (token_hash, user_id, expires_at, user_agent) VALUES ($1, $2, now() + make_interval(days => $3), $4)",
-    [sha256(token), userId, SESSION_DAYS, String(userAgent || '').slice(0, 300)],
+    "INSERT INTO sessions (token_hash, user_id, expires_at, user_agent) VALUES ($1, $2, now() + make_interval(hours => $3), $4)",
+    [sha256(token), userId, hours, String(userAgent || '').slice(0, 300)],
   )
-  return { token, maxAge: SESSION_DAYS * 86400 }
+  return { token, maxAge: hours * 3600 }
 }
 
 function checkNewPassword(password) {
@@ -100,20 +103,20 @@ export async function login({ email, password }, { ip, userAgent }) {
   // Always run one hash verification so timing doesn't reveal whether the email exists.
   dummyHash ??= await hashPassword('dummy-password')
   const ok = await verifyPassword(password, user ? user.password_hash : dummyHash)
-  if (!user || !ok) {
+  if (!user || !ok || !user.active) {
     recordFailure(key)
     throw httpError(401, 'Incorrect email or password.')
   }
   attempts.delete(key)
   await pool.query('UPDATE users SET last_login_at = now() WHERE id = $1', [user.id])
-  return { user: publicUser(user), session: await createSession(user.id, userAgent) }
+  return { user: publicUser(user), session: await createSession(user.id, userAgent, user.role) }
 }
 
 export async function userFromToken(token) {
   if (!token) return null
   await ensureSchema()
   const { rows } = await pool.query(
-    'SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now()',
+    'SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > now() AND u.active',
     [sha256(token)],
   )
   return rows[0] ? { id: rows[0].id, ...publicUser(rows[0]) } : null
@@ -140,7 +143,7 @@ export async function requestPasswordReset({ email }, { ip, origin }) {
   const mail = validateEmail(email)
   limitResets(`ip|${ip}`, 10)
   limitResets(`email|${mail}`, 3)
-  const { rows } = await pool.query('SELECT id, name FROM users WHERE email = $1', [mail])
+  const { rows } = await pool.query('SELECT id, name FROM users WHERE email = $1 AND active', [mail])
   if (!rows[0]) return
   const token = randomBytes(32).toString('base64url')
   // One live link at a time: requesting a new one cancels older ones.
@@ -176,7 +179,8 @@ export async function resetPassword({ token, password }, { userAgent }) {
     await client.query('DELETE FROM sessions WHERE user_id = $1', [userId])
     await client.query('COMMIT')
     for (const k of [...attempts.keys()]) if (k.endsWith(`|${users[0].email}`)) attempts.delete(k)
-    return { user: publicUser(users[0]), session: await createSession(userId, userAgent) }
+    if (!users[0].active) throw httpError(400, 'This reset link is not valid. Ask for a new one.')
+    return { user: publicUser(users[0]), session: await createSession(userId, userAgent, users[0].role) }
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {})
     throw e
