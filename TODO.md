@@ -10,6 +10,13 @@ Verify that an uploaded document really belongs to the person/business submittin
 - Outcome: mismatch -> `review` (officer check) or `rejected`, with a user-facing reason. Make strictness configurable, and add a config switch to disable the check for testing.
 - Consider address matching for address/premise proofs, and cross-document consistency (same name across identity, address, premise).
 
+## Expert workflow (planned 2026-09-26, after the ops case page)
+
+For results the rules can't place ("An expert will place your business", expert handover): **need expert → choose a service → pay → an expert works with the customer**. The expert settles the licence and kinds of business, helps prepare what's needed, and works with ops. Once it's settled, the customer merges into the main workflow (details → documents → filing session).
+- These cases appear in the queue **marked for an expert**. The expert resolves them and redirects them to ops.
+- Likely shape: an `expert` role (CLI-created like ops), a case track (`expert` vs `filing`), expert services with prices, and a hand-off from expert to ops logged in `case_events`.
+- The expert's decisions should feed the graph (lab): answers that reached no known node are the "known unknowns" to add as new kinds of business.
+
 ## Other open items
 
 - Email verification (no 2FA for now). Password reset is done; it needs `config/mail.json` (SMTP) to actually deliver emails.
