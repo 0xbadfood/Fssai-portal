@@ -1,7 +1,7 @@
 {
   "note": "Server-side intake (graph + typed-answer layers). Typed answers: reviewed records -> CLM (when confident) -> the 10.8.0.5 model (signed-in only) -> clarifying taps. The silent reviewer (Spark) only logs.",
-  "graph": "graph.v2.json",
-  "records": "records.v2.jsonl",
+  "graph": "graph.v3.json",
+  "records": "records.v3.jsonl",
   "textSteps": ["activity", "service", "manufacture", "trade", "export", "place", "online"],
   "parsedSteps": ["state", "turnover"],
   "clm": { "url": "http://127.0.0.1:8700", "model": "fssai-v-hard", "threshold": 0.8, "timeoutMs": 4000 },

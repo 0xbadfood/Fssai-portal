@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Check, Keyboard, Send, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, Keyboard, Send, Sparkles } from 'lucide-react'
 import { useAuth } from '../../../lib/auth.jsx'
+import { nextPage, visibleOptions } from '../../../lib/intakePages.js'
 import { BigButton, CARD_TONES } from './ApplyPage.jsx'
 import ChatControls from './ChatControls.jsx'
 
@@ -15,6 +16,7 @@ export default function IntakeStep({ app, flow }) {
   const [typing, setTyping] = useState(false)
   const [text, setText] = useState('')
   const [allStates, setAllStates] = useState(false)
+  const [shown, setShown] = useState(1)
   const bottom = useRef(null)
   const suggested = q?.states?.suggested || null
 
@@ -22,6 +24,7 @@ export default function IntakeStep({ app, flow }) {
     setPicked(q?.kind === 'states' && suggested ? [suggested] : [])
     setTyping(false)
     setText('')
+    setShown(1)
   }, [q?.id, q?.title])
   // Braces matter: an effect's return value is its cleanup, and Chrome's smooth scrollIntoView returns a Promise.
   useEffect(() => {
@@ -34,7 +37,8 @@ export default function IntakeStep({ app, flow }) {
   const multi = q.multi
   // After a typed answer we could not read, the best guesses come first.
   const guesses = clarify?.questionId === q.id ? clarify.guesses : []
-  const options = [...guesses.map((id) => q.options.find((o) => o.id === id)).filter(Boolean), ...q.options.filter((o) => !guesses.includes(o.id))]
+  const options = visibleOptions(q, shown, guesses)
+  const more = nextPage(q, shown)
   const exclusive = (id) => options.find((o) => o.id === id)?.exclusive
   const toggle = (id) =>
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : exclusive(id) ? [id] : [...p.filter((x) => !exclusive(x)), id]))
@@ -137,6 +141,15 @@ export default function IntakeStep({ app, flow }) {
               )
             })}
           </div>
+        )}
+
+        {more && (
+          <button
+            onClick={() => setShown(more.page)}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-violet-200 bg-violet-50/40 px-4 py-3.5 text-base font-bold text-violet-700 transition hover:border-violet-400 hover:bg-violet-50"
+          >
+            <ChevronDown size={20} /> {more.label}
+          </button>
         )}
 
         {multi && (

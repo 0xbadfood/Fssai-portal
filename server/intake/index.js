@@ -10,6 +10,11 @@ export const CONFIG = JSON.parse(readFileSync(path.join(repoRoot, 'config/intake
 export const graph = loadGraph(path.join(repoRoot, 'config/intake', CONFIG.graph))
 export const E = createEngine(graph)
 export const GRAPH_VERSION = graph.version
+/**
+ * Versions whose answers are still valid under this graph (same questions, options and facts; e.g. v3 only
+ * pages long lists). Their applications and landing sessions carry on; any other version starts the intake again.
+ */
+export const isCompatible = (version) => version === GRAPH_VERSION || (graph.compatibleWith || []).includes(version)
 
 const TEXT_STEPS = new Set(CONFIG.textSteps)
 const PARSED_STEPS = new Set(CONFIG.parsedSteps)

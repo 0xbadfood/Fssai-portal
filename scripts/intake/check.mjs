@@ -3,7 +3,7 @@
 //   1. the graph validates (conditions, concepts, licence rules, bands, documents)
 //   2. every scenario case in scripts/intake/cases.v<N>.json passes
 //   3. every tap path ends in a sensible verdict and the graph's invariants hold (skip with --quick)
-// Usage: node scripts/intake/check.mjs [--quick] [--graph config/intake/graph.v2.json]
+// Usage: node scripts/intake/check.mjs [--quick] [--graph config/intake/graph.vN.json]   (default: the one in config/intake/intake.json)
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { createEngine, loadGraph, validateGraph } from '../../server/intake/engine/index.js'
@@ -12,7 +12,8 @@ import { walkAll } from './walk.js'
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..')
 const args = process.argv.slice(2)
-const graphFile = path.resolve(root, args[args.indexOf('--graph') + 1] && args.includes('--graph') ? args[args.indexOf('--graph') + 1] : 'config/intake/graph.v2.json')
+const configured = `config/intake/${JSON.parse(readFileSync(path.join(root, 'config/intake/intake.json'), 'utf8')).graph}`
+const graphFile = path.resolve(root, args.includes('--graph') ? args[args.indexOf('--graph') + 1] : configured)
 const graph = loadGraph(graphFile)
 let bad = 0
 

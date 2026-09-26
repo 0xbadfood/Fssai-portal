@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Check, RotateCcw, Send, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, RotateCcw, Send, Sparkles } from 'lucide-react'
 import { landingSession, saveLandingSession } from '../../lib/landingHandoff.js'
+import { nextPage, visibleOptions } from '../../lib/intakePages.js'
 
 const GREETING = "Namaste! 👋 I'm your FSSAI assistant. Tap a few answers and I'll tell you exactly which licence your food business needs."
 const THINK_MS = 650
@@ -25,8 +26,10 @@ export default function LandingChat() {
   const [error, setError] = useState('')
   const [picked, setPicked] = useState([])
   const [allStates, setAllStates] = useState(false)
+  const [shown, setShown] = useState(1)
   const [text, setText] = useState('')
   const scroller = useRef(null)
+  const questionEl = useRef(null)
 
   useEffect(() => {
     const id = landingSession()
@@ -39,14 +42,19 @@ export default function LandingChat() {
   const result = view?.result || null
   const log = view?.transcript || []
 
+  // Braces matter: an effect's return value is its cleanup, and Chrome's smooth scrollTo returns a Promise.
+  // A new question scrolls to its top (its answers can be taller than the chat); anything else to the bottom.
   useEffect(() => {
     const el = scroller.current
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    if (!el) return
+    const top = !thinking && questionEl.current ? questionEl.current.offsetTop - 12 : el.scrollHeight
+    el.scrollTo({ top, behavior: 'smooth' })
   }, [log.length, thinking, q?.id, !!result])
 
   useEffect(() => {
     setPicked(q?.kind === 'states' && q.states?.suggested ? [q.states.suggested] : [])
     setAllStates(false)
+    setShown(1)
   }, [q?.id, q?.title])
 
   async function send(action, body, shown) {
@@ -83,7 +91,8 @@ export default function LandingChat() {
 
   const multi = !!q?.multi
   const guesses = q && view.clarify?.questionId === q.id ? view.clarify.guesses : []
-  const options = q ? [...guesses.map((id) => q.options.find((o) => o.id === id)).filter(Boolean), ...q.options.filter((o) => !guesses.includes(o.id))] : []
+  const options = visibleOptions(q, shown, guesses)
+  const more = nextPage(q, shown)
   const exclusive = (id) => options.find((o) => o.id === id)?.exclusive
   const toggle = (id) =>
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : exclusive(id) ? [id] : [...p.filter((x) => !exclusive(x)), id]))
@@ -109,7 +118,7 @@ export default function LandingChat() {
         )}
       </div>
 
-      <div ref={scroller} className="h-[430px] space-y-3 overflow-y-auto bg-gradient-to-b from-violet-50/60 to-white px-4 py-5 sm:px-5">
+      <div ref={scroller} className="relative h-[520px] space-y-3 overflow-y-auto bg-gradient-to-b from-violet-50/60 to-white px-4 py-5 sm:px-5">
         <Bot>{GREETING}</Bot>
         {log.map((m, i) => (
           <React.Fragment key={i}>
@@ -129,32 +138,38 @@ export default function LandingChat() {
             </span>
           </Bot>
         ) : q ? (
-          <div className="space-y-2.5">
+          <div ref={questionEl} className="space-y-2.5">
             <Bot>
               <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-wide text-violet-500">{q.check ? 'Just checking' : `Question ${q.number}`}</span>
               <span className="font-semibold text-slate-900">{q.title}</span>
               {q.hint && <span className="mt-0.5 block text-xs text-slate-500">{q.hint}</span>}
             </Bot>
-            <div className="flex flex-wrap gap-2 pl-10">
-              {q.kind === 'states'
-                ? stateList.map((s) => <Chip key={s} on={picked.includes(s)} onClick={() => (multi ? toggle(s) : pickStates([s]))} label={s} />)
-                : options.map((o) => (
-                    <Chip
-                      key={o.id}
-                      on={picked.includes(o.id)}
-                      guess={guesses.includes(o.id)}
-                      emoji={o.emoji}
-                      label={o.label}
-                      title={o.example}
-                      onClick={() => (multi ? toggle(o.id) : tap([o.id]))}
-                    />
-                  ))}
-              {q.kind === 'states' && !allStates && (
-                <button onClick={() => setAllStates(true)} className="px-2 text-xs font-semibold text-violet-600 hover:underline">
-                  More states…
-                </button>
-              )}
-            </div>
+            {q.kind === 'states' ? (
+              <div className="flex flex-wrap gap-2 pl-10">
+                {stateList.map((s) => (
+                  <Chip key={s} on={picked.includes(s)} onClick={() => (multi ? toggle(s) : pickStates([s]))} label={s} />
+                ))}
+                {!allStates && (
+                  <button onClick={() => setAllStates(true)} className="px-2 text-sm font-semibold text-violet-600 hover:underline">
+                    More states…
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-2 pl-10 sm:grid-cols-2">
+                {options.map((o) => (
+                  <Answer key={o.id} option={o} on={picked.includes(o.id)} guess={guesses.includes(o.id)} onClick={() => (multi ? toggle(o.id) : tap([o.id]))} />
+                ))}
+                {more && (
+                  <button
+                    onClick={() => setShown(more.page)}
+                    className="flex items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-violet-200 px-3 py-3 text-sm font-bold text-violet-700 transition hover:border-violet-400 hover:bg-violet-50 sm:col-span-2"
+                  >
+                    <ChevronDown size={16} /> {more.label}
+                  </button>
+                )}
+              </div>
+            )}
             {multi && (
               <div className="pl-10">
                 <button
@@ -309,12 +324,35 @@ function User({ children }) {
   )
 }
 
+/** One answer: emoji, label and example, big enough to tap comfortably on a phone. */
+function Answer({ option: o, on, guess, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative flex items-start gap-3 rounded-2xl border-2 px-3.5 py-3 text-left transition active:scale-[0.98] ${
+        on ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-200' : guess ? 'border-violet-300 bg-violet-50/60' : 'border-violet-100 bg-white hover:border-violet-300 hover:bg-violet-50/50'
+      }`}
+    >
+      {o.emoji && <span className="text-2xl leading-none">{o.emoji}</span>}
+      <span className="min-w-0">
+        <span className="block text-[15px] font-bold leading-snug text-slate-900">{o.label}</span>
+        {o.example && <span className="mt-0.5 block text-xs leading-snug text-slate-500">{o.example}</span>}
+      </span>
+      {on && (
+        <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-white">
+          <Check size={12} />
+        </span>
+      )}
+    </button>
+  )
+}
+
 function Chip({ on, guess, emoji, label, title, onClick }) {
   return (
     <button
       onClick={onClick}
       title={title}
-      className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-sm font-semibold transition active:scale-95 ${
+      className={`inline-flex items-center gap-1.5 rounded-full border-2 px-4 py-2.5 text-[15px] font-semibold transition active:scale-95 ${
         on ? 'border-violet-500 bg-violet-600 text-white' : guess ? 'border-violet-300 bg-violet-50 text-slate-700' : 'border-violet-100 bg-white text-slate-700 hover:border-violet-300 hover:bg-violet-50'
       }`}
     >

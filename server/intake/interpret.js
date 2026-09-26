@@ -80,7 +80,9 @@ Reply as JSON: {"choice": ["<option id>", ...], "confidence": "high|medium|low"}
 
 // The cache key covers everything the prompt shows except the context line, which only helps the model and
 // is left out of the key on purpose: the same text for the same options means the same thing for anyone.
-const sigFor = (view) => `g${graph.version}:${view.options.map((o) => o.id).join(',')}${view.multi ? '|multi' : ''}`
+// Compatible versions mean the same by the same option ids, so they share cached answers.
+const SIG_VERSION = Math.min(graph.version, ...(graph.compatibleWith || []))
+const sigFor = (view) => `g${SIG_VERSION}:${[...view.options.map((o) => o.id)].sort().join(',')}${view.multi ? '|multi' : ''}`
 const keyFor = (q, sig, norm) => createHash('sha256').update([q.id, sig, norm].join('\n')).digest('hex')
 
 async function fromModel(q, view, text) {

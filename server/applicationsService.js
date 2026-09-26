@@ -2,7 +2,7 @@
 // the current question, summary rows, the result and the plan (details, documents, readiness, form).
 import { ensureSchema, pool } from './db.js'
 import { listDocuments } from './documentsService.js'
-import { GRAPH_VERSION, E, cleanFacts, intakeView } from './intake/index.js'
+import { GRAPH_VERSION, E, cleanFacts, intakeView, isCompatible } from './intake/index.js'
 import { applyAnswer, openClarify, publicTranscript, reaskFacts, undoFacts } from './intake/answer.js'
 import { FIELDS, planFor } from './intake/plan.js'
 import { claimSession } from './intake/sessions.js'
@@ -41,11 +41,15 @@ async function load(userId, id) {
 }
 
 /**
- * An unfinished application answered under another graph version starts its intake again on this one
- * (details and documents stay). A finished one keeps its answers.
+ * An unfinished application answered under an incompatible graph version starts its intake again on this one
+ * (details and documents stay); one from a compatible version is only re-stamped. A finished one keeps its answers.
  */
 async function upgrade(row) {
   if (row.graph_version === GRAPH_VERSION || row.status === 'ready') return row
+  if (isCompatible(row.graph_version)) {
+    const { rows } = await pool.query('UPDATE applications SET graph_version = $2 WHERE id = $1 RETURNING *', [row.id, GRAPH_VERSION])
+    return rows[0]
+  }
   const { rows } = await pool.query(
     `UPDATE applications SET facts = '{}', transcript = '[]', graph_version = $2,
        step = CASE WHEN step = 'photos' THEN 'photos' ELSE 'intake' END, updated_at = now() WHERE id = $1 RETURNING *`,

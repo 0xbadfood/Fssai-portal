@@ -3,7 +3,7 @@
 // Typed answers use records and CLM only (allowModel: false), so this public endpoint cannot run the model.
 import { randomBytes } from 'node:crypto'
 import { ensureSchema, pool } from '../db.js'
-import { GRAPH_VERSION, cleanFacts, intakeView } from './index.js'
+import { GRAPH_VERSION, cleanFacts, graph, intakeView, isCompatible } from './index.js'
 import { applyAnswer, openClarify, publicTranscript, undoFacts } from './answer.js'
 import { logEvent } from './events.js'
 
@@ -20,8 +20,8 @@ async function load(id) {
   await ensureSchema()
   if (typeof id !== 'string' || !/^[0-9a-f]{32}$/.test(id)) throw httpError(404, 'Session not found')
   const { rows } = await pool.query('SELECT * FROM intake_sessions WHERE id = $1 AND claimed_by IS NULL', [id])
-  // A session from an older graph version cannot be resumed; the chat starts again.
-  if (!rows[0] || rows[0].graph_version !== GRAPH_VERSION) throw httpError(404, 'Session not found')
+  // A session from an incompatible graph version cannot be resumed; the chat starts again.
+  if (!rows[0] || !isCompatible(rows[0].graph_version)) throw httpError(404, 'Session not found')
   return rows[0]
 }
 
@@ -79,8 +79,8 @@ export async function claimSession(id, userId) {
   await ensureSchema()
   const { rows } = await pool.query(
     `UPDATE intake_sessions SET claimed_by = $2, claimed_at = now()
-       WHERE id = $1 AND claimed_by IS NULL AND graph_version = $3 AND updated_at > now() - interval '7 days' RETURNING facts, transcript`,
-    [id, userId, GRAPH_VERSION],
+       WHERE id = $1 AND claimed_by IS NULL AND graph_version = ANY($3) AND updated_at > now() - interval '7 days' RETURNING facts, transcript`,
+    [id, userId, [GRAPH_VERSION, ...(graph.compatibleWith || [])]],
   )
   return rows[0] ? { facts: cleanFacts(rows[0].facts), transcript: rows[0].transcript } : null
 }
