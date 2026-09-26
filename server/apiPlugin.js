@@ -1,15 +1,15 @@
 import { COOKIE, login, logout, requestPasswordReset, resetPassword, signup, userFromToken } from './authService.js'
 import { listDocuments, readDocumentFile, uploadDocument } from './documentsService.js'
-import { interpretPublic } from './intakeInterpreter.js'
+import { answerSession, rateSession, restartSession, resumeSession, startSession, undoSession } from './intake/sessions.js'
 import { createSupportRequest, listSupportRequests } from './supportService.js'
 import { currentQuote, listPayments, payApplication } from './paymentsService.js'
-import { answerQuestion, createApplication, currentApplication, markReady, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
+import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
 
 const MAX_BODY = 30_000_000
 // The portal's public address (matches preview.allowedHosts in vite.config.js); used in emailed links.
 const PUBLIC_ORIGIN = 'https://fssai.photovault.live'
 
-// Per-IP budget for the public interpret endpoint: 30 requests per minute.
+// Per-IP budget for the public intake chat (one request per answer): 60 requests per minute.
 const interpretHits = new Map()
 function allowInterpret(ip) {
   const now = Date.now()
@@ -17,7 +17,7 @@ function allowInterpret(ip) {
   recent.push(now)
   interpretHits.set(ip, recent)
   if (interpretHits.size > 5000) interpretHits.clear()
-  return recent.length <= 30
+  return recent.length <= 60
 }
 
 function readBody(req) {
@@ -86,10 +86,23 @@ async function handler(req, res, next) {
       setSessionCookie(req, res, session.token, session.maxAge)
       return json(res, 200, { user })
     }
-    if (req.method === 'POST' && url === '/api/intake/interpret') {
-      // Public (landing-page chat): rules + cache only, never the model, so it is cheap and cannot be used to run the LLM.
-      if (!allowInterpret(ctx.ip)) return json(res, 429, { error: 'Too many requests' })
-      return json(res, 200, await interpretPublic(JSON.parse((await readBody(req)) || '{}')))
+    const intake = url.match(/^\/api\/intake\/(start|resume|answer|undo|restart|rate)$/)
+    if (req.method === 'POST' && intake) {
+      // Public landing-page chat. The conversation lives on the server; typed answers use records and CLM only,
+      // never the model, so this endpoint cannot be used to run the LLM.
+      if (!allowInterpret(ctx.ip)) return json(res, 429, { error: 'Too many requests. Wait a minute and try again.' })
+      const body = JSON.parse((await readBody(req)) || '{}')
+      const action = intake[1]
+      return json(
+        res,
+        200,
+        action === 'start' ? await startSession(ctx)
+        : action === 'resume' ? await resumeSession(body.session)
+        : action === 'answer' ? await answerSession(body.session, body)
+        : action === 'undo' ? await undoSession(body.session)
+        : action === 'restart' ? await restartSession(body.session)
+        : await rateSession(body.session, body),
+      )
     }
     if (req.method === 'POST' && url === '/api/auth/forgot') {
       // Never build the emailed link from a client-supplied host (reset-link poisoning).
@@ -134,21 +147,22 @@ async function handler(req, res, next) {
     if (req.method === 'POST' && url === '/api/support') {
       return json(res, 200, { request: await createSupportRequest(user.id, JSON.parse((await readBody(req)) || '{}')) })
     }
-    if (req.method === 'GET' && url === '/api/applications/current') return json(res, 200, { application: await currentApplication(user.id) })
+    if (req.method === 'GET' && url === '/api/applications/current') return json(res, 200, { application: await currentApplication(user) })
     if (req.method === 'POST' && url === '/api/applications') {
-      return json(res, 200, { application: await createApplication(user.id, JSON.parse((await readBody(req)) || '{}')) })
+      return json(res, 200, { application: await createApplication(user, JSON.parse((await readBody(req)) || '{}')) })
     }
-    const app = url.match(/^\/api\/applications\/([^/]+)\/(answer|reask|update|ready|undo|restart)$/)
+    const app = url.match(/^\/api\/applications\/([^/]+)\/(answer|reask|update|ready|undo|restart|rate)$/)
     if (req.method === 'POST' && app) {
       const [, id, action] = app
       const body = JSON.parse((await readBody(req)) || '{}')
+      if (action === 'rate') return json(res, 200, await rateResult(user, id, body))
       const application =
-        action === 'answer' ? await answerQuestion(user.id, id, body)
-        : action === 'reask' ? await reask(user.id, id, body.questionId)
-        : action === 'update' ? await updateApplication(user.id, id, body)
-        : action === 'undo' ? await undoLastAnswer(user.id, id)
-        : action === 'restart' ? await restartIntake(user.id, id)
-        : await markReady(user.id, id)
+        action === 'answer' ? await answerQuestion(user, id, body)
+        : action === 'reask' ? await reask(user, id, body.questionId)
+        : action === 'update' ? await updateApplication(user, id, body)
+        : action === 'undo' ? await undoLastAnswer(user, id)
+        : action === 'restart' ? await restartIntake(user, id)
+        : await markReady(user, id)
       return json(res, 200, { application })
     }
     json(res, 404, { error: 'Not found' })

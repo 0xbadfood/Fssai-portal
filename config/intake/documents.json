@@ -1,0 +1,19 @@
+{
+  "note": "Graph v2 documents (FoSCoS list, March 2021 order) -> the portal's upload types (config/document-types.json). Documents with no upload type are prepared with the applicant on the filing call (mostly declarations on letterhead). An entry may map to several upload types.",
+  "upload": {
+    "reg_photo_id": [{ "type": "identity" }],
+    "reg_address_proof": [{ "type": "address", "optional": true, "why": "Proof of address of the business premises, if different from your photo ID" }],
+    "photo_id_signatory": [{ "type": "identity" }, { "type": "address", "why": "Address proof of the proprietor / partners / directors / authorised signatory" }],
+    "premises_proof": [{ "type": "premise" }],
+    "layout_plan": [{ "type": "layout" }],
+    "water_report": [{ "type": "water-test" }],
+    "iec": [{ "type": "importer-docs" }],
+    "municipal_noc": [{ "type": "noc" }],
+    "vehicle_list": [{ "type": "transporter-proof" }]
+  },
+  "filingCall": [
+    "reg_photo", "directors_list", "constitution", "form_ix", "unit_photos", "equipment_list", "recall_plan",
+    "export_declaration", "eou_certificate", "milk_source_plan", "raw_material_source", "manufacturer_noc",
+    "product_specification", "composition", "product_approval", "pesticide_report"
+  ]
+}

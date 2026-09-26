@@ -128,3 +128,35 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 CREATE INDEX IF NOT EXISTS payments_user_idx ON payments (user_id, created_at DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS payments_one_paid_uq ON payments (application_id, purpose) WHERE status = 'paid';
+
+-- Intake graph version an application was answered under (config/intake/graph.v<N>.json). An application from
+-- an older version starts its intake again on the current one.
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS graph_version integer;
+
+-- Landing-page intake chat before sign-up. The id is a random token held by the browser; the first
+-- application after sign-up takes over the answers (claimed_by), so nothing is asked twice.
+CREATE TABLE IF NOT EXISTS intake_sessions (
+  id             text PRIMARY KEY,
+  facts          jsonb NOT NULL DEFAULT '{}',
+  transcript     jsonb NOT NULL DEFAULT '[]',
+  graph_version  integer NOT NULL,
+  ip             text,
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  updated_at     timestamptz NOT NULL DEFAULT now(),
+  claimed_by     uuid REFERENCES users(id) ON DELETE SET NULL,
+  claimed_at     timestamptz
+);
+
+-- Review log for the intake: typed answers and how they were read, the silent reviewer's answers,
+-- "Is this right?" ratings, errors. Text is redacted (phone, email, Aadhaar, PAN) before it is stored.
+CREATE TABLE IF NOT EXISTS intake_events (
+  id              bigserial PRIMARY KEY,
+  at              timestamptz NOT NULL DEFAULT now(),
+  kind            text NOT NULL,
+  application_id  uuid,
+  session_id      text,
+  step            text,
+  text            text,
+  detail          jsonb
+);
+CREATE INDEX IF NOT EXISTS intake_events_at_idx ON intake_events (at DESC);

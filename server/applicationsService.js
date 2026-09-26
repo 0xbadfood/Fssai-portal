@@ -1,36 +1,56 @@
+// Guided applications. The intake runs here on the graph (server/intake); the browser gets the rendered view:
+// the current question, summary rows, the result and the plan (details, documents, readiness, form).
 import { ensureSchema, pool } from './db.js'
 import { listDocuments } from './documentsService.js'
-import { QUESTIONS, applyTap, clearQuestion, divergences, mergeInterpretation, nextQuestion, reconcile, sanitizeFacts, titleFor } from '../src/lib/intakeQuestions.js'
-import { interpretAnswer } from './intakeInterpreter.js'
-import { FIELDS, readiness } from '../src/lib/applicationPlan.js'
+import { GRAPH_VERSION, E, cleanFacts, intakeView } from './intake/index.js'
+import { applyAnswer, openClarify, publicTranscript, reaskFacts, undoFacts } from './intake/answer.js'
+import { FIELDS, planFor } from './intake/plan.js'
+import { claimSession } from './intake/sessions.js'
+import { logEvent } from './intake/events.js'
 
 const STEPS = ['photos', 'intake', 'summary', 'details', 'documents', 'forms', 'ready']
 const httpError = (status, message) => Object.assign(new Error(message), { status })
+const byType = async (userId) => Object.fromEntries((await listDocuments(userId)).map((d) => [d.docTypeId, d]))
 
-const toApp = (r) => {
-  const facts = currentFacts(r)
+/** The application as the browser sees it. */
+function toClient(row, docsByType, user) {
+  const facts = cleanFacts(row.facts)
+  const plan = planFor(facts, row.info, docsByType, user)
   // A new intake question (or a reconciled answer) sends an unfinished application back to the intake.
-  const step = r.status !== 'ready' && !['photos', 'intake'].includes(r.step) && nextQuestion(facts) ? 'intake' : r.step
-  return { ...rowToApp(r), step, facts }
+  const step = row.status !== 'ready' && !['photos', 'intake'].includes(row.step) && E.nextQuestion(facts) ? 'intake' : row.step
+  return {
+    id: row.id,
+    status: row.status,
+    step,
+    info: row.info,
+    transcript: publicTranscript(row.transcript),
+    intake: { ...intakeView(facts, { suggestState: plan.readFromDocs.state?.value }), clarify: openClarify(facts, row.transcript) },
+    plan,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    readyAt: row.ready_at,
+  }
 }
-
-const rowToApp = (r) => ({
-  id: r.id,
-  status: r.status,
-  step: r.step,
-  facts: r.facts,
-  info: r.info,
-  transcript: r.transcript,
-  createdAt: r.created_at,
-  updatedAt: r.updated_at,
-  readyAt: r.ready_at,
-})
 
 async function load(userId, id) {
   await ensureSchema()
   if (!/^[0-9a-f-]{36}$/.test(id)) throw httpError(404, 'Application not found')
   const { rows } = await pool.query('SELECT * FROM applications WHERE id = $1 AND user_id = $2', [id, userId])
   if (!rows[0]) throw httpError(404, 'Application not found')
+  return upgrade(rows[0])
+}
+
+/**
+ * An unfinished application answered under another graph version starts its intake again on this one
+ * (details and documents stay). A finished one keeps its answers.
+ */
+async function upgrade(row) {
+  if (row.graph_version === GRAPH_VERSION || row.status === 'ready') return row
+  const { rows } = await pool.query(
+    `UPDATE applications SET facts = '{}', transcript = '[]', graph_version = $2,
+       step = CASE WHEN step = 'photos' THEN 'photos' ELSE 'intake' END, updated_at = now() WHERE id = $1 RETURNING *`,
+    [row.id, GRAPH_VERSION],
+  )
   return rows[0]
 }
 
@@ -39,96 +59,56 @@ async function save(id, { facts, info, transcript, step, status }) {
     `UPDATE applications SET facts = COALESCE($2, facts), info = COALESCE($3, info), transcript = COALESCE($4, transcript),
        step = COALESCE($5, step), status = COALESCE($6, status), ready_at = CASE WHEN $6 = 'ready' THEN now() ELSE ready_at END,
        updated_at = now() WHERE id = $1 RETURNING *`,
-    [id, facts && JSON.stringify(facts), info && JSON.stringify(info), transcript && JSON.stringify(transcript), step ?? null, status ?? null],
+    [id, facts && JSON.stringify(facts), info && JSON.stringify(info), transcript && JSON.stringify(transcript.slice(-60)), step ?? null, status ?? null],
   )
-  return toApp(rows[0])
+  return rows[0]
 }
 
-// Older records used a different fact shape; sanitize + reconcile brings them up to date on read.
-const currentFacts = (r) => reconcile(sanitizeFacts(r.facts))
+const respond = async (row, user) => toClient(row, await byType(user.id), user)
+const stepAfterIntake = (facts) => (E.nextQuestion(facts) ? 'intake' : 'summary')
 
-const stepAfterIntake = (facts) => (nextQuestion(facts) ? 'intake' : 'summary')
-
-export async function currentApplication(userId) {
+export async function currentApplication(user) {
   await ensureSchema()
-  const { rows } = await pool.query('SELECT * FROM applications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1', [userId])
-  return rows[0] ? toApp(rows[0]) : null
+  const { rows } = await pool.query('SELECT * FROM applications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1', [user.id])
+  return rows[0] ? respond(await upgrade(rows[0]), user) : null
 }
 
-/** New application; `answers` are intake answers given on the landing page before sign-up, replayed like normal answers. */
-export async function createApplication(userId, { answers } = {}) {
+/** New application. intakeSession: the landing-page chat's session id; its answers carry over. */
+export async function createApplication(user, { intakeSession } = {}) {
   await ensureSchema()
-  const { rows } = await pool.query("INSERT INTO applications (user_id, step) VALUES ($1, 'photos') RETURNING *", [userId])
-  const id = rows[0].id
-  let replayed = false
-  for (const a of (Array.isArray(answers) ? answers : []).slice(0, QUESTIONS.length)) {
-    try {
-      await answerQuestion(userId, id, a || {})
-      replayed = true
-    } catch (e) {
-      console.warn('[applications] skipped landing answer:', e.message)
-    }
-  }
-  return replayed ? save(id, { step: 'photos' }) : toApp(rows[0])
+  const carried = intakeSession ? await claimSession(intakeSession, user.id) : null
+  const { rows } = await pool.query(
+    "INSERT INTO applications (user_id, step, graph_version, facts, transcript) VALUES ($1, 'photos', $2, $3, $4) RETURNING *",
+    [user.id, GRAPH_VERSION, JSON.stringify(carried?.facts || {}), JSON.stringify(carried?.transcript || [])],
+  )
+  return respond(rows[0], user)
 }
 
-export async function answerQuestion(userId, id, { questionId, optionIds, states, text }) {
-  const row = await load(userId, id)
+export async function answerQuestion(user, id, answer) {
+  const row = await load(user.id, id)
   if (row.status === 'ready') throw httpError(409, 'This application is already complete.')
-  const question = QUESTIONS.find((q) => q.id === questionId)
-  if (!question) throw httpError(400, 'Unknown question')
-  const before = currentFacts(row)
-  let facts
-  let entry
-
-  if (typeof text === 'string' && text.trim()) {
-    const clean = text.trim().slice(0, 1000)
-    const r = await interpretAnswer(before, question, clean)
-    facts = mergeInterpretation(before, question, r, clean)
-    const understood = JSON.stringify(facts) !== JSON.stringify({ ...before, description: facts.description })
-    // Don't confirm as fact something that disagrees with an earlier answer; the check question comes next.
-    const flagged = divergences(facts).some((d) => !divergences(before).some((b) => b.id === d.id))
-    entry = {
-      questionId, via: 'text', layer: r.layer, answer: clean,
-      reply: !understood
-        ? "Sorry, I couldn't work that out — could you tap one of the options instead?"
-        : flagged ? "Thanks! One thing doesn't quite match what you told me before, so let me check." : r.reply || 'Got it!',
-    }
-  } else {
-    try {
-      const r = applyTap(before, question, { optionIds, states })
-      facts = r.facts
-      entry = { questionId, via: 'tap', answer: r.answer }
-    } catch (e) {
-      throw httpError(400, e.message)
-    }
-  }
-  const transcript = [...row.transcript, { ...entry, question: titleFor(question, before), before, at: new Date().toISOString() }].slice(-60)
-  return save(id, { facts, transcript, step: stepAfterIntake(facts) })
+  const { facts, entry } = await applyAnswer(cleanFacts(row.facts), answer || {}, { allowModel: true, ref: { applicationId: id } })
+  return respond(await save(id, { facts, transcript: [...row.transcript, entry], step: stepAfterIntake(facts) }), user)
 }
 
-export async function reask(userId, id, questionId) {
-  const row = await load(userId, id)
+export async function reask(user, id, questionId) {
+  const row = await load(user.id, id)
   if (row.status === 'ready') throw httpError(409, 'This application is already complete.')
-  if (!QUESTIONS.some((q) => q.id === questionId)) throw httpError(400, 'Unknown question')
-  const facts = reconcile(clearQuestion(currentFacts(row), questionId))
-  return save(id, { facts, step: stepAfterIntake(facts) })
+  const facts = reaskFacts(cleanFacts(row.facts), questionId)
+  return respond(await save(id, { facts, step: stepAfterIntake(facts) }), user)
 }
 
-export async function undoLastAnswer(userId, id) {
-  const row = await load(userId, id)
+export async function undoLastAnswer(user, id) {
+  const row = await load(user.id, id)
   if (row.status === 'ready') throw httpError(409, 'This application is already complete.')
-  const last = row.transcript.at(-1)
-  if (!last) throw httpError(400, 'Nothing to undo.')
-  // Restore the exact facts from before that answer (one typed answer can fill several questions).
-  const facts = reconcile(sanitizeFacts(last.before ?? clearQuestion(row.facts, last.questionId)))
-  return save(id, { facts, transcript: row.transcript.slice(0, -1), step: 'intake' })
+  const facts = undoFacts(row.transcript)
+  return respond(await save(id, { facts, transcript: row.transcript.slice(0, -1), step: 'intake' }), user)
 }
 
-export async function restartIntake(userId, id) {
-  const row = await load(userId, id)
+export async function restartIntake(user, id) {
+  const row = await load(user.id, id)
   if (row.status === 'ready') throw httpError(409, 'This application is already complete.')
-  return save(id, { facts: {}, transcript: [], step: 'intake' })
+  return respond(await save(id, { facts: {}, transcript: [], step: 'intake' }), user)
 }
 
 function sanitizeInfo(input) {
@@ -141,36 +121,37 @@ function sanitizeInfo(input) {
   return out
 }
 
-export async function updateApplication(userId, id, { info, step, optInRegistration }) {
-  const row = await load(userId, id)
+export async function updateApplication(user, id, { info, step, optInRegistration }) {
+  const row = await load(user.id, id)
   if (row.status === 'ready') throw httpError(409, 'This application is already complete.')
-  const facts = typeof optInRegistration === 'boolean' ? { ...currentFacts(row), opt_in_registration: optInRegistration } : undefined
-  const effFacts = facts || currentFacts(row)
+  const current = cleanFacts(row.facts)
+  const facts = typeof optInRegistration === 'boolean' ? cleanFacts({ ...current, opt_in_registration: optInRegistration }) : undefined
+  const effFacts = facts || current
+  const newInfo = info ? { ...row.info, ...sanitizeInfo(info) } : row.info
   let nextStep = STEPS.includes(step) ? step : undefined
   // The final step is only reachable with everything complete; submitting there still needs the fee paid.
-  if (nextStep === 'ready') {
-    const docs = Object.fromEntries((await listDocuments(userId)).map((d) => [d.docTypeId, d]))
-    const newInfo = { ...row.info, ...sanitizeInfo(info || {}) }
-    if (!readiness({ ...toApp(row), facts: effFacts, info: newInfo }, docs).ready) nextStep = undefined
-  }
-  if (nextStep && !['photos', 'intake'].includes(nextStep) && nextQuestion(effFacts)) nextStep = 'intake'
-  if (nextStep === 'intake' && !nextQuestion(effFacts)) nextStep = 'summary'
-  return save(id, { facts, info: info ? { ...row.info, ...sanitizeInfo(info) } : undefined, step: nextStep })
+  if (nextStep === 'ready' && !planFor(effFacts, newInfo, await byType(user.id), user).ready) nextStep = undefined
+  if (nextStep && !['photos', 'intake'].includes(nextStep) && E.nextQuestion(effFacts)) nextStep = 'intake'
+  if (nextStep === 'intake' && !E.nextQuestion(effFacts)) nextStep = 'summary'
+  return respond(await save(id, { facts, info: info ? newInfo : undefined, step: nextStep }), user)
 }
 
-export async function markReady(userId, id) {
-  const row = await load(userId, id)
-  const docs = Object.fromEntries((await listDocuments(userId)).map((d) => [d.docTypeId, d]))
-  const r = readiness(toApp(row), docs)
-  if (!r.ready) {
-    const what = [...r.missing.map((f) => f.label), ...r.missingDocs.map((d) => d.id)]
+export async function markReady(user, id) {
+  const row = await load(user.id, id)
+  const p = planFor(cleanFacts(row.facts), row.info, await byType(user.id), user)
+  if (!p.ready) {
+    const what = [...p.missingFields, ...p.missingDocs]
     throw httpError(400, `Still missing: ${what.join(', ') || 'intake answers'}`)
   }
-  if (r.kind) {
-    const { rows: paid } = await pool.query("SELECT 1 FROM payments WHERE application_id = $1 AND status = 'paid'", [id])
-    if (!paid[0]) throw httpError(402, 'Pay the government fee to submit your application.')
-  }
-  return save(id, { step: 'ready', status: 'ready' })
+  const { rows: paid } = await pool.query("SELECT 1 FROM payments WHERE application_id = $1 AND status = 'paid'", [id])
+  if (!paid[0]) throw httpError(402, 'Pay the government fee to submit your application.')
+  return respond(await save(id, { step: 'ready', status: 'ready' }), user)
 }
 
-
+/** "Is this right?" on the result card. */
+export async function rateResult(user, id, { rating, note }) {
+  const row = await load(user.id, id)
+  const p = planFor(cleanFacts(row.facts), row.info, {}, user)
+  logEvent({ kind: 'rating', applicationId: id, detail: { rating: String(rating || '').slice(0, 20), note: String(note || '').slice(0, 500), result: p.result?.licenceId ?? p.result?.outcome ?? null } })
+  return { ok: true }
+}

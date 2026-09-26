@@ -6,8 +6,8 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { ensureSchema, pool, repoRoot } from './db.js'
 import { listDocuments } from './documentsService.js'
-import { GOVT_FEE_PER_YEAR, readiness } from '../src/lib/applicationPlan.js'
-import { reconcile, sanitizeFacts } from '../src/lib/intakeQuestions.js'
+import { cleanFacts } from './intake/index.js'
+import { planFor } from './intake/plan.js'
 
 const httpError = (status, message) => Object.assign(new Error(message), { status })
 const METHODS = ['upi', 'card', 'netbanking']
@@ -25,11 +25,12 @@ async function loadApp(userId, applicationId, client = pool) {
   return rows[0]
 }
 
+// The fee is the graph's (FoSCoS 2026 table), per licence and kind of business; it is never taken from the browser.
 function quoteFor(row, docs) {
-  const app = { ...row, facts: reconcile(sanitizeFacts(row.facts)) }
-  const r = readiness(app, docs)
-  if (!r.kind) throw httpError(400, 'This application has no fee to pay.')
-  const items = [{ label: `Government fee: ${r.e.licence} (1 year)`, amount: GOVT_FEE_PER_YEAR[r.e.licence] }]
+  const plan = planFor(cleanFacts(row.facts), row.info, docs)
+  if (!plan.kind || plan.result?.fee == null) throw httpError(400, 'This application has no fee to pay.')
+  const r = { licence: plan.result.licence, kind: plan.kind, ready: plan.ready }
+  const items = [{ label: `Government fee: ${r.licence} (1 year)`, amount: plan.result.fee }]
   const service = Number(config().serviceFeeRupees) || 0
   if (service > 0) items.push({ label: 'FSSAI Online service fee', amount: service })
   return { r, items, total: items.reduce((s, i) => s + i.amount, 0), mode: config().mode }
@@ -51,7 +52,7 @@ export async function currentQuote(userId) {
   const { rows: paid } = await pool.query("SELECT * FROM payments WHERE application_id = $1 AND status = 'paid'", [rows[0].id])
   try {
     const q = quoteFor(rows[0], await byType(userId))
-    return { applicationId: rows[0].id, licence: q.r.e.licence, form: q.r.kind, items: q.items, total: q.total, mode: q.mode, payable: q.r.ready && !paid[0], paid: paid[0] ? toPayment(paid[0]) : null }
+    return { applicationId: rows[0].id, licence: q.r.licence, form: q.r.kind, items: q.items, total: q.total, mode: q.mode, payable: q.r.ready && !paid[0], paid: paid[0] ? toPayment(paid[0]) : null }
   } catch {
     return null
   }
