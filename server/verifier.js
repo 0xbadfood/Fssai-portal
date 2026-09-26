@@ -6,15 +6,19 @@ import { chatJson, providerConfig } from './llm.js'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const readJson = (f) => JSON.parse(readFileSync(path.join(root, 'config', f), 'utf8'))
 
-export function buildPrompt(docType, today) {
-  const qs = docType.questions
+// Questions with a "date" rule are answered in code from the extracted date, not by the model
+// (models get date arithmetic wrong, e.g. "July 2026 is older than 3 months" on 25 Sep 2026).
+const modelQuestions = (docType) => docType.questions.filter((q) => !q.date)
+
+export function buildPrompt(docType, today, { fromPdf = false } = {}) {
+  const qs = modelQuestions(docType)
     .map((q, i) => `${i + 1}. id="${q.id}": ${q.q.replaceAll('{{today}}', today)}`)
     .join('\n')
   const extract = docType.extract.map((k) => `"${k}"`).join(', ')
   const hints = Object.entries(docType.extractHints || {}).map(([k, h]) => `- "${k}": ${h}`).join('\n')
   return `You are a document-verification assistant for an Indian food-licensing (FSSAI) portal.
 The applicant claims this image is: "${docType.label}" - ${docType.description}
-
+${fromPdf ? 'The page images were rendered directly from the PDF file the applicant uploaded, not photographed: a sharp, flat, computer-generated page is normal for a PDF and is not "screenshot_of_screen".\n' : ''}
 Inspect the image carefully and answer ONLY with one JSON object, no prose, in exactly this shape:
 {
   "detected_document_type": "<short description of what the image actually is>",
@@ -30,18 +34,35 @@ Inspect the image carefully and answer ONLY with one JSON object, no prose, in e
 Questions (answer every one, true only if clearly satisfied):
 ${qs}
 
-${hints ? `Extracted field formats:\n${hints}\n\n` : ''}Rules: never invent text that is not visible; use null for fields you cannot read; a photo of another screen counts as "screenshot_of_screen".`
+${hints ? `Extracted field formats:\n${hints}\n\n` : ''}Rules: never invent text that is not visible; use null for fields you cannot read; use "screenshot_of_screen" only for a photo or screen capture of a display (visible screen edges, moiré, app or browser toolbars), never for a clean scan or PDF page.`
 }
 
-export function decide(spec, config, raw) {
+/** A date question answered from an extracted YYYY-MM-DD field: -> { answer, evidence }. */
+export function checkDate(rule, value, today) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? '').trim())
+  const date = m && new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]))
+  if (!date || date.getUTCMonth() !== +m[2] - 1) return { answer: false, evidence: 'No readable date found.' }
+  const [y, mo, d] = today.split('-').map(Number)
+  const now = Date.UTC(y, mo - 1, d)
+  if (rule.notExpired) return date >= now ? { answer: true, evidence: `Valid until ${value}.` } : { answer: false, evidence: `Expired on ${value}.` }
+  const cutoff = Date.UTC(y, mo - 1 - rule.maxAgeMonths, d)
+  // A date more than a week ahead is a misreading, not a recent document.
+  if (date > now + 7 * 864e5) return { answer: false, evidence: `Date ${value} is in the future.` }
+  return date >= cutoff
+    ? { answer: true, evidence: `Dated ${value}, within ${rule.maxAgeMonths} months.` }
+    : { answer: false, evidence: `Dated ${value}, older than ${rule.maxAgeMonths} months.` }
+}
+
+export function decide(spec, config, raw, { today = new Date().toISOString().slice(0, 10), fromPdf = false } = {}) {
+  const extracted = raw?.extracted ?? {}
   const answers = spec.questions.map((q) => {
-    const a = raw?.answers?.[q.id]
-    const answer = a?.answer === true
-    return { id: q.id, question: q.q.replaceAll('{{today}}', ''), answer, evidence: a?.evidence ?? '', passed: answer || q.required === false, required: q.required !== false }
+    const a = q.date ? checkDate(q.date, extracted[q.date.field], today) : { answer: raw?.answers?.[q.id]?.answer === true, evidence: raw?.answers?.[q.id]?.evidence ?? '' }
+    return { id: q.id, question: q.q.replaceAll('{{today}}', today), answer: a.answer, evidence: a.evidence, passed: a.answer || q.required === false, required: q.required !== false }
   })
   const score = Math.max(0, Math.min(100, Math.round(Number(raw?.quality?.score) || 0)))
   const flags = Array.isArray(raw?.quality?.flags) ? raw.quality.flags : []
-  const blocking = flags.filter((f) => config.quality.blockingFlags.includes(f))
+  // A PDF page is rendered from the file itself, so it cannot be a photo of a screen; the flag is kept but does not block.
+  const blocking = flags.filter((f) => config.quality.blockingFlags.includes(f) && !(fromPdf && f === 'screenshot_of_screen'))
   const matches = raw?.matches_expected === true
 
   const issues = []
@@ -61,14 +82,15 @@ export function decide(spec, config, raw) {
   }
   return {
     decision, qualityScore: score, matchesExpected: matches, detectedType: raw?.detected_document_type ?? '',
-    answers, extracted: raw?.extracted ?? {}, flags, issues,
+    answers, extracted, flags, issues,
   }
 }
 
 const IMAGE_URL = /^data:image\/(jpeg|png|webp);base64,/
 export const MAX_PAGES = 4
 
-export async function verifyDocument({ docTypeId, pages }) {
+/** fromPdf: the pages were rendered from an uploaded PDF (not photographed). */
+export async function verifyDocument({ docTypeId, pages, fromPdf = false }) {
   const provider = providerConfig()
   const config = readJson('document-types.json')
   const spec = config.types[docTypeId]
@@ -81,8 +103,8 @@ export async function verifyDocument({ docTypeId, pages }) {
   const today = new Date().toISOString().slice(0, 10)
   const multi = pages.length > 1 ? `\nThe document is given as ${pages.length} page images in order; judge the document as a whole.` : ''
   const { model, json } = await chatJson('verifyDocument', [
-    { type: 'text', text: buildPrompt(spec, today) + multi },
+    { type: 'text', text: buildPrompt(spec, today, { fromPdf }) + multi },
     ...pages.map((url) => ({ type: 'image_url', image_url: { url } })),
   ])
-  return { model, verifiedAt: new Date().toISOString(), ...decide(spec, config, json) }
+  return { model, verifiedAt: new Date().toISOString(), ...decide(spec, config, json, { today, fromPdf }) }
 }

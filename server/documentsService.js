@@ -38,7 +38,7 @@ export async function uploadDocument(userId, { docTypeId, pages, original, fileN
     if (pdf.bytes.length > MAX_PDF_BYTES) throw httpError(413, 'PDF is larger than 10 MB.')
     if (pdf.bytes.subarray(0, 5).toString('latin1') !== '%PDF-') throw httpError(400, 'This file is not a valid PDF.')
   }
-  const verification = await verifyDocument({ docTypeId, pages })
+  const verification = await verifyDocument({ docTypeId, pages, fromPdf: pdf != null })
   const first = decodeDataUrl(pages[0])
   const stored = pdf || first
   const id = randomUUID()

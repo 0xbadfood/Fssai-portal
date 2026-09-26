@@ -73,7 +73,11 @@
           "id": "recent",
           "q": "Is the document dated within the last 3 months (relative to today, {{today}})? If no date is visible answer false.",
           "fail": "The document is older than 3 months or has no visible date.",
-          "required": false
+          "required": false,
+          "date": {
+            "field": "document_date",
+            "maxAgeMonths": 3
+          }
         }
       ],
       "extractHints": {
@@ -221,9 +225,16 @@
         {
           "id": "recent",
           "q": "Is the sample/report date within the last 12 months (today is {{today}})? If no date is visible answer false.",
-          "fail": "The report is older than 12 months or undated."
+          "fail": "The report is older than 12 months or undated.",
+          "date": {
+            "field": "sample_date",
+            "maxAgeMonths": 12
+          }
         }
-      ]
+      ],
+      "extractHints": {
+        "sample_date": "sample or report date as YYYY-MM-DD"
+      }
     },
     "authority-letter": {
       "label": "Authority Letter / Board Resolution",
@@ -263,9 +274,16 @@
         {
           "id": "valid",
           "q": "Is a validity/issue date visible and not expired relative to today ({{today}})?",
-          "fail": "The certificate is expired or has no visible date."
+          "fail": "The certificate is expired or has no visible date.",
+          "date": {
+            "field": "valid_until",
+            "notExpired": true
+          }
         }
-      ]
+      ],
+      "extractHints": {
+        "valid_until": "validity / expiry date as YYYY-MM-DD"
+      }
     },
     "transporter-proof": {
       "label": "Turnover Proof / Vehicle Declaration",
