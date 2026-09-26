@@ -1,116 +1,93 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check, RotateCcw, Send, Sparkles } from 'lucide-react'
-import { POPULAR_STATES, QUESTIONS, STATES, applyTap, hintFor, isMulti, nextQuestion, optionsFor, titleFor } from '../../lib/intakeQuestions.js'
-import { GOVT_FEE_PER_YEAR, eligibilityFromFacts, formKind } from '../../lib/applicationPlan.js'
-import { saveLandingAnswers } from '../../lib/landingHandoff.js'
+import { landingSession, saveLandingSession } from '../../lib/landingHandoff.js'
 
 const GREETING = "Namaste! 👋 I'm your FSSAI assistant. Tap a few answers and I'll tell you exactly which licence your food business needs."
 const THINK_MS = 650
 
+async function api(action, body = {}) {
+  const res = await fetch(`/api/intake/${action}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw Object.assign(new Error(data.error || 'Something went wrong. Please try again.'), { status: res.status })
+  return data
+}
+
 /**
- * Tap-first licence check on the landing page. Uses the same question tree and licence rules as the
- * signed-in intake; answers are saved locally and replayed into the user's first application after sign-up.
- * Typed answers go to the public interpreter (rules + cache, no model); anything it doesn't know yet is handed
- * over to the signed-in flow, where the model reads it and caches the result for everyone after.
+ * Tap-first licence check on the landing page. The conversation runs on the server (the same graph and rules
+ * as the signed-in intake); this component shows the question it sends and posts back taps or typed text.
+ * The session id is kept in the browser and handed to the first application after sign-up.
  */
 export default function LandingChat() {
-  const [answers, setAnswers] = useState([])
-  const [facts, setFacts] = useState({})
-  const [log, setLog] = useState([]) // { from: 'user' | 'bot', text }
+  const [view, setView] = useState(null) // { session, question, summary, result, transcript, clarify }
   const [thinking, setThinking] = useState(false)
+  const [pending, setPending] = useState(null) // what the user just sent, shown while the server answers
+  const [error, setError] = useState('')
   const [picked, setPicked] = useState([])
   const [allStates, setAllStates] = useState(false)
   const [text, setText] = useState('')
-  const [handedOver, setHandedOver] = useState(false)
   const scroller = useRef(null)
 
-  const q = handedOver ? null : nextQuestion(facts)
-  const done = !q && !handedOver && answers.length > 0
+  useEffect(() => {
+    const id = landingSession()
+    ;(id ? api('resume', { session: id }).catch(() => (saveLandingSession(null), api('preview'))) : api('preview'))
+      .then(setView)
+      .catch((e) => setError(e.message))
+  }, [])
+
+  const q = view?.question || null
+  const result = view?.result || null
+  const log = view?.transcript || []
 
   useEffect(() => {
     const el = scroller.current
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-  }, [log.length, thinking, q?.id, done])
+  }, [log.length, thinking, q?.id, !!result])
 
   useEffect(() => {
-    if (answers.length) saveLandingAnswers(answers)
-  }, [answers])
-
-  function respond(answer, label, nextFacts, reply) {
-    if (!nextFacts) return
-    setPicked([])
+    setPicked(q?.kind === 'states' && q.states?.suggested ? [q.states.suggested] : [])
     setAllStates(false)
-    setAnswers((a) => [...a, answer])
-    setLog((l) => [...l, { from: 'user', text: label }])
+  }, [q?.id, q?.title])
+
+  async function send(action, body, shown) {
     setThinking(true)
-    setTimeout(() => {
-      setThinking(false)
-      setFacts(nextFacts)
-      if (reply) setLog((l) => [...l, { from: 'bot', text: reply }])
-    }, THINK_MS)
-  }
-
-  function tap(ids) {
-    const r = tryTap({ optionIds: ids })
-    respond({ questionId: q.id, optionIds: ids }, r?.answer, r?.facts, ackFor(q.id))
-  }
-
-  function pickStates(states) {
-    const r = tryTap({ states })
-    respond({ questionId: q.id, states }, r?.answer, r?.facts, null)
-  }
-
-  const tryTap = (answer) => {
+    setPending(shown || null)
+    setError('')
+    const started = Date.now()
     try {
-      return applyTap(facts, q, answer)
-    } catch {
-      return null
+      const next = await api(action, { session: view?.session, ...body })
+      await new Promise((r) => setTimeout(r, Math.max(0, THINK_MS - (Date.now() - started))))
+      if (next.session) saveLandingSession(next.session)
+      setView(next)
+    } catch (e) {
+      if (e.status === 404) {
+        saveLandingSession(null)
+        setView(await api('preview').catch(() => view))
+        setError('That chat had expired, so we started again.')
+      } else setError(e.message)
+    } finally {
+      setThinking(false)
+      setPending(null)
     }
   }
 
-  async function sendText() {
+  const tap = (ids) => send('answer', { questionId: q.id, optionIds: ids }, q.options.filter((o) => ids.includes(o.id)).map((o) => o.label).join(', '))
+  const pickStates = (states) => send('answer', { questionId: q.id, states }, states.join(', '))
+  function sendText() {
     const clean = text.trim()
     if (!clean || !q) return
     setText('')
-    setAnswers((a) => [...a, { questionId: q.id, text: clean.slice(0, 1000) }])
-    setLog((l) => [...l, { from: 'user', text: clean }])
-    setThinking(true)
-    const started = Date.now()
-    let r = { hit: false }
-    try {
-      const res = await fetch('/api/intake/interpret', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ questionId: q.id, facts, text: clean }),
-      })
-      if (res.ok) r = await res.json()
-    } catch {}
-    setTimeout(() => {
-      setThinking(false)
-      if (r.hit) {
-        setFacts(r.facts)
-        setLog((l) => [...l, { from: 'bot', text: r.reply }])
-      } else setHandedOver(true)
-    }, Math.max(0, THINK_MS - (Date.now() - started)))
+    send('answer', { questionId: q.id, text: clean.slice(0, 1000) }, clean)
   }
+  const restart = () => send('restart', {})
 
-  function restart() {
-    setAnswers([])
-    setFacts({})
-    setLog([])
-    setPicked([])
-    setHandedOver(false)
-    saveLandingAnswers([])
-  }
-
-  const multi = q ? isMulti(q, facts) : false
-  const options = q ? optionsFor(q, facts) : []
+  const multi = !!q?.multi
+  const guesses = q && view.clarify?.questionId === q.id ? view.clarify.guesses : []
+  const options = q ? [...guesses.map((id) => q.options.find((o) => o.id === id)).filter(Boolean), ...q.options.filter((o) => !guesses.includes(o.id))] : []
   const exclusive = (id) => options.find((o) => o.id === id)?.exclusive
   const toggle = (id) =>
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : exclusive(id) ? [id] : [...p.filter((x) => !exclusive(x)), id]))
-  const stateList = allStates ? STATES : [...new Set([...POPULAR_STATES.slice(0, 8), ...picked])]
-  const step = QUESTIONS.filter((x) => x.relevant(facts) && x.answered(facts)).length + 1
+  const stateList = q?.states ? (allStates ? q.states.all : [...new Set([...q.states.popular.slice(0, 8), ...picked])]) : []
 
   return (
     <div className="relative overflow-hidden rounded-[28px] border border-white/60 bg-white shadow-2xl shadow-violet-300/40 ring-1 ring-violet-100">
@@ -125,8 +102,8 @@ export default function LandingChat() {
             <p className="text-xs text-white/80">AI-powered · replies instantly</p>
           </div>
         </div>
-        {answers.length > 0 && (
-          <button onClick={restart} className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold hover:bg-white/25">
+        {log.length > 0 && (
+          <button onClick={restart} disabled={thinking} className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold hover:bg-white/25">
             <RotateCcw size={12} /> Start over
           </button>
         )}
@@ -134,9 +111,16 @@ export default function LandingChat() {
 
       <div ref={scroller} className="h-[430px] space-y-3 overflow-y-auto bg-gradient-to-b from-violet-50/60 to-white px-4 py-5 sm:px-5">
         <Bot>{GREETING}</Bot>
-        {log.map((m, i) => (m.from === 'bot' ? <Bot key={i}>{m.text}</Bot> : <User key={i}>{m.text}</User>))}
+        {log.map((m, i) => (
+          <React.Fragment key={i}>
+            <User>{m.answer}</User>
+            {m.reply && <Bot>{m.reply}</Bot>}
+          </React.Fragment>
+        ))}
+        {pending && <User>{pending}</User>}
+        {error && <Bot>{error}</Bot>}
 
-        {thinking ? (
+        {thinking || !view ? (
           <Bot>
             <span className="inline-flex gap-1 py-1">
               {[0, 150, 300].map((d) => (
@@ -147,9 +131,9 @@ export default function LandingChat() {
         ) : q ? (
           <div className="space-y-2.5">
             <Bot>
-              <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-wide text-violet-500">{q.id === 'check' ? 'Just checking' : `Question ${step}`}</span>
-              <span className="font-semibold text-slate-900">{titleFor(q, facts)}</span>
-              {hintFor(q, facts) && <span className="mt-0.5 block text-xs text-slate-500">{hintFor(q, facts)}</span>}
+              <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-wide text-violet-500">{q.check ? 'Just checking' : `Question ${q.number}`}</span>
+              <span className="font-semibold text-slate-900">{q.title}</span>
+              {q.hint && <span className="mt-0.5 block text-xs text-slate-500">{q.hint}</span>}
             </Bot>
             <div className="flex flex-wrap gap-2 pl-10">
               {q.kind === 'states'
@@ -158,6 +142,7 @@ export default function LandingChat() {
                     <Chip
                       key={o.id}
                       on={picked.includes(o.id)}
+                      guess={guesses.includes(o.id)}
                       emoji={o.emoji}
                       label={o.label}
                       title={o.example}
@@ -182,14 +167,8 @@ export default function LandingChat() {
               </div>
             )}
           </div>
-        ) : handedOver ? (
-          <Bot>
-            Thanks — that's plenty to go on! 🙌 I'll read it properly and pick up exactly where we left off once you create your
-            free account.
-            <SignupCta className="mt-3" />
-          </Bot>
-        ) : done ? (
-          <Result facts={facts} />
+        ) : result ? (
+          <Result result={result} session={view.session} />
         ) : null}
       </div>
 
@@ -197,15 +176,15 @@ export default function LandingChat() {
         <div className="flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-violet-400">
           <input
             value={text}
-            disabled={!q || thinking}
+            disabled={!q?.typing || thinking}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendText()}
-            placeholder={q ? 'Or just tell me, e.g. "I run a cloud kitchen in Pune"' : 'Tap Start over to try again'}
+            placeholder={!q ? 'Tap Start over to try again' : q.typing ? (q.number === 1 ? 'Or just tell me, e.g. "I run a cloud kitchen"' : 'Or type your answer') : 'Tap one of the options above'}
             className="min-w-0 flex-1 bg-transparent py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none disabled:cursor-not-allowed"
           />
           <button
             onClick={sendText}
-            disabled={!q || thinking || !text.trim()}
+            disabled={!q?.typing || thinking || !text.trim()}
             aria-label="Send"
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600 text-white transition hover:bg-violet-700 disabled:opacity-30"
           >
@@ -217,20 +196,9 @@ export default function LandingChat() {
   )
 }
 
-const ACKS = {
-  activity: 'Got it 👍',
-  place: 'Nice, noted.',
-  vending: 'Okay, thanks.',
-  trade: 'Got it.',
-  locations: 'Noted.',
-  turnover: 'Perfect, thanks.',
-  online: 'Great.',
-}
-const ackFor = (id) => ACKS[id] || null
+const rupees = (n) => `₹${Number(n).toLocaleString('en-IN')}`
 
-function Result({ facts }) {
-  const e = eligibilityFromFacts(facts)
-  const form = formKind(e)
+function Result({ result: e, session }) {
   if (e.outcome === 'notfood') {
     return (
       <Bot>
@@ -248,6 +216,15 @@ function Result({ facts }) {
       </Bot>
     )
   }
+  if (!e.licence) {
+    return (
+      <Bot>
+        <span className="block font-extrabold text-violet-700">Our FSSAI expert will place your business 🧑‍⚖️</span>
+        <span className="mt-1 block">Your answers don't fit a standard category exactly. {e.handover[0]}</span>
+        <SignupCta className="mt-3" label="Talk to an expert" />
+      </Bot>
+    )
+  }
   return (
     <div className="space-y-2.5">
       <Bot>Here's what your business needs:</Bot>
@@ -257,20 +234,46 @@ function Result({ facts }) {
           <p className="text-xl font-extrabold">{e.licence}</p>
         </div>
         <div className="space-y-2 px-4 py-3 text-sm text-slate-600">
-          {e.reasons
-            .filter((r) => !r.startsWith('This overrides'))
-            .map((r) => (
-              <p key={r}>{r}</p>
-            ))}
+          {e.reasons.map((r) => (
+            <p key={r}>{r}</p>
+          ))}
+          {e.tasks.map((t) => (
+            <p key={t.id} className="font-semibold text-slate-700">
+              + {t.label}
+              {t.licence ? ` (${t.licence})` : ''}: {t.text}
+            </p>
+          ))}
           <div className="flex flex-wrap gap-2 text-xs font-semibold">
-            <span className="rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">Form {form}</span>
-            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">Govt fee from ₹{GOVT_FEE_PER_YEAR[e.licence].toLocaleString('en-IN')}/year</span>
+            <span className="rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">Form {e.form}</span>
+            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">{e.fee ? `Govt fee ${rupees(e.fee)}/year` : 'No government fee'}</span>
           </div>
           <SignupCta className="pt-1" />
+          <Rate session={session} />
           <p className="text-[11px] text-slate-400">Your answers are saved — you won't be asked again.</p>
         </div>
       </div>
     </div>
+  )
+}
+
+/** "Is this right?", logged for the expert's review. */
+function Rate({ session }) {
+  const [sent, setSent] = useState(false)
+  if (!session) return null
+  if (sent) return <p className="text-xs font-semibold text-slate-500">Thanks for letting us know!</p>
+  const rate = (rating) => {
+    setSent(true)
+    api('rate', { session, rating }).catch(() => {})
+  }
+  return (
+    <p className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+      Is this right?
+      {[['right', '👍'], ['wrong', '👎'], ['unsure', '🤔']].map(([id, label]) => (
+        <button key={id} onClick={() => rate(id)} className="rounded-full border border-slate-200 px-2 py-0.5 hover:border-violet-300" aria-label={id}>
+          {label}
+        </button>
+      ))}
+    </p>
   )
 }
 
@@ -306,13 +309,13 @@ function User({ children }) {
   )
 }
 
-function Chip({ on, emoji, label, title, onClick }) {
+function Chip({ on, guess, emoji, label, title, onClick }) {
   return (
     <button
       onClick={onClick}
       title={title}
       className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-sm font-semibold transition active:scale-95 ${
-        on ? 'border-violet-500 bg-violet-600 text-white' : 'border-violet-100 bg-white text-slate-700 hover:border-violet-300 hover:bg-violet-50'
+        on ? 'border-violet-500 bg-violet-600 text-white' : guess ? 'border-violet-300 bg-violet-50 text-slate-700' : 'border-violet-100 bg-white text-slate-700 hover:border-violet-300 hover:bg-violet-50'
       }`}
     >
       {emoji && <span className="text-base leading-none">{emoji}</span>}

@@ -26,7 +26,7 @@ export default function ReadyStep({ app, flow, r }) {
         <CheckCircle2 size={48} />
         <h2 className="mt-3 text-3xl font-extrabold">Submitted to our team 🎉</h2>
         <p className="mt-2 text-lg text-white/90">
-          Reference <b className="font-mono">{app.id.slice(0, 8).toUpperCase()}</b> · {r.e.licence}
+          Reference <b className="font-mono">{app.id.slice(0, 8).toUpperCase()}</b> · {r.result?.licence}
         </p>
       </div>
       <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">

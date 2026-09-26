@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { takeLandingAnswers } from './landingHandoff.js'
+import { takeLandingSession } from './landingHandoff.js'
 
 async function call(path, body) {
   const res = await fetch(path, body === undefined ? { cache: 'no-store' } : {
@@ -30,7 +30,7 @@ export function useApplication() {
 
   useEffect(() => {
     call('/api/applications/current')
-      .then((a) => a || call('/api/applications', { answers: takeLandingAnswers() }))
+      .then((a) => a || call('/api/applications', { intakeSession: takeLandingSession() }))
       .then(setApp)
       .catch((e) => setError(e.message))
   }, [])
@@ -130,6 +130,10 @@ export function useApplication() {
     restart: () => run(() => call(`/api/applications/${id}/restart`, {})),
     markReady: () => run(() => call(`/api/applications/${id}/ready`, {})),
     startNew: () => run(() => call('/api/applications', {})),
+    // After a document upload: the plan (documents, details read from them) is worked out on the server.
+    refresh: () => run(() => call('/api/applications/current'), { quiet: true }),
+    rate: (rating, note) =>
+      fetch(`/api/applications/${id}/rate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rating, note }) }).catch(() => {}),
   }
 }
 

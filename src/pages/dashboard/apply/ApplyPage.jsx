@@ -2,7 +2,6 @@ import React, { useEffect } from 'react'
 import { Check, Loader2, Sparkles } from 'lucide-react'
 import { useApplication } from '../../../lib/applications.js'
 import { useUserDocuments } from '../../../lib/documents.js'
-import { readiness } from '../../../lib/applicationPlan.js'
 import PhotosStep from './PhotosStep.jsx'
 import IntakeStep from './IntakeStep.jsx'
 import SummaryStep from './SummaryStep.jsx'
@@ -39,19 +38,25 @@ export default function ApplyPage() {
     )
   }
 
-  const r = readiness(app, docs)
+  // The plan (licence, details, documents, readiness) is worked out on the server.
+  const r = app.plan
   const reachable = {
     photos: app.status !== 'ready',
     intake: app.status !== 'ready',
     summary: r.intakeDone && app.status !== 'ready',
     details: r.intakeDone && !!r.kind && app.status !== 'ready',
-    documents: r.intakeDone && !!r.kind && !r.missing.length && app.status !== 'ready',
-    forms: r.intakeDone && !!r.kind && !r.missing.length && !r.missingDocs.length && app.status !== 'ready',
+    documents: r.intakeDone && !!r.kind && !r.missingFields.length && app.status !== 'ready',
+    forms: r.intakeDone && !!r.kind && !r.missingFields.length && !r.missingDocs.length && app.status !== 'ready',
     ready: app.status === 'ready' || r.ready,
   }
   const current = STEPS.findIndex((s) => s.id === app.step)
   const go = (step) => flow.update({ step })
-  const props = { app, flow, r, docs, putDoc: put, go }
+  // A new document changes what is still missing and what we can read from it: fetch the plan again.
+  const putDoc = (doc) => {
+    put(doc)
+    flow.refresh()
+  }
+  const props = { app, flow, r, docs, putDoc, go }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">

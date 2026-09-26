@@ -1,5 +1,7 @@
 # Intake automaton: moving it to the backend
 
+> **Status 2026-09-26:** Phase 1 is done, together with Phase 2's rules-as-data: the lab's engine and `graph.v2.json` run on the server (`server/intake/`), the browser only renders, and applications record their graph version. The sections below are the original reasoning.
+
 ## Where it runs today
 
 The automaton lives in `src/lib/intakeQuestions.js` and is shared by both sides:

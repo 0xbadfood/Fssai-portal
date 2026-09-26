@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Download, FileEdit, ShieldCheck, XCircle, Plus } from 'lucide-react'
 import StatusBadge from '../../components/StatusBadge.jsx'
 import { licences } from '../../lib/mockData.js'
-import { STATUS } from '../../lib/eligibility.js'
+import { STATUS } from '../../lib/status.js'
 
 export default function LicencesPage() {
   const [selectedId, setSelectedId] = useState(licences[0].id)

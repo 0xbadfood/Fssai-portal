@@ -32,21 +32,28 @@ async function save(id, facts, transcript) {
   return rows[0]
 }
 
-export async function startSession({ ip }) {
+/** The opening question, without creating a session (every landing-page visit asks for it). */
+export function previewSession() {
+  return { session: null, transcript: [], clarify: null, ...intakeView({}) }
+}
+
+async function createSession(id, ip) {
   await ensureSchema()
-  const id = randomBytes(16).toString('hex')
   const { rows } = await pool.query('INSERT INTO intake_sessions (id, graph_version, ip) VALUES ($1, $2, $3) RETURNING *', [id, GRAPH_VERSION, ip || null])
-  return view(rows[0])
+  return rows[0]
 }
 
 export async function resumeSession(id) {
   return view(await load(id))
 }
 
-export async function answerSession(id, answer) {
-  const row = await load(id)
-  const { facts, entry } = await applyAnswer(cleanFacts(row.facts), answer, { allowModel: false, ref: { sessionId: id }, ack: (qid) => ACKS[qid] || null })
-  return view(await save(id, facts, [...row.transcript, entry]))
+/** Answer the current question; the first answer (session null) creates the session. */
+export async function answerSession(id, answer, { ip } = {}) {
+  const row = id ? await load(id) : { id: randomBytes(16).toString('hex'), fresh: true, facts: {}, transcript: [] }
+  const { facts, entry } = await applyAnswer(cleanFacts(row.facts), answer, { allowModel: false, ref: { sessionId: row.id }, ack: (qid) => ACKS[qid] || null })
+  // A session is stored only once its first answer is accepted.
+  if (row.fresh) await createSession(row.id, ip)
+  return view(await save(row.id, facts, [...row.transcript, entry]))
 }
 
 export async function undoSession(id) {

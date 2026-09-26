@@ -2,25 +2,24 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, MapPin, Plus } from 'lucide-react'
 import { useCurrentApplication } from '../../lib/applications.js'
-import { LOCATIONS_LABEL, QUESTIONS } from '../../lib/intakeQuestions.js'
-import { eligibilityFromFacts } from '../../lib/applicationPlan.js'
 import { Card, Loading, PageHeader } from '../../components/dashboard/ui.jsx'
 
 export default function PremisesPage() {
   const { app } = useCurrentApplication()
   if (app === undefined) return <Loading />
-  const facts = app?.facts || {}
   const info = app?.info || {}
-  const place = QUESTIONS.find((q) => q.id === 'place')
-  const e = eligibilityFromFacts(facts)
-  const address = [info.premises_address, info.city, info.pincode, info.state || (facts.states || [])[0]].filter(Boolean).join(', ')
-  const several = facts.locations === 'many' || facts.locations === 'multistate'
+  const row = (id) => app?.intake.summary.find((x) => x.id === id)?.value
+  const place = row('place')
+  const licence = app?.plan.result?.licence
+  const address = [info.premises_address, info.city, info.pincode, info.state || row('state')].filter(Boolean).join(', ')
+  // The result lists an "another premises" task when the business has more than one place.
+  const several = !!app?.plan.result?.tasks.some((t) => t.task === 'another_premises')
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader emoji="📍" title="Premises" subtitle="Every place where you make, store, serve or sell food needs its own FSSAI registration or licence." />
 
-      {!facts.place ? (
+      {!place ? (
         <Card className="text-center">
           <p className="text-4xl">🏪</p>
           <p className="mt-3 text-xl font-extrabold text-slate-900">No premises yet</p>
@@ -37,13 +36,13 @@ export default function PremisesPage() {
                 <MapPin size={22} />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-500">{place.show(facts)}</p>
+                <p className="text-sm font-semibold text-slate-500">{place}</p>
                 <p className="text-lg font-extrabold text-slate-900">{info.legal_name || 'Your business'}</p>
                 <p className="mt-1 text-slate-600">{address || 'Address not added yet'}</p>
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-2 text-sm font-semibold">
-              {e.licence && <span className="rounded-full bg-violet-50 px-3 py-1 text-violet-700">{e.licence}</span>}
+              {licence && <span className="rounded-full bg-violet-50 px-3 py-1 text-violet-700">{licence}</span>}
               <span className={`rounded-full px-3 py-1 ${app.status === 'ready' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
                 {app.status === 'ready' ? 'With our team for filing' : 'Application in progress'}
               </span>
@@ -65,7 +64,7 @@ export default function PremisesPage() {
             <p className="mt-3 text-lg font-extrabold text-slate-900">Another place of business?</p>
             <p className="mt-1 text-sm text-slate-500">
               {several
-                ? `You told us: ${LOCATIONS_LABEL[facts.locations].toLowerCase()}. Our team will set up an application for each one.`
+                ? `You told us: ${(row('locations') || 'more than one place').toLowerCase()}. Our team will set up an application for each one.`
                 : 'Tell us about it and our team will set up its application.'}
             </p>
           </Link>

@@ -2,7 +2,7 @@ import React from 'react'
 import { AlertTriangle, CheckCircle2, Bell } from 'lucide-react'
 import StatusBadge from '../../components/StatusBadge.jsx'
 import { notices } from '../../lib/mockData.js'
-import { STATUS } from '../../lib/eligibility.js'
+import { STATUS } from '../../lib/status.js'
 
 const ICON = {
   [STATUS.CLARIFICATION_REQUESTED]: AlertTriangle,

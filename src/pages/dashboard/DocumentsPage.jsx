@@ -2,15 +2,14 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Lock } from 'lucide-react'
 import DocumentUploadCard from '../../components/documents/DocumentUploadCard.jsx'
-import { DOC_TYPES, useUserDocuments } from '../../lib/documents.js'
+import { DOC_TYPES, isDocOk, useUserDocuments } from '../../lib/documents.js'
 import { useCurrentApplication } from '../../lib/applications.js'
-import { isDocOk, readiness } from '../../lib/applicationPlan.js'
 import { PageHeader } from '../../components/dashboard/ui.jsx'
 
 export default function DocumentsPage() {
   const { docs, put } = useUserDocuments()
   const { app } = useCurrentApplication()
-  const r = app ? readiness(app, docs) : null
+  const r = app?.plan || null
   const needed = r?.docs || []
   const neededIds = needed.map((d) => d.id)
   const others = Object.keys(DOC_TYPES).filter((id) => !neededIds.includes(id))
@@ -30,7 +29,7 @@ export default function DocumentsPage() {
         <section className="space-y-3">
           <div className="rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 p-5 ring-1 ring-amber-100">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-lg font-extrabold text-amber-900">Needed for your {r.e.licence}</p>
+              <p className="text-lg font-extrabold text-amber-900">Needed for your {r.result?.licence}</p>
               <span className="text-base font-extrabold text-amber-900">{done}/{required.length} ready</span>
             </div>
             <div className="mt-3 h-3 overflow-hidden rounded-full bg-amber-100">

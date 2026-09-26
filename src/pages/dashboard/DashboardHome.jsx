@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, CheckCircle2, FileText, FolderOpen, MapPin, PhoneCall } from 'lucide-react'
 import { useAuth } from '../../lib/auth.jsx'
 import { useCurrentApplication } from '../../lib/applications.js'
-import { useUserDocuments } from '../../lib/documents.js'
-import { GOVT_FEE_PER_YEAR, isDocOk, readiness } from '../../lib/applicationPlan.js'
-import { QUESTIONS } from '../../lib/intakeQuestions.js'
+import { isDocOk, useUserDocuments } from '../../lib/documents.js'
 import { SERVICES } from '../../lib/services.js'
 import { Card, Loading } from '../../components/dashboard/ui.jsx'
 
@@ -28,11 +26,12 @@ export default function DashboardHome() {
   const firstName = session?.name?.split(' ')[0] || 'there'
   if (app === undefined) return <Loading />
 
-  const r = app ? readiness(app, docs) : null
+  const r = app?.plan || null
   const ready = app?.status === 'ready'
   const stepIdx = app ? STEP_ORDER.indexOf(app.step) : -1
   const pct = ready ? 100 : Math.max(5, Math.round((stepIdx / (STEP_ORDER.length - 1)) * 100))
-  const place = QUESTIONS.find((q) => q.id === 'place')
+  const place = app?.intake.summary.find((row) => row.id === 'place')?.value
+  const licence = r?.result?.licence
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -76,22 +75,22 @@ export default function DashboardHome() {
           to="/dashboard/apply"
           emoji="🏛️"
           label="Your licence"
-          value={r?.intakeDone ? r.e.licence || 'Not needed' : 'Not worked out yet'}
-          note={r?.intakeDone && r.e.licence ? `Form ${r.kind} · govt fee from ₹${GOVT_FEE_PER_YEAR[r.e.licence].toLocaleString('en-IN')}/year` : 'A few taps to find out'}
+          value={r?.intakeDone ? licence || (r.result.outcome === 'handover' ? 'Expert to confirm' : 'Not needed') : 'Not worked out yet'}
+          note={r?.intakeDone && licence ? `Form ${r.kind} · govt fee ₹${(r.result.fee || 0).toLocaleString('en-IN')}/year` : 'A few taps to find out'}
         />
         <Tile
           to="/dashboard/documents"
           emoji="📂"
           label="Documents"
           value={r?.docs.length ? `${r.docs.filter((d) => !d.optional && isDocOk(docs[d.id])).length} of ${r.docs.filter((d) => !d.optional).length} ready` : `${Object.values(docs).filter(isDocOk).length} uploaded`}
-          note={r?.missingDocs.length ? `Still needed: ${r.missingDocs.length}` : r?.docs.length ? 'All required documents in' : 'Kept safe in your vault'}
+          note={r?.docs.some((d) => !d.optional && !isDocOk(docs[d.id])) ? `Still needed: ${r.docs.filter((d) => !d.optional && !isDocOk(docs[d.id])).length}` : r?.docs.length ? 'All required documents in' : 'Kept safe in your vault'}
         />
         <Tile
           to="/dashboard/premises"
           emoji="📍"
           label="Premises"
-          value={app?.info?.city || (app?.facts?.place ? place.show(app.facts) : 'Not added yet')}
-          note={app?.info?.premises_address || (app?.facts?.states || []).join(', ') || 'Added during your application'}
+          value={app?.info?.city || place || 'Not added yet'}
+          note={app?.info?.premises_address || app?.intake.summary.find((row) => row.id === 'state')?.value || 'Added during your application'}
         />
       </div>
 

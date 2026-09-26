@@ -1,12 +1,10 @@
 import React from 'react'
 import { ArrowRight, Pencil, Printer } from 'lucide-react'
-import { buildForm } from '../../../lib/applicationPlan.js'
-import { DOC_TYPES } from '../../../lib/documents.js'
 import { BigButton } from './ApplyPage.jsx'
 
-export default function FormsStep({ app, flow, docs, go }) {
-  const labels = Object.fromEntries(Object.entries(DOC_TYPES).map(([k, v]) => [k, v.label]))
-  const form = buildForm(app, docs, labels)
+// The form is filled on the server from the answers, details and documents.
+export default function FormsStep({ flow, r, go }) {
+  const form = r.form
   const gaps = form.sections.flatMap((s) => s.rows).filter(([, v]) => v == null).length
 
   return (

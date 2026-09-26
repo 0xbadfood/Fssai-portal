@@ -25,7 +25,9 @@ Verify that an uploaded document really belongs to the person/business submittin
 
 ## Intake engine: automaton + graph experiment (current focus)
 
-Background and reasoning: `automata-next.md`. This is built and tested in **`~/fssai-intake-lab`** (step 1 design: `DESIGN.md` there), outside the portal. Nothing in the portal UI changes until it has proved itself.
+Background and reasoning: `automata-next.md`. This is built and tested in **`~/fssai-intake-lab`** (step 1 design: `DESIGN.md` there), outside the portal.
+
+**In the portal since 2026-09-26:** the engine and graph v2 run on the server (`server/intake/`, see README); the browser only renders. Graph v2 is **provisional** until the FSSAI expert has gone through the whole flow in the webapp (the portal is not live yet). Next: the expert walks the flow; review `intake_events` (typed answers, silent reviews, ratings); answer the open questions in the lab's `DESIGN.md` §9 and review sections D–E, then release a new graph version through the lab.
 
 Decisions (2026-09-25):
 - **Every step that uses an LLM runs on the backend.** The browser only renders what the server sends.
@@ -88,7 +90,7 @@ Survey (2026-09-25): `~/fssai-robot/docs/FOSCOS_SURVEY.md` + `FOSCOS_SURVEY_ADDE
 ## Intake automaton & layered answers
 
 - **Fixed 2026-09-26: the answer cache leaked one session's facts into another user's answer.** The model saw the session's "Known facts so far" and copied them into its cached result, keyed only by question, options and text. The prompt no longer includes the session's facts, the cache signature now covers the question title too, only the fact fields the prompt asks for are kept, and `PROMPT_VERSION` is `v4`, so no `v3` entry is reused. The old `v3` rows are still in `intake_answer_cache`; they are unused, but they hold copied facts, so strip them (or delete them) before using them as data.
-- **Bug (found in the cache-fill pilot, 2026-09-25):** `normalizeText` in `src/lib/answerRules.js` keeps only `a-z0-9`, so any answer typed in Devanagari normalises to `""`. In the pilot, 38 of 41 Hindi-script answers became an empty cache key. Such answers never hit the cache (`interpretCheap` returns null on an empty key), and after a model call they are all stored under the same empty-text key for that question. Fix: keep Unicode letters and digits (`/[^\p{L}\p{M}\p{N}.'\s]/gu`), as `~/fssai-intake-lab/loop/records.mjs` does, and bump `PROMPT_VERSION` so old keys are not reused.
+- **Fixed 2026-09-26 (server-side intake): Devanagari answers normalised to an empty cache key.** The new interpreter uses the lab's Unicode-aware `normalizeText`.
 
 - Several premises (decided 2026-09-25): each extra premises is a new licensing task that runs the whole loop again, seeded with business-wide facts. A multi-state business also gets a Head Office task (`~/fssai-intake-lab/DESIGN.md` §11.4). Build it in the lab first.
 - Kinds of business the workflow chart does not cover yet: exporters / merchant exporters, 100% EOUs, health supplements / nutraceuticals and other non-specified foods, and capacity thresholds (dairy, meat, oil). Add them as options or questions once the rules are confirmed; `scripts/check-intake.mjs` will show any path they break.

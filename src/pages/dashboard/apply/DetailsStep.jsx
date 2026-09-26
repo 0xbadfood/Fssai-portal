@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { ArrowRight, Check, Plus } from 'lucide-react'
-import { useAuth } from '../../../lib/auth.jsx'
-import { fieldsFor, missingFields, prefillInfo } from '../../../lib/applicationPlan.js'
 import { BigButton } from './ApplyPage.jsx'
 
-export default function DetailsStep({ app, flow, r, docs }) {
-  const { session } = useAuth()
-  const [info, setInfo] = useState(() => prefillInfo(app.facts, session || {}, app.info, docs).info)
-  // Documents load asynchronously; fill any remaining gaps once they arrive.
+const filled = (v) => (Array.isArray(v) ? v.length > 0 : typeof v === 'string' ? v.trim() !== '' : v != null)
+
+// Fields and pre-filled values come from the server (r.fields, r.prefill: documents, account, answers).
+export default function DetailsStep({ flow, r }) {
+  const [info, setInfo] = useState(() => r.prefill.info)
+  // A later refresh (e.g. a document read) can fill remaining gaps; what the user typed stays.
   useEffect(() => {
-    setInfo((cur) => prefillInfo(app.facts, session || {}, cur, docs).info)
-  }, [docs])
-  const suggested = prefillInfo(app.facts, session || {}, {}, docs)
-  const sourceOf = (id) => (info[id] !== undefined && JSON.stringify(info[id]) === JSON.stringify(suggested.info[id]) ? suggested.sources[id] : null)
-  const fields = fieldsFor(app.facts, r.e)
-  const missing = missingFields(app.facts, r.e, info)
+    setInfo((cur) => ({ ...r.prefill.info, ...Object.fromEntries(Object.entries(cur).filter(([, v]) => filled(v))) }))
+  }, [r.prefill])
+  const sourceOf = (id) => (info[id] !== undefined && JSON.stringify(info[id]) === JSON.stringify(r.prefill.info[id]) ? r.prefill.sources[id] : null)
+  const fields = r.fields
+  const missing = fields.filter((f) => !filled(info[f.id]))
   const set = (id, v) => {
     const next = { ...info, [id]: v }
     setInfo(next)
@@ -35,7 +34,7 @@ export default function DetailsStep({ app, flow, r, docs }) {
             {fields
               .filter((f) => f.section === sec)
               .map((f) => (
-                <Field key={f.id} field={f} facts={app.facts} value={info[f.id]} source={sourceOf(f.id)} onChange={(v) => set(f.id, v)} />
+                <Field key={f.id} field={f} value={info[f.id]} source={sourceOf(f.id)} onChange={(v) => set(f.id, v)} />
               ))}
           </div>
         </div>
@@ -54,16 +53,16 @@ export default function DetailsStep({ app, flow, r, docs }) {
   )
 }
 
-function Field({ field, facts, value, source, onChange }) {
-  const options = typeof field.options === 'function' ? field.options(facts) : field.options
+function Field({ field, value, source, onChange }) {
+  const options = field.options || []
   if (field.type === 'choice' && field.hideIfSingle && options.length === 1) return null
   return (
     <div>
       <p className="mb-2.5 flex flex-wrap items-center gap-2 text-lg font-bold text-slate-800">
         {field.label}
         {source && (
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${source.startsWith('your ID') || source.includes('bill') ? 'bg-pink-50 text-pink-700' : 'bg-slate-100 text-slate-500'}`}>
-            {source.startsWith('your ID') || source.includes('bill') ? '📸 ' : ''}from {source}
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${source.startsWith('your ID') || source.includes('proof') ? 'bg-pink-50 text-pink-700' : 'bg-slate-100 text-slate-500'}`}>
+            {source.startsWith('your ID') || source.includes('proof') ? '📸 ' : ''}from {source}
           </span>
         )}
       </p>
@@ -85,14 +84,14 @@ function Field({ field, facts, value, source, onChange }) {
           ))}
         </div>
       )}
-      {field.type === 'multichoice' && <MultiChoice field={field} facts={facts} value={value || []} onChange={onChange} />}
+      {field.type === 'multichoice' && <MultiChoice field={field} value={value || []} onChange={onChange} />}
     </div>
   )
 }
 
-function MultiChoice({ field, facts, value, onChange }) {
+function MultiChoice({ field, value, onChange }) {
   const [adding, setAdding] = useState('')
-  const options = [...new Set([...field.suggestions(facts), ...value])]
+  const options = [...new Set([...(field.suggestions || []), ...value])]
   const toggle = (o) => onChange(value.includes(o) ? value.filter((x) => x !== o) : [...value, o])
   const add = () => {
     const v = adding.trim()

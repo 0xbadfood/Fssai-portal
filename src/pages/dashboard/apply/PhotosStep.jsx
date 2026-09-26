@@ -1,8 +1,7 @@
 import React from 'react'
 import { ArrowRight } from 'lucide-react'
 import DocumentUploadCard from '../../../components/documents/DocumentUploadCard.jsx'
-import { DOC_TYPES } from '../../../lib/documents.js'
-import { docFacts, isDocOk } from '../../../lib/applicationPlan.js'
+import { DOC_TYPES, isDocOk } from '../../../lib/documents.js'
 import { BigButton } from './ApplyPage.jsx'
 
 const PHOTOS = [
@@ -11,8 +10,8 @@ const PHOTOS = [
 ]
 const READ_LABELS = { applicant_name: 'Name', premises_address: 'Address', city: 'City', pincode: 'PIN code', state: 'State' }
 
-export default function PhotosStep({ flow, docs, putDoc, go }) {
-  const read = docFacts(docs)
+export default function PhotosStep({ flow, r, docs, putDoc, go }) {
+  const read = r.readFromDocs
   const done = PHOTOS.every((p) => isDocOk(docs[p.id]))
 
   return (

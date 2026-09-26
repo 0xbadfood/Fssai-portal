@@ -1,6 +1,6 @@
 import { COOKIE, login, logout, requestPasswordReset, resetPassword, signup, userFromToken } from './authService.js'
 import { listDocuments, readDocumentFile, uploadDocument } from './documentsService.js'
-import { answerSession, rateSession, restartSession, resumeSession, startSession, undoSession } from './intake/sessions.js'
+import { answerSession, previewSession, rateSession, restartSession, resumeSession, undoSession } from './intake/sessions.js'
 import { createSupportRequest, listSupportRequests } from './supportService.js'
 import { currentQuote, listPayments, payApplication } from './paymentsService.js'
 import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
@@ -86,7 +86,7 @@ async function handler(req, res, next) {
       setSessionCookie(req, res, session.token, session.maxAge)
       return json(res, 200, { user })
     }
-    const intake = url.match(/^\/api\/intake\/(start|resume|answer|undo|restart|rate)$/)
+    const intake = url.match(/^\/api\/intake\/(preview|resume|answer|undo|restart|rate)$/)
     if (req.method === 'POST' && intake) {
       // Public landing-page chat. The conversation lives on the server; typed answers use records and CLM only,
       // never the model, so this endpoint cannot be used to run the LLM.
@@ -96,9 +96,9 @@ async function handler(req, res, next) {
       return json(
         res,
         200,
-        action === 'start' ? await startSession(ctx)
+        action === 'preview' ? previewSession()
         : action === 'resume' ? await resumeSession(body.session)
-        : action === 'answer' ? await answerSession(body.session, body)
+        : action === 'answer' ? await answerSession(body.session || null, body, ctx)
         : action === 'undo' ? await undoSession(body.session)
         : action === 'restart' ? await restartSession(body.session)
         : await rateSession(body.session, body),

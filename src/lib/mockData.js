@@ -1,4 +1,4 @@
-import { STATUS } from './eligibility.js'
+import { STATUS } from './status.js'
 
 export const kpis = [
   { id: 'active', label: 'Active Applications', value: '12', hint: '↑ 2 new this month', tone: 'blue' },

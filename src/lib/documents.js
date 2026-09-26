@@ -6,6 +6,9 @@ export const DOC_TYPES = documentConfig.types
 export const ACCEPTED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 export const MAX_PDF_PAGES = 4
 
+/** Accepted, or waiting for an officer's check: good enough to continue. */
+export const isDocOk = (doc) => doc?.status === 'accepted' || doc?.status === 'review'
+
 /** Documents for the signed-in user (loaded from the server), keyed by docTypeId. */
 export function useUserDocuments() {
   const { session } = useAuth()

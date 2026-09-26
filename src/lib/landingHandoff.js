@@ -1,29 +1,27 @@
-// Intake answers tapped in the landing-page chat, carried over to the first application after sign-up.
-// Stored per browser only; the server replays them through the normal answer path (so undo still works).
-const KEY = 'fssai.landingAnswers'
+// The landing-page chat's server session, carried over to the first application after sign-up.
+// Only the session id is kept in the browser; the answers live on the server.
+const KEY = 'fssai.intakeSession'
 
-export function saveLandingAnswers(answers) {
+export function saveLandingSession(id) {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ answers, at: Date.now() }))
+    if (id) localStorage.setItem(KEY, JSON.stringify({ id, at: Date.now() }))
+    else localStorage.removeItem(KEY)
   } catch {}
 }
 
-/** Answers saved in the last 7 days, removed on read so they are used once. */
-export function takeLandingAnswers() {
+/** The session id from the last 7 days, or null. */
+export function landingSession() {
   try {
-    const raw = localStorage.getItem(KEY)
-    localStorage.removeItem(KEY)
-    const { answers, at } = JSON.parse(raw || '{}')
-    return Array.isArray(answers) && Date.now() - at < 7 * 864e5 ? answers : []
+    const { id, at } = JSON.parse(localStorage.getItem(KEY) || '{}')
+    return typeof id === 'string' && Date.now() - at < 7 * 864e5 ? id : null
   } catch {
-    return []
+    return null
   }
 }
 
-export function hasLandingAnswers() {
-  try {
-    return !!localStorage.getItem(KEY)
-  } catch {
-    return false
-  }
+/** The session id, removed on read so it is handed over once. */
+export function takeLandingSession() {
+  const id = landingSession()
+  saveLandingSession(null)
+  return id
 }

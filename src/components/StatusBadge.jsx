@@ -1,5 +1,5 @@
 import React from 'react'
-import { STATUS_META } from '../lib/eligibility.js'
+import { STATUS_META } from '../lib/status.js'
 
 const COLOR_CLASSES = {
   slate: 'bg-slate-100 text-slate-700 ring-slate-200',

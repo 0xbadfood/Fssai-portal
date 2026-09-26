@@ -1,28 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, Keyboard, Send, Sparkles } from 'lucide-react'
 import { useAuth } from '../../../lib/auth.jsx'
-import { POPULAR_STATES, QUESTIONS, STATES, hintFor, isMulti, nextQuestion, optionsFor, titleFor } from '../../../lib/intakeQuestions.js'
-import { docFacts } from '../../../lib/applicationPlan.js'
 import { BigButton, CARD_TONES } from './ApplyPage.jsx'
 import ChatControls from './ChatControls.jsx'
 
-export default function IntakeStep({ app, flow, docs }) {
+// The question, its options and the order of the conversation come from the server (app.intake);
+// this component only shows them and sends back taps or typed text.
+export default function IntakeStep({ app, flow }) {
   const { session } = useAuth()
-  const q = nextQuestion(app.facts)
-  const facts = app.facts
-  const qNumber = QUESTIONS.filter((x) => x.relevant(facts) && x.answered(facts)).length + 1
+  const q = app.intake.question
+  const clarify = app.intake.clarify
+  const qNumber = q?.number || 1
   const [picked, setPicked] = useState([])
   const [typing, setTyping] = useState(false)
   const [text, setText] = useState('')
   const [allStates, setAllStates] = useState(false)
   const bottom = useRef(null)
-  const fromDocs = docFacts(docs)
+  const suggested = q?.states?.suggested || null
 
   useEffect(() => {
-    setPicked(q?.kind === 'states' && fromDocs.state ? [fromDocs.state.value] : [])
+    setPicked(q?.kind === 'states' && suggested ? [suggested] : [])
     setTyping(false)
     setText('')
-  }, [q?.id])
+  }, [q?.id, q?.title])
   // Braces matter: an effect's return value is its cleanup, and Chrome's smooth scrollIntoView returns a Promise.
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -31,8 +31,10 @@ export default function IntakeStep({ app, flow, docs }) {
   if (!q) return null
 
   const tapSingle = (id) => !flow.busy && flow.answer({ questionId: q.id, optionIds: [id] })
-  const multi = isMulti(q, facts)
-  const options = optionsFor(q, facts)
+  const multi = q.multi
+  // After a typed answer we could not read, the best guesses come first.
+  const guesses = clarify?.questionId === q.id ? clarify.guesses : []
+  const options = [...guesses.map((id) => q.options.find((o) => o.id === id)).filter(Boolean), ...q.options.filter((o) => !guesses.includes(o.id))]
   const exclusive = (id) => options.find((o) => o.id === id)?.exclusive
   const toggle = (id) =>
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : exclusive(id) ? [id] : [...p.filter((x) => !exclusive(x)), id]))
@@ -45,7 +47,7 @@ export default function IntakeStep({ app, flow, docs }) {
   }
 
   const firstName = session?.name?.split(' ')[0] || 'there'
-  const stateList = allStates ? STATES : [...new Set([...POPULAR_STATES, ...picked])]
+  const stateList = allStates ? q.states.all : [...new Set([...(q.states?.popular || []), ...picked])]
 
   return (
     <div className="space-y-5">
@@ -74,13 +76,13 @@ export default function IntakeStep({ app, flow, docs }) {
 
       <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-7">
         <p className="text-sm font-bold uppercase tracking-wide text-violet-500">
-          {q.id === 'check' ? 'Just checking' : `Question ${qNumber}`}
+          {q.check ? 'Just checking' : `Question ${qNumber}`}
         </p>
-        <h2 className="mt-1 text-2xl font-extrabold leading-snug text-slate-900 sm:text-3xl">{titleFor(q, facts)}</h2>
-        {hintFor(q, facts) && <p className="mt-2 text-base text-slate-500">{hintFor(q, facts)}</p>}
-        {q.kind === 'states' && fromDocs.state && picked.includes(fromDocs.state.value) && (
+        <h2 className="mt-1 text-2xl font-extrabold leading-snug text-slate-900 sm:text-3xl">{q.title}</h2>
+        {q.hint && <p className="mt-2 text-base text-slate-500">{q.hint}</p>}
+        {q.kind === 'states' && suggested && picked.includes(suggested) && (
           <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-pink-50 px-3 py-1.5 text-sm font-semibold text-pink-700">
-            📸 From {fromDocs.state.source}: {multi ? 'add any others and tap Continue' : 'tap it to confirm'}
+            📸 From your address proof: {multi ? 'add any others and tap Continue' : 'tap it to confirm'}
           </p>
         )}
 
@@ -111,13 +113,14 @@ export default function IntakeStep({ app, flow, docs }) {
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {options.map((o, i) => {
               const on = picked.includes(o.id)
+              const guess = guesses.includes(o.id)
               return (
                 <button
                   key={o.id}
                   disabled={flow.busy}
                   onClick={() => (multi ? toggle(o.id) : tapSingle(o.id))}
                   className={`relative flex min-h-[120px] items-start gap-4 rounded-3xl border-2 bg-gradient-to-br p-5 text-left transition active:scale-[0.98] disabled:opacity-60 ${CARD_TONES[i % CARD_TONES.length]} ${
-                    on ? '!border-violet-500 ring-4 ring-violet-200' : ''
+                    on ? '!border-violet-500 ring-4 ring-violet-200' : guess ? 'ring-2 ring-violet-300' : ''
                   }`}
                 >
                   <span className="text-4xl leading-none">{o.emoji}</span>
@@ -142,7 +145,7 @@ export default function IntakeStep({ app, flow, docs }) {
           </BigButton>
         )}
 
-        <div className="mt-6 border-t border-slate-100 pt-4">
+        {q.typing && <div className="mt-6 border-t border-slate-100 pt-4">
           {typing ? (
             <div className="flex gap-2">
               <input
@@ -150,7 +153,7 @@ export default function IntakeStep({ app, flow, docs }) {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && submitText()}
-                placeholder={qNumber === 1 ? 'e.g. I run a cloud kitchen in Pune, about ₹80 lakh a year' : 'Type your answer…'}
+                placeholder={qNumber === 1 ? 'e.g. I run a cloud kitchen' : q.id === 'turnover' ? 'e.g. about 80 lakh a year' : 'Type your answer…'}
                 className="min-w-0 flex-1 rounded-2xl border-2 border-slate-200 px-4 py-3 text-base focus:border-violet-500 focus:outline-none"
               />
               <button
@@ -167,7 +170,7 @@ export default function IntakeStep({ app, flow, docs }) {
               <Keyboard size={18} /> {qNumber === 1 ? 'Or describe your business in your own words' : 'None of these? Tell me in your own words'}
             </button>
           )}
-        </div>
+        </div>}
       </div>
 
       {flow.busy && (
