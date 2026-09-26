@@ -10,11 +10,19 @@ import { QUESTIONS, isMulti, mergeInterpretation, nextQuestion, optionsFor, sani
 import { normalizeText, ruleAnswer, tokenSignature } from '../src/lib/answerRules.js'
 
 // Bump when the prompt or fact schema changes, so older interpretations are not reused.
-const PROMPT_VERSION = 'v3'
+// v4: the prompt no longer sees the session's facts (v3 results could carry one user's facts into another's answer).
+const PROMPT_VERSION = 'v4'
 
 // The signature carries the prompt version, so both the exact and the reworded lookups ignore older interpretations.
-const optionsSig = (question, facts) =>
-  `${PROMPT_VERSION}:${optionsFor(question, facts).map((o) => o.id).join(',')}${isMulti(question, facts) ? '|multi' : ''}`
+// It covers everything the prompt shows besides the text (title, options, single/multi), so a cached result
+// is exactly what the model would say for this answer, whoever typed it.
+const optionsSig = (question, facts) => {
+  const title = createHash('sha256').update(titleFor(question, facts)).digest('hex').slice(0, 12)
+  return `${PROMPT_VERSION}:${title}:${optionsFor(question, facts).map((o) => o.id).join(',')}${isMulti(question, facts) ? '|multi' : ''}`
+}
+
+// The fact fields the prompt asks for. Anything else the model adds is dropped before it is used or cached.
+const FACT_KEYS = ['activities', 'trade', 'place', 'municipal_registered', 'locations', 'states', 'sells_online', 'ecommerce_platform', 'annual_sales_rupees', 'products', 'city']
 const keyFor = (question, sig, norm) => createHash('sha256').update([question.id, sig, norm].join('\n')).digest('hex')
 
 const RULE_REPLY = { activity: 'Got it!', trade: 'Noted.', place: 'Got it.', vending: 'Okay.', locations: 'Noted.', state: 'Got it.', online: 'Okay.', turnover: 'Thanks, noted.', nonfood: 'Okay.' }
@@ -45,7 +53,7 @@ export async function interpretAnswer(facts, question, text) {
   const allowed = optionsFor(question, facts).map((o) => o.id)
   const result = {
     choice: Array.isArray(json?.choice) ? json.choice.filter((c) => allowed.includes(c)) : [],
-    facts: json?.facts && typeof json.facts === 'object' ? json.facts : {},
+    facts: json?.facts && typeof json.facts === 'object' ? Object.fromEntries(FACT_KEYS.filter((k) => k in json.facts).map((k) => [k, json.facts[k]])) : {},
     reply: String(json?.reply || '').slice(0, 300),
   }
   const norm = normalizeText(text)
@@ -60,17 +68,18 @@ export async function interpretAnswer(facts, question, text) {
 
 function interpretPrompt(facts, question, text) {
   const options = optionsFor(question, facts)
+  // The session's facts are deliberately left out: the result is cached and reused for anyone typing the same answer.
   return `You help small Indian food businesses work out their FSSAI licensing. Convert what the user wrote into facts.
+Use only what this answer itself says.
 
-Known facts so far: ${JSON.stringify(facts)}
 Question the user was answering: "${titleFor(question, facts)}"
 User wrote: """${text}"""
 
 ${options.length ? `Options for this question (id: label - examples):
 ${options.map((o) => `- ${o.id}: ${o.label} - ${o.example}`).join('\n')}
 ` : ''}
-Reply with ONE JSON object: {"choice": [<ids of the options above that the user's answer matches${isMulti(question, facts) ? ', one or more' : ', at most one'}; [] if none clearly match>], "facts": {...}, "reply": "<one short, warm sentence acknowledging what you understood, max 25 words>"}
-Put in "facts" only fields that are clearly stated or strongly implied (omit the rest; never guess turnover):
+Reply with ONE JSON object: {"choice": [<ids of the options above that the user's answer matches${isMulti(question, facts) ? ', one or more' : ', at most one'}; [] if none clearly match>], "facts": {...}, "reply": "<one short, warm sentence acknowledging what this answer says, max 25 words>"}
+Put in "facts" only fields that this answer clearly states or strongly implies (omit the rest; never guess turnover):
 - "activities": array, any of "cook" (cooks/serves food: restaurant, cafe, tiffin, caterer, canteen, cloud kitchen, food cart), "make" (makes, processes, packs or repacks food), "sell" (sells, distributes, stores or transports food made by others), "import" (imports food into India)
 - "trade": array, only when they sell/store/transport: any of "retail" (sells to consumers), "wholesale" (supplies other businesses), "storage" (warehouse / cold storage), "transport" (vehicles carrying food)
 - "place": only if stated or obvious from the business (a cloud kitchen or shop is "premises"): one of "street" (cart, stall, food truck), "home" (home kitchen), "premises" (shop, restaurant, factory, warehouse, office), "hub" (inside an airport, seaport, railway station or central-government premises), "vehicles" (a transporter with no premises)
