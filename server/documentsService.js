@@ -18,6 +18,10 @@ export const toRecord = (r) => ({
   file: { name: r.file_name, mime: r.mime, sizeBytes: r.size_bytes, pageCount: r.page_count },
   verification: r.verification,
   pdfEncrypted: !!r.pdf_encrypted,
+  opsStatus: r.ops_status || null,
+  opsNote: r.ops_note || null,
+  opsReviewedAt: r.ops_reviewed_at || null,
+  uploadedByOps: !!r.uploaded_by,
   uploadedAt: r.uploaded_at,
 })
 
@@ -42,7 +46,8 @@ export const isEncryptedPdf = (bytes) => bytes.includes('/Encrypt')
 const decodeDataUrl = (url) => ({ mime: url.slice(5, url.indexOf(';')), bytes: Buffer.from(url.slice(url.indexOf(',') + 1), 'base64') })
 
 /** pages: 1-4 page images (JPEG from the browser); original: the uploaded PDF as a data URL, if the user sent a PDF. */
-export async function uploadDocument(userId, { docTypeId, pages, original, pdfText, fileName, sizeBytes, pageCount: reportedPages }) {
+/** uploadedBy: the ops member uploading on the customer's behalf (null when the customer uploads). */
+export async function uploadDocument(userId, { docTypeId, pages, original, pdfText, fileName, sizeBytes, pageCount: reportedPages }, { uploadedBy = null } = {}) {
   await ensureSchema()
   let pdf = null
   if (original != null) {
@@ -75,10 +80,10 @@ export async function uploadDocument(userId, { docTypeId, pages, original, pdfTe
     await client.query('BEGIN')
     await client.query('UPDATE documents SET superseded_at = now() WHERE user_id = $1 AND doc_type_id = $2 AND superseded_at IS NULL', [userId, docTypeId])
     const { rows } = await client.query(
-      `INSERT INTO documents (id, user_id, doc_type_id, status, file_name, mime, size_bytes, storage_path, preview_path, page_count, sha256, model, quality_score, verification, pdf_encrypted)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
+      `INSERT INTO documents (id, user_id, doc_type_id, status, file_name, mime, size_bytes, storage_path, preview_path, page_count, sha256, model, quality_score, verification, pdf_encrypted, uploaded_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
       [id, userId, docTypeId, verification.decision, String(fileName || 'upload').slice(0, 200), stored.mime, Number(sizeBytes) || stored.bytes.length, relPath,
-        previewRel, pageCount, createHash('sha256').update(stored.bytes).digest('hex'), verification.model, verification.qualityScore, verification, !!pdf && isEncryptedPdf(pdf.bytes)],
+        previewRel, pageCount, createHash('sha256').update(stored.bytes).digest('hex'), verification.model, verification.qualityScore, verification, !!pdf && isEncryptedPdf(pdf.bytes), uploadedBy],
     )
     await client.query('COMMIT')
     return toRecord(rows[0])

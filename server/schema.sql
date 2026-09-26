@@ -207,3 +207,14 @@ CREATE INDEX IF NOT EXISTS case_events_case_idx ON case_events (case_id, at);
 INSERT INTO cases (application_id, user_id, opened_at)
   SELECT p.application_id, p.user_id, min(p.created_at) FROM payments p WHERE p.status = 'paid' GROUP BY p.application_id, p.user_id
   ON CONFLICT (application_id) DO NOTHING;
+
+-- Case track: 'filing' (paid applications); 'expert' comes with the expert workflow (TODO.md).
+ALTER TABLE cases ADD COLUMN IF NOT EXISTS track text NOT NULL DEFAULT 'filing';
+
+-- Ops review of a document, on top of the AI check: 'approved' or 'rejected' (with a note for the customer).
+-- It overrides the AI either way. A new upload is a new row, so it starts unreviewed.
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS ops_status text;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS ops_note text;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS ops_reviewed_by uuid REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS ops_reviewed_at timestamptz;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS uploaded_by uuid REFERENCES users(id) ON DELETE SET NULL;  -- set when ops uploaded it

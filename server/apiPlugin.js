@@ -3,7 +3,7 @@ import { listDocuments, readDocumentFile, uploadDocument } from './documentsServ
 import { answerSession, previewSession, rateSession, restartSession, resumeSession, undoSession } from './intake/sessions.js'
 import { createSupportRequest, listSupportRequests } from './supportService.js'
 import { currentQuote, listPayments, payApplication } from './paymentsService.js'
-import { isOps, listCases, takeCase, transferCase } from './opsService.js'
+import { addNote, caseDocumentFile, getCase, isOps, listCases, reviewDocument, setStatus, takeCase, transferCase, updateDetail, uploadForCustomer } from './opsService.js'
 import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
 
 const MAX_BODY = 30_000_000
@@ -133,11 +133,31 @@ async function handler(req, res, next) {
     if (url.startsWith('/api/ops/')) {
       if (!isOps(user)) return json(res, 403, { error: 'Operations team only.' })
       if (req.method === 'GET' && url === '/api/ops/cases') return json(res, 200, await listCases(user))
-      const act = url.match(/^\/api\/ops\/cases\/([^/]+)\/(take|transfer)$/)
-      if (req.method === 'POST' && act) {
-        const body = JSON.parse((await readBody(req)) || '{}')
-        return json(res, 200, act[2] === 'take' ? await takeCase(user, act[1]) : await transferCase(user, act[1], body))
+      const one = url.match(/^\/api\/ops\/cases\/([0-9a-f-]{36})$/)
+      if (req.method === 'GET' && one) return json(res, 200, await getCase(user, one[1]))
+      const docFile = url.match(/^\/api\/ops\/cases\/([0-9a-f-]{36})\/documents\/([0-9a-f-]{36})\/(file|preview)$/)
+      if (req.method === 'GET' && docFile) {
+        const { mime, fileName, data } = await caseDocumentFile(user, docFile[1], docFile[2], { preview: docFile[3] === 'preview' })
+        res.setHeader('content-type', mime)
+        if (docFile[3] === 'file') res.setHeader('content-disposition', `inline; filename="${fileName.replace(/[^\w.\- ]/g, '_')}"`)
+        res.setHeader('cache-control', 'private, no-store')
+        return res.end(data)
       }
+      const act = url.match(/^\/api\/ops\/cases\/([0-9a-f-]{36})\/(take|transfer|status|detail|note|upload)$/)
+      if (req.method === 'POST' && act) {
+        const [, id, action] = act
+        const body = JSON.parse((await readBody(req)) || '{}')
+        if (action === 'take') return json(res, 200, await takeCase(user, id))
+        if (action === 'transfer') return json(res, 200, await transferCase(user, id, body))
+        const out =
+          action === 'status' ? await setStatus(user, id, body)
+          : action === 'detail' ? await updateDetail(user, id, body)
+          : action === 'note' ? await addNote(user, id, body)
+          : await uploadForCustomer(user, id, body)
+        return json(res, 200, out)
+      }
+      const review = url.match(/^\/api\/ops\/cases\/([0-9a-f-]{36})\/documents\/([0-9a-f-]{36})\/review$/)
+      if (req.method === 'POST' && review) return json(res, 200, await reviewDocument(user, review[1], review[2], JSON.parse((await readBody(req)) || '{}')))
       return json(res, 404, { error: 'Not found' })
     }
     if (isOps(user)) return json(res, 403, { error: 'Operations accounts use the operations console.' })

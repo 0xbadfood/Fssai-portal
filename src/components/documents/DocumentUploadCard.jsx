@@ -6,7 +6,12 @@ const RESULT_STYLE = {
   accepted: { ring: 'border-green-200 bg-green-50/40', badge: 'bg-green-100 text-green-700', label: 'Verified', Icon: CheckCircle2 },
   review: { ring: 'border-amber-200 bg-amber-50/40', badge: 'bg-amber-100 text-amber-700', label: 'Accepted - needs officer review', Icon: AlertTriangle },
   rejected: { ring: 'border-red-200 bg-red-50/40', badge: 'bg-red-100 text-red-700', label: 'Not acceptable', Icon: XCircle },
+  // Our team's review overrides the AI check either way.
+  approved: { ring: 'border-green-200 bg-green-50/40', badge: 'bg-green-100 text-green-700', label: 'Approved by our team', Icon: CheckCircle2 },
+  opsRejected: { ring: 'border-red-200 bg-red-50/40', badge: 'bg-red-100 text-red-700', label: 'Our team needs a new copy', Icon: XCircle },
 }
+const outcome = (doc) => (doc?.opsStatus === 'approved' ? 'approved' : doc?.opsStatus === 'rejected' ? 'opsRejected' : doc?.status)
+const needsNewCopy = (doc) => ['rejected', 'opsRejected'].includes(outcome(doc))
 
 export default function DocumentUploadCard({ docTypeId, label, tag, doc, onSave }) {
   const spec = DOC_TYPES[docTypeId]
@@ -58,7 +63,7 @@ export default function DocumentUploadCard({ docTypeId, label, tag, doc, onSave 
     }
   }
 
-  const style = doc ? RESULT_STYLE[doc.status] : null
+  const style = doc ? RESULT_STYLE[outcome(doc)] : null
   const preview = busy?.preview || (snap?.id === doc?.id ? snap?.url : null) || storedImage
   const v = doc?.verification
 
@@ -126,14 +131,17 @@ export default function DocumentUploadCard({ docTypeId, label, tag, doc, onSave 
                 {doc.file.mime === 'application/pdf' ? <FileText size={12} /> : <FileImage size={12} />} {doc.file.name}
                 {doc.file.mime === 'application/pdf' && ` · PDF, ${doc.file.pageCount} page${doc.file.pageCount === 1 ? '' : 's'}`} · quality {v.qualityScore}/100
               </p>
-              {v.issues.length > 0 && (
+              {doc.opsStatus === 'rejected' && doc.opsNote && (
+                <p className="mt-2 rounded-lg bg-red-50 px-2.5 py-1.5 font-semibold text-red-800">Our team: {doc.opsNote}</p>
+              )}
+              {!doc.opsStatus && v.issues.length > 0 && (
                 <ul className="mt-2 list-disc space-y-0.5 pl-4 text-slate-700">
                   {v.issues.map((m) => <li key={m}>{m}</li>)}
                 </ul>
               )}
               <div className="mt-3 flex flex-wrap gap-2">
-                <button onClick={() => inputRef.current?.click()} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${doc.status === 'rejected' ? 'bg-red-600 text-white hover:bg-red-700' : 'border border-slate-200 text-slate-600 hover:bg-white'}`}>
-                  <RefreshCcw size={12} /> {doc.status === 'rejected' ? 'Upload a better copy' : 'Replace'}
+                <button onClick={() => inputRef.current?.click()} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${needsNewCopy(doc) ? 'bg-red-600 text-white hover:bg-red-700' : 'border border-slate-200 text-slate-600 hover:bg-white'}`}>
+                  <RefreshCcw size={12} /> {needsNewCopy(doc) ? 'Upload a better copy' : 'Replace'}
                 </button>
                 <button onClick={() => setOpen((o) => !o)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-white">
                   <Eye size={12} /> {open ? 'Hide' : 'Details'}

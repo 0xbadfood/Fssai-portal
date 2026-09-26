@@ -65,7 +65,8 @@ const filled = (v) => (Array.isArray(v) ? v.length > 0 : typeof v === 'string' ?
 const titleCase = (x) => x.toLowerCase().replace(/\b\p{L}/gu, (c) => c.toUpperCase())
 const clean = (x) => (typeof x === 'string' && x.trim() && x.trim().toLowerCase() !== 'null' ? x.trim() : null)
 const readable = (x) => x && (x === x.toUpperCase() ? titleCase(x) : x)
-export const isDocOk = (doc) => doc?.status === 'accepted' || doc?.status === 'review'
+// The ops team's review overrides the AI check either way.
+export const isDocOk = (doc) => (doc?.opsStatus ? doc.opsStatus === 'approved' : doc?.status === 'accepted' || doc?.status === 'review')
 
 /** Facts read from accepted documents, normalised by code. Each value carries its source label. */
 export function docFacts(docsByType = {}) {
