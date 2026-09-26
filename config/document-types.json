@@ -81,10 +81,11 @@
         }
       ],
       "extractHints": {
-        "address_line": "house/shop number, building, street and locality only - without city, state or PIN code",
+        "address_line": "the customer's own postal address (usually the mailing block near the top), never the issuer's office or contact address; house/shop number, building, street and locality only - without city, state or PIN code",
         "state": "Indian state or union territory name",
         "pincode": "6-digit PIN code",
-        "document_date": "bill / issue date as YYYY-MM-DD"
+        "document_date": "the bill / statement / issue date as YYYY-MM-DD (for a statement, the statement or generation date; Indian documents usually write dates as DD/MM/YYYY)",
+        "holder_name": "the customer / account holder the document is addressed to - never a bank officer, nodal officer or company contact"
       }
     },
     "premise": {

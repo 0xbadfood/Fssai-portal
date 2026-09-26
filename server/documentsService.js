@@ -29,7 +29,7 @@ export async function listDocuments(userId) {
 const decodeDataUrl = (url) => ({ mime: url.slice(5, url.indexOf(';')), bytes: Buffer.from(url.slice(url.indexOf(',') + 1), 'base64') })
 
 /** pages: 1-4 page images (JPEG from the browser); original: the uploaded PDF as a data URL, if the user sent a PDF. */
-export async function uploadDocument(userId, { docTypeId, pages, original, fileName, sizeBytes, pageCount: reportedPages }) {
+export async function uploadDocument(userId, { docTypeId, pages, original, pdfText, fileName, sizeBytes, pageCount: reportedPages }) {
   await ensureSchema()
   let pdf = null
   if (original != null) {
@@ -38,7 +38,9 @@ export async function uploadDocument(userId, { docTypeId, pages, original, fileN
     if (pdf.bytes.length > MAX_PDF_BYTES) throw httpError(413, 'PDF is larger than 10 MB.')
     if (pdf.bytes.subarray(0, 5).toString('latin1') !== '%PDF-') throw httpError(400, 'This file is not a valid PDF.')
   }
-  const verification = await verifyDocument({ docTypeId, pages, fromPdf: pdf != null })
+  // pdfText: the PDF's text layer, extracted in the browser (which has the password for protected PDFs). Not stored.
+  const text = pdf != null && typeof pdfText === 'string' ? pdfText.slice(0, 20000) : ''
+  const verification = await verifyDocument({ docTypeId, pages, fromPdf: pdf != null, pdfText: text })
   const first = decodeDataUrl(pages[0])
   const stored = pdf || first
   const id = randomUUID()

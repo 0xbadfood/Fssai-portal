@@ -44,6 +44,7 @@ export default function DocumentUploadCard({ docTypeId, label, tag, doc, onSave 
         docTypeId,
         pages: prepared.pages,
         original: prepared.original,
+        pdfText: prepared.pdfText,
         pageCount: prepared.pageCount,
         fileName: file.name,
         sizeBytes: file.size,

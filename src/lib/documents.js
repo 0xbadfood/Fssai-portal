@@ -59,8 +59,12 @@ export function useDocumentImage(doc) {
   return url
 }
 
-function toJpeg(source, width, height, maxSide, quality) {
-  const scale = Math.min(1, maxSide / Math.max(width, height))
+// PDF pages are sized by area, not by the long side: a tall, narrow statement capped at 1600 px high comes out
+// ~900 px wide, and its small print is then too small for the vision model (it reads ~32 px blocks).
+const PDF_PAGE_PIXELS = 2_500_000
+
+function toJpeg(source, width, height, maxSide, quality, maxPixels = Infinity) {
+  const scale = Math.min(1, maxSide / Math.max(width, height), Math.sqrt(maxPixels / (width * height)))
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(width * scale)
   canvas.height = Math.round(height * scale)
@@ -97,10 +101,11 @@ async function renderPdf(file, password) {
     throw new Error('This PDF could not be opened. Try another copy or take a photo instead.')
   }
   const pages = []
+  const texts = []
   for (let n = 1; n <= Math.min(pdf.numPages, MAX_PDF_PAGES); n++) {
     const page = await pdf.getPage(n)
     const base = page.getViewport({ scale: 1 })
-    const viewport = page.getViewport({ scale: Math.min(3, 1600 / Math.max(base.width, base.height)) })
+    const viewport = page.getViewport({ scale: Math.min(3, Math.sqrt(PDF_PAGE_PIXELS / (base.width * base.height))) })
     const canvas = document.createElement('canvas')
     canvas.width = Math.round(viewport.width)
     canvas.height = Math.round(viewport.height)
@@ -109,12 +114,16 @@ async function renderPdf(file, password) {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     await page.render({ canvasContext: ctx, viewport }).promise
     pages.push(canvas)
+    // The text layer gives the checker exact characters for names, addresses and dates (empty for scans).
+    const { items } = await page.getTextContent()
+    texts.push(items.map((it) => (it.str || '') + (it.hasEOL ? '\n' : ' ')).join('').replace(/[ \t]+/g, ' ').trim())
   }
   const pageCount = pdf.numPages
   await pdf.destroy()
   return {
     preview: toJpeg(pages[0], pages[0].width, pages[0].height, 640, 0.72),
-    pages: pages.map((c) => toJpeg(c, c.width, c.height, 1600, 0.85)),
+    pages: pages.map((c) => toJpeg(c, c.width, c.height, Infinity, 0.85, PDF_PAGE_PIXELS)),
+    pdfText: texts.map((t, i) => `--- page ${i + 1} ---\n${t}`).join('\n').slice(0, 20000),
     original: await readAsDataUrl(file),
     pageCount,
   }
@@ -137,15 +146,16 @@ export async function prepareFile(file, password) {
     preview: toJpeg(bitmap, bitmap.width, bitmap.height, 640, 0.72),
     pages: [toJpeg(bitmap, bitmap.width, bitmap.height, 1600, 0.85)],
     original: null,
+    pdfText: null,
     pageCount: 1,
   }
 }
 
-export async function uploadDocument({ docTypeId, pages, original, pageCount, fileName, sizeBytes }) {
+export async function uploadDocument({ docTypeId, pages, original, pdfText, pageCount, fileName, sizeBytes }) {
   const res = await fetch('/api/documents/verify', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ docTypeId, pages, original, pageCount, fileName, sizeBytes }),
+    body: JSON.stringify({ docTypeId, pages, original, pdfText, pageCount, fileName, sizeBytes }),
   })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.error || `Verification failed (${res.status})`)
