@@ -9,6 +9,7 @@ import { listDocuments } from './documentsService.js'
 import { cleanFacts } from './intake/index.js'
 import { planFor } from './intake/plan.js'
 import { openCase } from './opsService.js'
+import { paymentMode } from './cashfree.js'
 
 const httpError = (status, message) => Object.assign(new Error(message), { status })
 const METHODS = ['upi', 'card', 'netbanking']
@@ -34,7 +35,7 @@ function quoteFor(row, docs) {
   const items = [{ label: `Government fee: ${r.licence} (1 year)`, amount: plan.result.fee }]
   const service = Number(config().serviceFeeRupees) || 0
   if (service > 0) items.push({ label: 'MyFoodLicense service fee', amount: service })
-  return { r, items, total: items.reduce((s, i) => s + i.amount, 0), mode: config().mode }
+  return { r, items, total: items.reduce((s, i) => s + i.amount, 0), mode: paymentMode() }
 }
 
 const byType = async (userId) => Object.fromEntries((await listDocuments(userId)).map((d) => [d.docTypeId, d]))
@@ -59,11 +60,42 @@ export async function currentQuote(userId) {
   }
 }
 
+/**
+ * Record a payment for an application (inside the caller's transaction, the application row locked). Paid: the
+ * application is submitted and opens a case in the operations queue. Shared by the test checkout and the gateway.
+ */
+export async function recordApplicationPayment(client, userId, row, { items, totalPaise, method, status, mode, reference }) {
+  const { rows } = await client.query(
+    'INSERT INTO payments (user_id, application_id, items, amount_paise, method, status, mode, reference) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+    [userId, row.id, JSON.stringify(items), totalPaise, method, status, mode, reference],
+  )
+  if (status === 'paid') {
+    await client.query("UPDATE applications SET status = 'ready', step = 'ready', ready_at = now(), updated_at = now() WHERE id = $1", [row.id])
+    // The paid application now appears in the operations queue.
+    await openCase(client, row.id, userId, { payment: rows[0].id, reference, amount: totalPaise / 100, mode })
+  }
+  return toPayment(rows[0])
+}
+
+/**
+ * For the gateway: lock the application and work out what it costs now (-> { row, items, totalPaise }).
+ * Refuses when it is already paid or not ready. Runs inside the caller's transaction.
+ */
+export async function applicationCharge(client, userId, applicationId) {
+  const docs = await byType(userId)
+  const row = await loadApp(userId, applicationId, client)
+  const { rows: done } = await client.query("SELECT 1 FROM payments WHERE application_id = $1 AND status = 'paid'", [row.id])
+  if (done[0]) throw httpError(409, 'This application is already paid.')
+  const q = quoteFor(row, docs)
+  if (!q.r.ready) throw httpError(400, 'Finish your application before paying.')
+  return { row, items: q.items, totalPaise: Math.round(q.total * 100), label: `${q.r.licence}: government fee` }
+}
+
 /** Test checkout: `outcome` 'fail' simulates a declined payment. On success the application is submitted. */
 export async function payApplication(userId, { applicationId, method, outcome }) {
   await ensureSchema()
   if (!METHODS.includes(method)) throw httpError(400, 'Choose a payment method.')
-  if (config().mode !== 'test') throw httpError(503, 'Online payment is not available yet.')
+  if (paymentMode() !== 'test') throw httpError(503, 'Online payment is not available yet.')
   const docs = await byType(userId)
   const client = await pool.connect()
   try {
@@ -78,17 +110,9 @@ export async function payApplication(userId, { applicationId, method, outcome })
     if (!q.r.ready) throw httpError(400, 'Finish your application before paying.')
     const status = outcome === 'fail' ? 'failed' : 'paid'
     const reference = `TEST-${randomBytes(5).toString('hex').toUpperCase()}`
-    const { rows } = await client.query(
-      'INSERT INTO payments (user_id, application_id, items, amount_paise, method, status, mode, reference) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
-      [userId, row.id, JSON.stringify(q.items), q.total * 100, method, status, q.mode, reference],
-    )
-    if (status === 'paid') {
-      await client.query("UPDATE applications SET status = 'ready', step = 'ready', ready_at = now(), updated_at = now() WHERE id = $1", [row.id])
-      // The paid application now appears in the operations queue.
-      await openCase(client, row.id, userId, { payment: rows[0].id, reference, amount: q.total, mode: q.mode })
-    }
+    const payment = await recordApplicationPayment(client, userId, row, { items: q.items, totalPaise: q.total * 100, method, status, mode: q.mode, reference })
     await client.query('COMMIT')
-    return { payment: toPayment(rows[0]) }
+    return { payment }
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {})
     throw e

@@ -5,10 +5,10 @@ import { randomBytes } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { ensureSchema, pool, repoRoot } from './db.js'
+import { paymentMode } from './cashfree.js'
 
 const httpError = (status, message) => Object.assign(new Error(message), { status })
 const METHODS = ['upi', 'card', 'netbanking']
-const paymentConfig = () => JSON.parse(readFileSync(path.join(repoRoot, 'config', 'payment.json'), 'utf8'))
 
 // ---------- catalogue ----------
 
@@ -141,29 +141,53 @@ export async function getMyOrder(userId, id) {
 /** Test checkout for whatever is due (purchase, quote or top-up). 'fail' simulates a decline. */
 export async function payOrder(userId, id, { method, outcome }) {
   if (!METHODS.includes(method)) throw httpError(400, 'Choose a payment method.')
-  const mode = paymentConfig().mode
+  const mode = paymentMode()
   if (mode !== 'test') throw httpError(503, 'Online payment is not available yet.')
   return inTransaction(async (client) => {
     const o = await loadMine(client, userId, id, true)
     if (!o.amount_due_paise) throw httpError(400, 'Nothing is due on this order.')
     const status = outcome === 'fail' ? 'failed' : 'paid'
     const reference = `TEST-${randomBytes(5).toString('hex').toUpperCase()}`
-    const purpose = o.due_kind === 'topup' ? 'service_topup' : 'service'
-    const { rows: pay } = await client.query(
-      'INSERT INTO payments (user_id, order_id, purpose, items, amount_paise, method, status, mode, reference) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
-      [userId, o.id, purpose, JSON.stringify(o.due_items), o.amount_due_paise, method, status, mode, reference],
-    )
-    if (status === 'failed') return { order: toOrder(o), payment: { status, reference } }
-    // Paid: the order enters the expert queue (or goes back to the expert who sent the quote / top-up).
-    const next = o.status === 'awaiting_payment' || o.status === 'quoted' ? (o.assignee_id ? 'in_progress' : 'new') : o.status
-    const { rows } = await client.query(
-      `UPDATE service_orders SET status = $2, amount_due_paise = NULL, due_items = NULL, due_kind = NULL, due_note = NULL,
-              paid_at = COALESCE(paid_at, now()), updated_at = now() WHERE id = $1 RETURNING *`,
-      [o.id, next],
-    )
-    await logEvent(client, o.id, null, 'paid', { amount: rupees(o.amount_due_paise), kind: o.due_kind, reference, payment: pay[0].id, mode })
-    return { order: toOrder(rows[0]), payment: { status, reference } }
+    const { order } = await recordOrderPayment(client, o, { items: o.due_items, totalPaise: o.amount_due_paise, method, status, mode, reference })
+    return { order, payment: { status, reference } }
   })
+}
+
+/**
+ * For the gateway: lock the order and read what is due now (-> { row, items, totalPaise, label }).
+ * Runs inside the caller's transaction.
+ */
+export async function orderCharge(client, userId, id) {
+  const o = await loadMine(client, userId, id, true)
+  if (!o.amount_due_paise) throw httpError(400, 'Nothing is due on this order.')
+  return { row: o, items: o.due_items, totalPaise: o.amount_due_paise, label: `${o.ref}: ${o.service_name}`.slice(0, 190) }
+}
+
+/**
+ * Record a payment on an order (inside the caller's transaction, the order row locked). A paid amount that still
+ * matches what is due settles it: the order enters the expert queue (or goes back to the expert who sent the quote
+ * or top-up). A payment that no longer matches (the basket or quote changed meanwhile) is recorded and flagged for
+ * staff instead. Shared by the test checkout and the gateway. -> { order, paymentId }
+ */
+export async function recordOrderPayment(client, o, { items, totalPaise, method, status, mode, reference }) {
+  const purpose = o.due_kind === 'topup' ? 'service_topup' : 'service'
+  const { rows: pay } = await client.query(
+    'INSERT INTO payments (user_id, order_id, purpose, items, amount_paise, method, status, mode, reference) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
+    [o.user_id, o.id, purpose, JSON.stringify(items), totalPaise, method, status, mode, reference],
+  )
+  if (status !== 'paid') return { order: toOrder(o), paymentId: pay[0].id }
+  if (o.amount_due_paise !== totalPaise || o.status === 'cancelled') {
+    await logEvent(client, o.id, null, 'payment_mismatch', { amount: rupees(totalPaise), due: o.amount_due_paise ? rupees(o.amount_due_paise) : null, reference, payment: pay[0].id, mode })
+    return { order: toOrder(o), paymentId: pay[0].id }
+  }
+  const next = o.status === 'awaiting_payment' || o.status === 'quoted' ? (o.assignee_id ? 'in_progress' : 'new') : o.status
+  const { rows } = await client.query(
+    `UPDATE service_orders SET status = $2, amount_due_paise = NULL, due_items = NULL, due_kind = NULL, due_note = NULL,
+            paid_at = COALESCE(paid_at, now()), updated_at = now() WHERE id = $1 RETURNING *`,
+    [o.id, next],
+  )
+  await logEvent(client, o.id, null, 'paid', { amount: rupees(totalPaise), kind: o.due_kind, reference, payment: pay[0].id, mode })
+  return { order: toOrder(rows[0]), paymentId: pay[0].id }
 }
 
 /** The customer can cancel before paying (or withdraw a quote request). */

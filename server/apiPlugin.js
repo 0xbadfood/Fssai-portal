@@ -6,6 +6,8 @@ import { listDocuments, readDocumentFile, uploadDocument } from './documentsServ
 import { answerSession, previewSession, rateSession, restartSession, resumeSession, undoSession } from './intake/sessions.js'
 import { createSupportRequest, listSupportRequests } from './supportService.js'
 import { currentQuote, listPayments, payApplication } from './paymentsService.js'
+import { handleWebhook, startCheckout, syncCheckout } from './checkoutService.js'
+import { paymentMode } from './cashfree.js'
 import { addOrderNote, cancelMyOrder, chargeOrder, createOrder, getMyOrder, getOrder, isStaff, listMyOrders, listOrders, myOrderMessages, payOrder, publicCatalogue, replyToOrder, setOrderStatus, takeOrder, transferOrder } from './servicesService.js'
 import { addNote, caseDocumentFile, getCase, listCases, reviewDocument, setStatus, takeCase, transferCase, updateDetail, uploadForCustomer } from './opsService.js'
 import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
@@ -114,6 +116,11 @@ async function handler(req, res, next) {
         : await rateSession(body.session, body),
       )
     }
+    // The payment gateway's webhook: signed with our secret key (checked on the raw body), then re-checked with its API.
+    if (req.method === 'POST' && url === '/api/payments/cashfree/webhook') {
+      res.statusCode = await handleWebhook(await readBody(req), req.headers)
+      return res.end()
+    }
     // Expert-services catalogue (public: the services pages work before sign-in).
     if (req.method === 'GET' && url === '/api/services') return json(res, 200, publicCatalogue())
     if (req.method === 'POST' && url === '/api/auth/forgot') {
@@ -192,7 +199,7 @@ async function handler(req, res, next) {
     if (req.method === 'POST' && url === '/api/orders') return json(res, 200, { order: await createOrder(user.id, JSON.parse((await readBody(req)) || '{}')) })
     const myOrder = url.match(/^\/api\/orders\/([0-9a-f-]{36})(?:\/(pay|cancel|reply))?$/)
     if (myOrder && req.method === 'GET' && !myOrder[2]) {
-      return json(res, 200, { order: await getMyOrder(user.id, myOrder[1]), messages: await myOrderMessages(user.id, myOrder[1]) })
+      return json(res, 200, { order: await getMyOrder(user.id, myOrder[1]), messages: await myOrderMessages(user.id, myOrder[1]), paymentMode: paymentMode() })
     }
     if (myOrder && req.method === 'POST' && myOrder[2]) {
       const body = JSON.parse((await readBody(req)) || '{}')
@@ -216,6 +223,9 @@ async function handler(req, res, next) {
       return json(res, 200, await uploadDocument(user.id, JSON.parse(await readBody(req))))
     }
     if (req.method === 'GET' && url === '/api/payments') return json(res, 200, { payments: await listPayments(user.id), quote: await currentQuote(user.id) })
+    // Gateway checkout (sandbox / live): start one, and confirm it on the return page.
+    if (req.method === 'POST' && url === '/api/payments/checkout') return json(res, 200, await startCheckout(user.id, JSON.parse((await readBody(req)) || '{}'), publicOrigin(req)))
+    if (req.method === 'POST' && url === '/api/payments/confirm') return json(res, 200, { checkout: await syncCheckout(JSON.parse((await readBody(req)) || '{}').id, user.id) })
     if (req.method === 'POST' && url === '/api/payments') return json(res, 200, await payApplication(user.id, JSON.parse((await readBody(req)) || '{}')))
     if (req.method === 'GET' && url === '/api/support') return json(res, 200, { requests: await listSupportRequests(user.id) })
     if (req.method === 'POST' && url === '/api/support') {

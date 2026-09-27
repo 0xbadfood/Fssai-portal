@@ -127,6 +127,7 @@ export function ExpertQueue() {
 const EVENT_TEXT = {
   created: () => 'Order created',
   quote_requested: () => 'Customer asked for a quote',
+  payment_mismatch: (d) => `Payment of ${rupees(d.amount)} received (${d.reference}) but ${d.due ? `${rupees(d.due)} was due` : 'nothing was due'}: check with the customer, refund if needed`,
   paid: (d) => `Customer paid ${rupees(d.amount)} (${d.kind === 'topup' ? 'top-up' : d.kind === 'quote' ? 'quote' : 'purchase'}, ${d.reference})`,
   taken: () => 'Taken',
   transferred: (d) => `Transferred${d.note ? `: ${d.note}` : ''}`,
@@ -204,7 +205,7 @@ export function ExpertOrderPage() {
               {events.slice().reverse().map((e, i) => (
                 <li key={i} className={`rounded-xl px-3 py-2 text-sm ${e.kind === 'note' ? 'bg-amber-50' : e.kind === 'customer_message' ? 'bg-orange-50' : e.kind === 'expert_message' ? 'bg-violet-50' : 'bg-slate-50'}`}>
                   <p className="text-slate-800">{(EVENT_TEXT[e.kind] || (() => e.kind))(e.detail || {})}</p>
-                  <p className="text-[11px] text-slate-400">{e.who || (['customer_message', 'paid', 'quote_requested', 'created', 'cancelled_by_customer'].includes(e.kind) ? 'Customer' : 'System')} · {when(e.at)}</p>
+                  <p className="text-[11px] text-slate-400">{e.who || (['customer_message', 'paid', 'payment_mismatch', 'quote_requested', 'created', 'cancelled_by_customer'].includes(e.kind) ? 'Customer' : 'System')} · {when(e.at)}</p>
                 </li>
               ))}
             </ol>
@@ -223,7 +224,7 @@ export function ExpertOrderPage() {
           </Panel>
           <Panel title="Payments">
             {payments.filter((p) => p.status === 'paid').map((p, i) => (
-              <p key={i} className="flex justify-between text-sm text-slate-700"><span>{p.purpose === 'service_topup' ? 'Top-up' : 'Payment'} · {when(p.at)}{p.mode === 'test' ? ' · test' : ''}</span><span className="font-semibold tabular-nums">{rupees(p.amount)}</span></p>
+              <p key={i} className="flex justify-between text-sm text-slate-700"><span>{p.purpose === 'service_topup' ? 'Top-up' : 'Payment'} · {when(p.at)}{p.mode !== 'live' ? ` · ${p.mode}` : ''}</span><span className="font-semibold tabular-nums">{rupees(p.amount)}</span></p>
             ))}
             {!payments.some((p) => p.status === 'paid') && <p className="text-sm text-slate-400">Nothing paid yet.</p>}
             {o.due && <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Waiting for the customer to pay {rupees(o.due.total)} ({o.due.kind === 'topup' ? 'top-up' : o.due.kind}).</p>}

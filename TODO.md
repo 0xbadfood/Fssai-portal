@@ -24,7 +24,7 @@ Catalogue from `FSSAI_Food_Regulatory_Services_Rate_Sheet.docx` → `config/serv
   - The expert confirms the tentative service descriptions (`"tentative": true` shows a note on the pages).
   - Add the expert's name, photo and qualifications to `expert` in `config/services.json`. The profile uses only what the owner gave: 20+ years; Unilever, Reliance, MTR Foods.
   - Fill in the `gstin` field.
-  - Put real payment in place of the test checkout (Razorpay, same as the government fee).
+  - ~~Real payment~~: Cashfree, built 2026-09-27 (see below).
   - Emails to the customer when an expert messages them or a quote or top-up is waiting (mail server pending); today these show only on the dashboard.
   - The hand-off from an expert to ops, when an expert-placement case becomes a filing: a case link and a logged transfer. Not built yet.
   - Feed the expert's placement decisions back into the graph (lab) as new kinds of business.
@@ -33,7 +33,11 @@ Catalogue from `FSSAI_Food_Regulatory_Services_Rate_Sheet.docx` → `config/serv
 
 - Email verification (no 2FA for now). Password reset is done; it needs `config/mail.json` (SMTP) to actually deliver emails.
 - Key rotation for document encryption (a key id in the file header would allow re-encrypting under a new key).
-- Real payment gateway: replace the test checkout in `server/paymentsService.js` and confirm payments via the gateway's webhook, not the browser.
+- **Payments: Cashfree (built 2026-09-27, sandbox on deploy).** `PAYMENT_MODE` = test (simulator, local dev) | sandbox | live; keys in `CASHFREE_APP_ID` / `CASHFREE_SECRET_KEY` (deploy: `/etc/myfoodlicense/portal.env`, root 0600, read by systemd). `server/cashfree.js` (API 2025-01-01, webhook HMAC), `server/checkoutService.js` (`gateway_orders`; the return page and the webhook both re-check with Cashfree's API before recording). To do:
+  - Cashfree dashboard: set the business display name (checkout shows "Business Name"); add the webhook URL `https://myfoodlicense.com/api/payments/cashfree/webhook` (orders also send it as notify_url).
+  - Going live: production keys, `PAYMENT_MODE=live`, KYC/website checks (terms, refund, privacy, contact pages; GSTIN).
+  - Refunds: a checkout paid twice or for a changed amount is recorded with `gateway_orders.note` / a `payment_mismatch` order event; refund by hand in the Cashfree dashboard for now, and show these in the ops console.
+  - The government-fee checkout uses the same path but wasn't tested end to end on sandbox (needs a complete application).
 - Password-protected PDFs (e.g. e-Aadhaar) are stored as uploaded, still encrypted; the password is never stored. The submission engine will need an unlocked copy: decide whether to store an unlocked version (encrypted at rest) or ask the user for the password during the ops call.
 - PDFs longer than 4 pages: only the first 4 are sent for verification (`MAX_PDF_PAGES` / `MAX_PAGES`); the full PDF is still stored.
 - Documents are stored per user, not per application: a second application reuses the user's current documents. Link documents to applications once users can have several at once.

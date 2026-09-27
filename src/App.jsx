@@ -14,7 +14,7 @@ import ApplyPage from './pages/dashboard/apply/ApplyPage.jsx'
 import DocumentsPage from './pages/dashboard/DocumentsPage.jsx'
 import PremisesPage from './pages/dashboard/PremisesPage.jsx'
 import SupportPage from './pages/dashboard/SupportPage.jsx'
-import PaymentsPage from './pages/dashboard/PaymentsPage.jsx'
+import PaymentsPage, { PaymentReturnPage } from './pages/dashboard/PaymentsPage.jsx'
 import OpsLayout from './pages/ops/OpsLayout.jsx'
 import OpsQueue from './pages/ops/OpsQueue.jsx'
 import OpsCasePage from './pages/ops/OpsCasePage.jsx'
@@ -54,6 +54,7 @@ export default function App() {
         <Route path="documents" element={<DocumentsPage />} />
         <Route path="premises" element={<PremisesPage />} />
         <Route path="payments" element={<PaymentsPage />} />
+        <Route path="payment/return" element={<PaymentReturnPage />} />
         <Route path="support" element={<SupportPage />} />
         <Route path="services" element={<MyServicesPage />} />
         <Route path="services/:id/pay" element={<ServiceCheckoutPage />} />

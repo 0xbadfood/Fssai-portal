@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowRight, CheckCircle2, ChevronDown, Loader2, MessageSquare, Receipt, Send, Sparkles, UserCheck } from 'lucide-react'
 import { Card, Loading, PageHeader } from '../../components/dashboard/ui.jsx'
 import { api, rupees } from '../../lib/catalogue.js'
-import { PayPanel } from './PaymentsPage.jsx'
+import { GatewayPanel, PayPanel } from './PaymentsPage.jsx'
 
 const STATUS_TONE = {
   awaiting_payment: 'bg-amber-50 text-amber-800 ring-amber-200',
@@ -191,7 +191,11 @@ export function ServiceCheckoutPage() {
           {o.due.note && <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700"><b>From the expert:</b> {o.due.note}</p>}
           <p className="mt-4 flex items-center gap-1.5 text-xs text-slate-400"><Receipt size={12} /> A professional fee to MyFoodLicense. Government fees, if any, are paid separately.</p>
         </Card>
-        <PayPanel test label={`Pay ${rupees(o.due.total)}`} onPay={pay} />
+        {data.paymentMode === 'test' ? (
+          <PayPanel test label={`Pay ${rupees(o.due.total)}`} onPay={pay} />
+        ) : (
+          <GatewayPanel mode={data.paymentMode} label={`Pay ${rupees(o.due.total)}`} start={{ orderId: o.id }} />
+        )}
       </div>
     </div>
   )

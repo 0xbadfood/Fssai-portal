@@ -269,3 +269,25 @@ ALTER TABLE payments ADD COLUMN IF NOT EXISTS order_id uuid REFERENCES service_o
 DO $$ BEGIN
   ALTER TABLE payments ADD CONSTRAINT payments_target_chk CHECK (application_id IS NOT NULL OR order_id IS NOT NULL);
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- Checkouts sent to the payment gateway (Cashfree). One row per gateway order: what it was for, the amount we
+-- asked for, and how it ended. A payment row is written only when the gateway confirms the money (return page
+-- or signed webhook, both re-checked with the gateway's API).
+CREATE TABLE IF NOT EXISTS gateway_orders (
+  id              text PRIMARY KEY,                 -- our order_id at the gateway (MFL-...)
+  user_id         uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  application_id  uuid REFERENCES applications(id) ON DELETE CASCADE,
+  order_id        uuid REFERENCES service_orders(id) ON DELETE CASCADE,
+  items           jsonb NOT NULL,
+  amount_paise    integer NOT NULL CHECK (amount_paise > 0),
+  mode            text NOT NULL,                    -- 'sandbox' | 'live'
+  status          text NOT NULL DEFAULT 'created' CHECK (status IN ('created', 'paid', 'failed', 'expired')),
+  session_id      text,
+  payment_id      uuid REFERENCES payments(id) ON DELETE SET NULL,
+  gateway_payment jsonb,                            -- the gateway's payment record (ids, method, bank reference)
+  note            text,                             -- e.g. paid twice: refund needed
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT gateway_orders_target_chk CHECK ((application_id IS NULL) <> (order_id IS NULL))
+);
+CREATE INDEX IF NOT EXISTS gateway_orders_user_idx ON gateway_orders (user_id, created_at DESC);

@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowRight, Building2, CheckCircle2, CreditCard, FlaskConical, Loader2, Lock, Receipt, Smartphone, XCircle } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { ArrowRight, Building2, CheckCircle2, Clock, CreditCard, FlaskConical, Loader2, Lock, Receipt, ShieldCheck, Smartphone, Wallet, XCircle } from 'lucide-react'
 import { Card, Loading, PageHeader } from '../../components/dashboard/ui.jsx'
+import { openCheckout } from '../../lib/cashfree.js'
 
 const METHODS = [
   { id: 'upi', label: 'UPI', icon: Smartphone },
   { id: 'card', label: 'Card', icon: CreditCard },
   { id: 'netbanking', label: 'Net banking', icon: Building2 },
 ]
+// Receipt labels for methods the gateway reports beyond the three above.
+const METHOD_LABEL = { upi: 'UPI', card: 'Card', netbanking: 'Net banking', wallet: 'Wallet', paylater: 'Pay later', other: 'Online' }
 const BANKS = ['State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Kotak Mahindra Bank', 'Punjab National Bank']
 const rupees = (n) => `₹${Number(n).toLocaleString('en-IN')}`
 const when = (d) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -99,7 +102,11 @@ function Checkout({ quote, onDone }) {
           <Lock size={12} /> Paid to the government through FoSCoS when we file your application.
         </p>
       </Card>
-      <PayPanel test={quote.mode === 'test'} label={`Pay ${rupees(quote.total)} and submit`} onPay={pay} />
+      {quote.mode === 'test' ? (
+        <PayPanel test label={`Pay ${rupees(quote.total)} and submit`} onPay={pay} />
+      ) : (
+        <GatewayPanel mode={quote.mode} label={`Pay ${rupees(quote.total)} and submit`} start={{ applicationId: quote.applicationId }} />
+      )}
     </div>
   )
 }
@@ -218,6 +225,166 @@ export function PayPanel({ test, label, onPay }) {
   )
 }
 
+/**
+ * Pay through the gateway (Cashfree): the server creates the payment for `start` ({ applicationId } or
+ * { orderId }) and we open the gateway's page; the customer returns to /dashboard/payment/return.
+ */
+export function GatewayPanel({ mode, label, start }) {
+  const [state, setState] = useState({ busy: false, error: '' })
+
+  async function pay() {
+    setState({ busy: true, error: '' })
+    try {
+      const res = await fetch('/api/payments/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(start) })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(body.error || 'Payment could not be started.')
+      await openCheckout(body.sessionId, body.mode)
+      // The page is now leaving for the gateway; keep the button busy.
+    } catch (e) {
+      setState({ busy: false, error: e.message || 'Payment could not be started.' })
+    }
+  }
+
+  return (
+    <Card className="relative">
+      {mode === 'sandbox' && (
+        <div className="mb-5 flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
+          <FlaskConical size={16} className="mt-0.5 shrink-0" />
+          <span>
+            <b>Sandbox.</b> Cashfree's test gateway: use its test cards or UPI IDs. No money moves.
+          </span>
+        </div>
+      )}
+      <p className="text-base font-extrabold text-slate-900">Pay securely with Cashfree</p>
+      <p className="mt-1 text-slate-500">You'll go to Cashfree's payment page, then come straight back here.</p>
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {[[Smartphone, 'UPI'], [CreditCard, 'Cards'], [Building2, 'Net banking'], [Wallet, 'Wallets']].map(([Icon, text]) => (
+          <div key={text} className="flex flex-col items-center gap-1.5 rounded-2xl border-2 border-slate-100 px-3 py-3 text-sm font-bold text-slate-600">
+            <Icon size={20} /> {text}
+          </div>
+        ))}
+      </div>
+      {state.error && <p className="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{state.error}</p>}
+      <button
+        onClick={pay}
+        disabled={state.busy}
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-violet-600 py-4 text-lg font-bold text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:opacity-60"
+      >
+        {state.busy ? (
+          <>
+            <Loader2 size={20} className="animate-spin" /> Opening the payment page…
+          </>
+        ) : (
+          <>{label}</>
+        )}
+      </button>
+      <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+        <ShieldCheck size={12} /> Your card and bank details go to Cashfree only; we never see them.
+      </p>
+    </Card>
+  )
+}
+
+/**
+ * /dashboard/payment/return?order=MFL-...: where the gateway sends the customer back. The server asks the gateway
+ * how it went (the webhook may already have recorded it); while the bank is still deciding we check a few times.
+ */
+export function PaymentReturnPage() {
+  const [params] = useSearchParams()
+  const id = params.get('order')
+  const [state, setState] = useState({ checkout: null, error: '', waiting: true })
+
+  useEffect(() => {
+    let stop = false
+    async function check(tries) {
+      try {
+        const res = await fetch('/api/payments/confirm', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id }) })
+        const body = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(body.error || 'We could not check this payment.')
+        const c = body.checkout
+        const settled = c.status !== 'created' || c.attempt === 'failed' || c.attempt === 'dropped'
+        if (stop) return
+        setState({ checkout: c, error: '', waiting: !settled && tries > 0 })
+        if (!settled && tries > 0) setTimeout(() => check(tries - 1), 2500)
+      } catch (e) {
+        if (!stop) setState({ checkout: null, error: e.message, waiting: false })
+      }
+    }
+    check(6)
+    return () => {
+      stop = true
+    }
+  }, [id])
+
+  const c = state.checkout
+  const service = c?.for.kind === 'service'
+  const retry = service ? `/dashboard/services/${c.for.id}/pay` : '/dashboard/payments'
+  if (state.error) return <p className="mx-auto max-w-3xl rounded-2xl bg-red-50 p-4 text-red-700">{state.error}</p>
+  if (!c) return <Loading />
+
+  if (c.status === 'paid') {
+    return (
+      <div className="mx-auto max-w-3xl rounded-[32px] bg-gradient-to-br from-emerald-500 to-teal-500 p-7 text-white shadow-xl shadow-emerald-100 sm:p-9">
+        <CheckCircle2 size={48} />
+        <h2 className="mt-3 text-3xl font-extrabold">Payment successful 🎉</h2>
+        <p className="mt-2 text-lg text-white/90">
+          {rupees(c.amount)} paid{c.reference && <> · Reference <b className="font-mono">{c.reference}</b></>}
+        </p>
+        <p className="mt-1 text-white/85">
+          {service
+            ? 'Our expert has your request and will contact you, usually within one working day. You can message them from My expert services.'
+            : 'Your application is submitted. Our team will call you for the OTP to file it on FoSCoS.'}
+        </p>
+        <Link to={service ? '/dashboard/services' : '/dashboard/overview'} className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-bold text-emerald-700 shadow hover:bg-emerald-50">
+          {service ? 'Go to My expert services' : 'Go to my dashboard'} <ArrowRight size={18} />
+        </Link>
+      </div>
+    )
+  }
+
+  const pending = c.status === 'created' && !c.attempt?.match(/failed|dropped/)
+  return (
+    <div className="mx-auto max-w-3xl">
+      <Card>
+        {pending ? (
+          <>
+            <Clock size={36} className="text-amber-500" />
+            <p className="mt-3 text-2xl font-extrabold text-slate-900">{state.waiting ? 'Checking your payment…' : 'Waiting for your bank'}</p>
+            <p className="mt-1 text-slate-600">
+              {state.waiting
+                ? 'This takes a few seconds.'
+                : 'We haven’t heard back from your bank yet. If money left your account, it will show here as paid within a few minutes, so don’t pay again. If you left the payment page without paying, you can try again: you won’t be charged twice.'}
+            </p>
+            {!state.waiting && (
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button type="button" onClick={() => window.location.reload()} className="inline-flex items-center gap-2 rounded-2xl bg-violet-600 px-5 py-3 font-bold text-white hover:bg-violet-700">
+                  Check again
+                </button>
+                <Link to={retry} className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-5 py-3 font-bold text-slate-700 hover:bg-slate-200">
+                  Try again
+                </Link>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <XCircle size={36} className="text-red-500" />
+            <p className="mt-3 text-2xl font-extrabold text-slate-900">
+              {c.status === 'expired' ? 'This payment timed out' : c.attempt === 'dropped' ? 'Payment not completed' : 'The payment didn’t go through'}
+            </p>
+            <p className="mt-1 text-slate-600">
+              Nothing was charged{c.message ? ` (${c.message})` : ''}. You can try again, with the same or another method.
+            </p>
+            <Link to={retry} className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-violet-600 px-5 py-3 font-bold text-white hover:bg-violet-700">
+              Try again <ArrowRight size={18} />
+            </Link>
+          </>
+        )}
+      </Card>
+    </div>
+  )
+}
+
 function Receipts({ payments }) {
   return (
     <Card>
@@ -231,8 +398,8 @@ function Receipts({ payments }) {
               <div>
                 <p className="font-bold text-slate-800">{p.items[0]?.label}</p>
                 <p className="text-sm text-slate-500">
-                  {when(p.createdAt)} · {METHODS.find((m) => m.id === p.method)?.label} · <span className="font-mono">{p.reference}</span>
-                  {p.mode === 'test' && <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-bold text-amber-700">TEST</span>}
+                  {when(p.createdAt)} · {METHOD_LABEL[p.method] || 'Online'} · <span className="font-mono">{p.reference}</span>
+                  {p.mode !== 'live' && <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-bold text-amber-700">{p.mode === 'sandbox' ? 'SANDBOX' : 'TEST'}</span>}
                 </p>
               </div>
               <div className="flex items-center gap-3">
