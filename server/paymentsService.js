@@ -15,7 +15,7 @@ const METHODS = ['upi', 'card', 'netbanking']
 const config = () => JSON.parse(readFileSync(path.join(repoRoot, 'config', 'payment.json'), 'utf8'))
 
 const toPayment = (r) => ({
-  id: r.id, applicationId: r.application_id, purpose: r.purpose, items: r.items, amount: r.amount_paise / 100,
+  id: r.id, applicationId: r.application_id, orderId: r.order_id ?? null, purpose: r.purpose, items: r.items, amount: r.amount_paise / 100,
   method: r.method, status: r.status, mode: r.mode, reference: r.reference, createdAt: r.created_at,
 })
 

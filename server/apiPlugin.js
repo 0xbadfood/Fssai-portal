@@ -6,7 +6,8 @@ import { listDocuments, readDocumentFile, uploadDocument } from './documentsServ
 import { answerSession, previewSession, rateSession, restartSession, resumeSession, undoSession } from './intake/sessions.js'
 import { createSupportRequest, listSupportRequests } from './supportService.js'
 import { currentQuote, listPayments, payApplication } from './paymentsService.js'
-import { addNote, caseDocumentFile, getCase, isOps, listCases, reviewDocument, setStatus, takeCase, transferCase, updateDetail, uploadForCustomer } from './opsService.js'
+import { addOrderNote, cancelMyOrder, chargeOrder, createOrder, getMyOrder, getOrder, isStaff, listMyOrders, listOrders, myOrderMessages, payOrder, publicCatalogue, replyToOrder, setOrderStatus, takeOrder, transferOrder } from './servicesService.js'
+import { addNote, caseDocumentFile, getCase, listCases, reviewDocument, setStatus, takeCase, transferCase, updateDetail, uploadForCustomer } from './opsService.js'
 import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
 
 const MAX_BODY = 30_000_000
@@ -113,6 +114,8 @@ async function handler(req, res, next) {
         : await rateSession(body.session, body),
       )
     }
+    // Expert-services catalogue (public: the services pages work before sign-in).
+    if (req.method === 'GET' && url === '/api/services') return json(res, 200, publicCatalogue())
     if (req.method === 'POST' && url === '/api/auth/forgot') {
       // Never build the emailed link from a client-supplied host (reset-link poisoning).
       await requestPasswordReset(JSON.parse((await readBody(req)) || '{}'), { ip: ctx.ip, origin: publicOrigin(req) })
@@ -137,9 +140,23 @@ async function handler(req, res, next) {
     }
     if (!user) return json(res, 401, { error: 'Sign in required' })
 
-    // Operations console (ops team and admin only). Ops accounts use nothing else: no applications of their own.
+    // Operations console: team accounts only (ops, admin, expert). They use nothing else: no applications of their own.
+    // Filing cases are for ops and the admin (checked in opsService); expert-service orders are worked by experts.
     if (url.startsWith('/api/ops/')) {
-      if (!isOps(user)) return json(res, 403, { error: 'Operations team only.' })
+      if (!isStaff(user)) return json(res, 403, { error: 'Operations team only.' })
+      if (req.method === 'GET' && url === '/api/ops/expert/orders') return json(res, 200, await listOrders(user))
+      const eo = url.match(/^\/api\/ops\/expert\/orders\/([0-9a-f-]{36})(?:\/(take|transfer|status|note|charge))?$/)
+      if (eo && req.method === 'GET' && !eo[2]) return json(res, 200, await getOrder(user, eo[1]))
+      if (eo && req.method === 'POST' && eo[2]) {
+        const body = JSON.parse((await readBody(req)) || '{}')
+        const [, id, action] = eo
+        return json(res, 200,
+          action === 'take' ? await takeOrder(user, id)
+          : action === 'transfer' ? await transferOrder(user, id, body)
+          : action === 'status' ? await setOrderStatus(user, id, body)
+          : action === 'note' ? await addOrderNote(user, id, body)
+          : await chargeOrder(user, id, body))
+      }
       if (req.method === 'GET' && url === '/api/ops/cases') return json(res, 200, await listCases(user))
       const one = url.match(/^\/api\/ops\/cases\/([0-9a-f-]{36})$/)
       if (req.method === 'GET' && one) return json(res, 200, await getCase(user, one[1]))
@@ -168,7 +185,22 @@ async function handler(req, res, next) {
       if (req.method === 'POST' && review) return json(res, 200, await reviewDocument(user, review[1], review[2], JSON.parse((await readBody(req)) || '{}')))
       return json(res, 404, { error: 'Not found' })
     }
-    if (isOps(user)) return json(res, 403, { error: 'Operations accounts use the operations console.' })
+    if (isStaff(user)) return json(res, 403, { error: 'Operations accounts use the operations console.' })
+
+    // Expert services: the customer's orders.
+    if (req.method === 'GET' && url === '/api/orders') return json(res, 200, { orders: await listMyOrders(user.id) })
+    if (req.method === 'POST' && url === '/api/orders') return json(res, 200, { order: await createOrder(user.id, JSON.parse((await readBody(req)) || '{}')) })
+    const myOrder = url.match(/^\/api\/orders\/([0-9a-f-]{36})(?:\/(pay|cancel|reply))?$/)
+    if (myOrder && req.method === 'GET' && !myOrder[2]) {
+      return json(res, 200, { order: await getMyOrder(user.id, myOrder[1]), messages: await myOrderMessages(user.id, myOrder[1]) })
+    }
+    if (myOrder && req.method === 'POST' && myOrder[2]) {
+      const body = JSON.parse((await readBody(req)) || '{}')
+      const [, id, action] = myOrder
+      if (action === 'pay') return json(res, 200, await payOrder(user.id, id, body))
+      if (action === 'cancel') return json(res, 200, { order: await cancelMyOrder(user.id, id) })
+      return json(res, 200, { order: await replyToOrder(user.id, id, body) })
+    }
 
     const file = url.match(/^\/api\/documents\/([^/]+)\/(file|preview)$/)
     if (req.method === 'GET' && url === '/api/documents') return json(res, 200, await listDocuments(user.id))

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { UserPlus } from 'lucide-react'
 import { useAuth } from '../lib/auth.jsx'
 import { AuthShell, Field } from './LoginPage.jsx'
@@ -7,6 +7,7 @@ import { AuthShell, Field } from './LoginPage.jsx'
 export default function SignupPage() {
   const { signup } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [form, setForm] = useState({ businessName: '', name: '', email: '', phone: '', password: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -25,7 +26,8 @@ export default function SignupPage() {
       setError(res.error)
       return
     }
-    navigate('/dashboard', { replace: true })
+    const from = location.state?.from
+    navigate(from && !from.startsWith('/ops') ? from : '/dashboard', { replace: true })
   }
 
   return (

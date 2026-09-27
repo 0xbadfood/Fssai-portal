@@ -236,7 +236,7 @@ function Result({ result: e, session }) {
       <Bot>
         <span className="block font-extrabold text-violet-700">Our FSSAI expert will place your business 🧑‍⚖️</span>
         <span className="mt-1 block">Your answers don't fit a standard category exactly. {e.handover[0]}</span>
-        <SignupCta className="mt-3" label="Talk to an expert" />
+        <SignupCta className="mt-3" label="Talk to an expert" to="/services?head=licensing-approvals" />
       </Bot>
     )
   }
@@ -292,10 +292,10 @@ function Rate({ session }) {
   )
 }
 
-function SignupCta({ className = '', label = 'Continue my application' }) {
+function SignupCta({ className = '', label = 'Continue my application', to = '/signup' }) {
   return (
     <Link
-      to="/signup"
+      to={to}
       className={`inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-violet-200 transition hover:bg-violet-700 ${className}`}
     >
       {label} <ArrowRight size={15} />

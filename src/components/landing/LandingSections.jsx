@@ -30,12 +30,12 @@ export function Hero() {
             >
               Start free <ArrowRight size={18} />
             </Link>
-            <a
-              href="#services"
+            <Link
+              to="/services"
               className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-7 py-4 text-base font-bold text-slate-700 transition hover:border-violet-300"
             >
               <UserCheck size={18} /> Talk to an expert
-            </a>
+            </Link>
           </div>
           <ul className="mt-8 grid gap-2.5 text-sm font-medium text-slate-600 sm:grid-cols-2">
             {['Registration, State & Central licences', 'Label & artwork review', 'Help with notices & rejections', 'Compliance & food safety'].map((t) => (
@@ -189,8 +189,8 @@ export function Services() {
             Product approvals, imports, a question you can't find answered anywhere. If it's about FSSAI, ask us.
           </p>
         </div>
-        <Link to="/signup" className="inline-flex shrink-0 items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-violet-700 shadow-sm ring-1 ring-violet-200 hover:bg-violet-50">
-          Ask an expert <ArrowRight size={15} />
+        <Link to="/services" className="inline-flex shrink-0 items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-violet-700 shadow-sm ring-1 ring-violet-200 hover:bg-violet-50">
+          See all 127 expert services <ArrowRight size={15} />
         </Link>
       </div>
     </section>

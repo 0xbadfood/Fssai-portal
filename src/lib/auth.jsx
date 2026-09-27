@@ -69,7 +69,8 @@ export function ProtectedRoute({ children }) {
   return children
 }
 
-export const isOpsRole = (role) => role === 'ops' || role === 'admin'
+// Team accounts (no customer dashboard): ops members, experts and the admin.
+export const isOpsRole = (role) => role === 'ops' || role === 'admin' || role === 'expert'
 
 /** Operations console: ops team and admin only. */
 export function OpsRoute({ children }) {

@@ -4,6 +4,8 @@ import { LogOut, ShieldCheck } from 'lucide-react'
 import Logo from '../../components/Logo.jsx'
 import { useAuth } from '../../lib/auth.jsx'
 
+const ROLE_LABEL = { admin: 'Admin', ops: 'Operations team', expert: 'Expert' }
+
 /** Operations console shell: a plain top bar, wide content (the team works on laptops). */
 export default function OpsLayout() {
   const { session, logout } = useAuth()
@@ -17,14 +19,19 @@ export default function OpsLayout() {
             <ShieldCheck size={13} /> Operations
           </span>
           <nav className="flex gap-1">
-            <NavLink end to="/ops" className={({ isActive }) => `rounded-lg px-3 py-1.5 text-sm font-bold ${isActive ? 'bg-violet-50 text-violet-700' : 'text-slate-600 hover:bg-slate-100'}`}>
-              Queue
+            {session?.role !== 'expert' && (
+              <NavLink end to="/ops" className={({ isActive }) => `rounded-lg px-3 py-1.5 text-sm font-bold ${isActive ? 'bg-violet-50 text-violet-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+                Filing cases
+              </NavLink>
+            )}
+            <NavLink to="/ops/expert" className={({ isActive }) => `rounded-lg px-3 py-1.5 text-sm font-bold ${isActive ? 'bg-violet-50 text-violet-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+              Expert services
             </NavLink>
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <span className="text-right text-sm leading-tight">
               <span className="block font-bold text-slate-800">{session?.name}</span>
-              <span className="block text-xs text-slate-400">{session?.role === 'admin' ? 'Admin' : 'Operations team'}</span>
+              <span className="block text-xs text-slate-400">{ROLE_LABEL[session?.role] || 'Operations team'}</span>
             </span>
             <button
               onClick={async () => {

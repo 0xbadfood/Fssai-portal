@@ -1,6 +1,6 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { OpsRoute, ProtectedRoute } from './lib/auth.jsx'
+import { OpsRoute, ProtectedRoute, useAuth } from './lib/auth.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
@@ -18,6 +18,16 @@ import PaymentsPage from './pages/dashboard/PaymentsPage.jsx'
 import OpsLayout from './pages/ops/OpsLayout.jsx'
 import OpsQueue from './pages/ops/OpsQueue.jsx'
 import OpsCasePage from './pages/ops/OpsCasePage.jsx'
+import { ExpertOrderPage, ExpertQueue } from './pages/ops/ExpertOrders.jsx'
+import ServicesPage from './pages/services/ServicesPage.jsx'
+import ServiceDetailPage from './pages/services/ServiceDetailPage.jsx'
+import { MyServicesPage, ServiceCheckoutPage } from './pages/dashboard/ServiceOrders.jsx'
+
+// Experts work expert-service orders; ops members and the admin start at the filing queue.
+function OpsHome() {
+  const { session } = useAuth()
+  return session?.role === 'expert' ? <Navigate to="/ops/expert" replace /> : <OpsQueue />
+}
 
 export default function App() {
   return (
@@ -27,6 +37,8 @@ export default function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/services" element={<ServicesPage />} />
+      <Route path="/services/:id" element={<ServiceDetailPage />} />
 
       <Route
         path="/dashboard"
@@ -43,6 +55,8 @@ export default function App() {
         <Route path="premises" element={<PremisesPage />} />
         <Route path="payments" element={<PaymentsPage />} />
         <Route path="support" element={<SupportPage />} />
+        <Route path="services" element={<MyServicesPage />} />
+        <Route path="services/:id/pay" element={<ServiceCheckoutPage />} />
         {/* Archived screens (src/archive): old links land on the dashboard. */}
         {['licences', 'notices', 'ai-assistant'].map((p) => (
           <Route key={p} path={p} element={<Navigate to="/dashboard" replace />} />
@@ -57,8 +71,10 @@ export default function App() {
           </OpsRoute>
         }
       >
-        <Route index element={<OpsQueue />} />
+        <Route index element={<OpsHome />} />
         <Route path="cases/:id" element={<OpsCasePage />} />
+        <Route path="expert" element={<ExpertQueue />} />
+        <Route path="orders/:id" element={<ExpertOrderPage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

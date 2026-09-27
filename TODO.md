@@ -10,12 +10,24 @@ Verify that an uploaded document really belongs to the person/business submittin
 - Outcome: mismatch -> `review` (officer check) or `rejected`, with a user-facing reason. Make strictness configurable, and add a config switch to disable the check for testing.
 - Consider address matching for address/premise proofs, and cross-document consistency (same name across identity, address, premise).
 
-## Expert workflow (planned 2026-09-26, after the ops case page)
+## Expert services (built 2026-09-27)
 
-For results the rules can't place ("An expert will place your business", expert handover): **need expert → choose a service → pay → an expert works with the customer**. The expert settles the licence and kinds of business, helps prepare what's needed, and works with ops. Once it's settled, the customer merges into the main workflow (details → documents → filing session).
-- These cases appear in the queue **marked for an expert**. The expert resolves them and redirects them to ops.
-- Likely shape: an `expert` role (CLI-created like ops), a case track (`expert` vs `filing`), expert services with prices, and a hand-off from expert to ops logged in `case_events`.
-- The expert's decisions should feed the graph (lab): answers that reached no known node are the "known unknowns" to add as new kinds of business.
+Catalogue from `FSSAI_Food_Regulatory_Services_Rate_Sheet.docx` → `config/services.json`: 127 services, 18 sections, 6 headings.
+- **Pages:**
+  - `/services`: expert profile, the catalogue as 3D bars, search, `?head=…`;
+  - `/services/<id>`: what to expect, then Buy, or Request a quote for custom-quote services;
+  - `/dashboard/services`: the customer's orders, what is due, and messages with the expert;
+  - `/dashboard/services/<id>/pay`: checkout.
+- **Pricing (decided):** Buy charges the starting price × quantity + **18% GST**. If the work is larger, the expert sends a **top-up**. Custom-quote services send a **quote request** and the expert replies with a price the customer pays online. Prices come only from `config/services.json` on the server.
+- **Roles:** new `expert` role (`node scripts/ops.mjs add --role expert …`). Paid orders and quote requests appear at `/ops/expert`. **Only experts can take them**; ops can see them; the admin can assign them. Every step is logged in `order_events`.
+- **To do:**
+  - The expert confirms the tentative service descriptions (`"tentative": true` shows a note on the pages).
+  - Add the expert's name, photo and qualifications to `expert` in `config/services.json`. The profile uses only what the owner gave: 20+ years; Unilever, Reliance, MTR Foods.
+  - Fill in the `gstin` field.
+  - Put real payment in place of the test checkout (Razorpay, same as the government fee).
+  - Emails to the customer when an expert messages them or a quote or top-up is waiting (mail server pending); today these show only on the dashboard.
+  - The hand-off from an expert to ops, when an expert-placement case becomes a filing: a case link and a logged transfer. Not built yet.
+  - Feed the expert's placement decisions back into the graph (lab) as new kinds of business.
 
 ## Other open items
 

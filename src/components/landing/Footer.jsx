@@ -4,9 +4,9 @@ import Disclaimer from '../Disclaimer.jsx'
 import { BRAND_NAME } from '../../lib/brand.js'
 
 const LINKS = [
-  { href: '#how', label: 'How it works' },
-  { href: '#services', label: 'Services' },
-  { href: '#faq', label: 'FAQ' },
+  { href: '/#how', label: 'How it works' },
+  { href: '/services', label: 'Expert services' },
+  { href: '/#faq', label: 'FAQ' },
   { href: '/login', label: 'Sign in' },
 ]
 

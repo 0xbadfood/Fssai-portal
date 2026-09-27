@@ -52,3 +52,17 @@ body {
   opacity: 0;
   animation: headline-word-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 }
+
+/* Expert-services 3D bars: tilted back slightly with an extruded lower edge, they stand up and lift on hover. */
+.bar3d {
+  transform: perspective(900px) rotateX(8deg);
+  transform-origin: 50% 100%;
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+.bar3d-wrap:hover .bar3d,
+.bar3d-wrap:focus-visible .bar3d {
+  transform: perspective(900px) rotateX(0deg) translateY(-4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar3d { transition: none; }
+}

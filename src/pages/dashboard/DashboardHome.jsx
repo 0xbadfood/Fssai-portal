@@ -125,7 +125,7 @@ export default function DashboardHome() {
           {SERVICES.slice(1).map((s) => (
             <Link
               key={s.title}
-              to={`/dashboard/support?topic=${s.topic}`}
+              to={`/services?head=${s.head}`}
               className="group rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">

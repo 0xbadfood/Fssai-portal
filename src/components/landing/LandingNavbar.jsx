@@ -4,9 +4,9 @@ import { Menu, X } from 'lucide-react'
 import Logo from '../Logo.jsx'
 
 const LINKS = [
-  { href: '#how', label: 'How it works' },
-  { href: '#services', label: 'Services' },
-  { href: '#faq', label: 'FAQ' },
+  { href: '/#how', label: 'How it works' },
+  { href: '/services', label: 'Expert services' },
+  { href: '/#faq', label: 'FAQ' },
 ]
 
 export default function LandingNavbar() {

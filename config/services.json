@@ -1,0 +1,2514 @@
+{
+  "note": "Expert services catalogue (source: FSSAI_Food_Regulatory_Services_Rate_Sheet.docx, 2026-09-27). Prices are professional fees in rupees, excluding GST; the server charges from here, never from the browser. Service descriptions beyond the rate sheet are TENTATIVE until the expert confirms them.",
+  "gstRate": 0.18,
+  "gstin": "",
+  "tentative": true,
+  "expert": {
+    "headline": "Led by a food regulatory expert with more than 20 years in the food industry",
+    "summary": "Our regulatory lead has spent over two decades inside the food industry and has worked with leading names including Unilever, Reliance and MTR Foods. That experience spans licensing, product development, labelling and dealing with the authority, from a single product to large portfolios.",
+    "companies": [
+      "Unilever",
+      "Reliance",
+      "MTR Foods"
+    ],
+    "highlights": [
+      {
+        "value": "20+",
+        "label": "years in the food industry"
+      },
+      {
+        "value": "18",
+        "label": "service areas"
+      },
+      {
+        "value": "127",
+        "label": "specialist services"
+      }
+    ],
+    "confirm": "Profile wording from the business owner; companies listed as past experience, not endorsements. Add name, photo and qualifications when available."
+  },
+  "terms": [
+    {
+      "title": "Government fees are additional",
+      "text": "FSSAI statutory fees, laboratory charges, certification expenses and third-party costs are not included unless stated."
+    },
+    {
+      "title": "Fees depend on complexity",
+      "text": "Prices are indicative starting points. The final fee depends on the category, formulation complexity, number of SKUs, the regulatory pathway and the quality of the documents. If the work turns out larger, the expert sends a top-up quote before doing it."
+    },
+    {
+      "title": "What counts as a SKU",
+      "text": "One SKU is one distinct artwork or formulation. A change of flavour, formulation or declarations may be a separate SKU."
+    },
+    {
+      "title": "Complete information needed",
+      "text": "Conclusions depend on accurate formulations, specifications, certificates, artwork and information from you."
+    },
+    {
+      "title": "Final formulation required",
+      "text": "If ingredient percentages, compound-ingredient composition, additive quantities or other essentials are incomplete, only a preliminary assessment can be given."
+    },
+    {
+      "title": "Laboratory testing is separate",
+      "text": "Regulatory review does not include laboratory testing unless specifically commissioned."
+    },
+    {
+      "title": "Authority decisions",
+      "text": "Professional regulatory support cannot guarantee approval by FSSAI or any other authority."
+    }
+  ],
+  "heads": [
+    {
+      "id": "licensing-approvals",
+      "title": "Licences & approvals",
+      "blurb": "Get licensed, stay licensed, and get new products approved.",
+      "sections": [
+        "licensing",
+        "approvals"
+      ],
+      "tone": "emerald"
+    },
+    {
+      "id": "product",
+      "title": "Product & formulation",
+      "blurb": "Classify products and make recipes compliant before they reach the pack.",
+      "sections": [
+        "classification",
+        "formulation",
+        "soi",
+        "npd"
+      ],
+      "tone": "violet"
+    },
+    {
+      "id": "labels-claims",
+      "title": "Labels, claims & digital",
+      "blurb": "Labels, claims and online listings that pass scrutiny first time.",
+      "sections": [
+        "labelling",
+        "claims",
+        "ecommerce"
+      ],
+      "tone": "orange"
+    },
+    {
+      "id": "specialty-imports",
+      "title": "Nutraceuticals & imports",
+      "blurb": "Specialist support for supplements, specialty foods and imported products.",
+      "sections": [
+        "nutraceuticals",
+        "imports"
+      ],
+      "tone": "sky"
+    },
+    {
+      "id": "compliance",
+      "title": "Compliance & authority matters",
+      "blurb": "Food safety systems, audits, notices and responses to the authority.",
+      "sections": [
+        "food-safety",
+        "notices",
+        "audits"
+      ],
+      "tone": "rose"
+    },
+    {
+      "id": "advisory",
+      "title": "Advice, packages & retainers",
+      "blurb": "Expert time on call, bundled launch packages and monthly support.",
+      "sections": [
+        "consultation",
+        "research",
+        "launch",
+        "retainers"
+      ],
+      "tone": "amber"
+    }
+  ],
+  "sections": [
+    {
+      "id": "licensing",
+      "title": "FSSAI registration & licensing",
+      "intro": "Getting, keeping and changing your FSSAI registration or licence: the right category first time, documents checked, and the application prepared with you.",
+      "needs": [
+        "Your business details and address of the premises",
+        "Photo ID and address proof of the owner or directors",
+        "Proof of possession of the premises (rent agreement, sale deed or utility bill)",
+        "Your current licence or registration number, if you have one"
+      ],
+      "services": [
+        {
+          "id": "basic-fssai-registration",
+          "name": "Basic FSSAI Registration",
+          "scope": "Eligibility, documents, application preparation and filing support",
+          "price": {
+            "type": "from",
+            "amount": 2500
+          },
+          "summary": "For small businesses with turnover up to ₹1.5 crore: we confirm Registration is the right category and prepare Form A with you.",
+          "includes": [
+            "Eligibility check against the FoSCoS 2026 table",
+            "Document checklist and review of your ID and address proof",
+            "Form A prepared field by field",
+            "A guided filing session with you on FoSCoS"
+          ],
+          "deliverable": "A filed registration application and its reference number",
+          "turnaround": "2–3 working days after documents are complete"
+        },
+        {
+          "id": "state-fssai-licence-new",
+          "name": "State FSSAI Licence – New",
+          "scope": "KOB assessment, document review, application and filing support",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "For businesses that need a State Licence: we confirm the kind of business, check every document and prepare Form B with you.",
+          "includes": [
+            "Kind-of-business and licence-category assessment",
+            "Review of all Form B documents, including layout plan and equipment list",
+            "Drafts of the letterhead declarations (Form IX, recall plan)",
+            "A guided filing session and follow-up on officer queries until approval"
+          ],
+          "deliverable": "A filed State Licence application and support through the officer’s review",
+          "turnaround": "5–7 working days after documents are complete"
+        },
+        {
+          "id": "central-fssai-licence-new",
+          "name": "Central FSSAI Licence – New",
+          "scope": "KOB/product assessment, document review, application and filing support",
+          "price": {
+            "type": "from",
+            "amount": 12500
+          },
+          "summary": "For importers, exporters, e-commerce, nutraceutical makers, multi-state businesses and other Central-licence cases.",
+          "includes": [
+            "Kind-of-business and product-category assessment",
+            "Review of all Form B and category-specific documents (IEC, product specifications, NOCs)",
+            "Head-office licence planning where you operate in several states",
+            "A guided filing session and follow-up on Central Licensing Authority queries"
+          ],
+          "deliverable": "A filed Central Licence application and support through approval",
+          "turnaround": "7–10 working days after documents are complete"
+        },
+        {
+          "id": "licence-renewal",
+          "name": "Licence Renewal",
+          "scope": "Review and renewal application support",
+          "price": {
+            "type": "range",
+            "amount": 3000,
+            "max": 7500
+          },
+          "summary": "Renew before expiry (FoSCoS allows up to 180 days before) without a gap in your licence.",
+          "includes": [
+            "Check of your current licence particulars and expiry",
+            "Review of changes since the last licence",
+            "Renewal application prepared with you",
+            "Reminder for the next renewal"
+          ],
+          "deliverable": "A filed renewal application",
+          "turnaround": "2–4 working days"
+        },
+        {
+          "id": "licence-modification",
+          "name": "Licence Modification",
+          "scope": "Products, premises, KOB, capacity or other licence particulars",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "Change what your licence covers: products, premises address, kind of business, capacity or other particulars.",
+          "includes": [
+            "Assessment of whether the change needs a Form-C modification",
+            "List of supporting documents for the change",
+            "Modification application prepared with you",
+            "Follow-up until the modified licence is issued"
+          ],
+          "deliverable": "A filed modification application",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "product-addition",
+          "name": "Product Addition",
+          "scope": "Assessment and addition to existing licence",
+          "price": {
+            "type": "from",
+            "amount": 3500
+          },
+          "summary": "Add new products to your existing licence, with the right food category for each.",
+          "includes": [
+            "Food category and standard for each new product",
+            "Check that the kind of business on your licence covers them",
+            "Product-addition application prepared with you"
+          ],
+          "deliverable": "An updated product list filed on your licence",
+          "turnaround": "2–4 working days"
+        },
+        {
+          "id": "change-in-constitution-business-details",
+          "name": "Change in Constitution / Business Details",
+          "scope": "Assessment and application support",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "Proprietorship to partnership or company, new partners or directors, change of name: kept consistent on your licence.",
+          "includes": [
+            "Assessment of what changes on the licence and what needs a new one",
+            "Checklist of constitution documents",
+            "Application prepared with you"
+          ],
+          "deliverable": "A filed change application",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "multiple-kob-assessment",
+          "name": "Multiple KOB Assessment",
+          "scope": "Appropriate Kind of Business and licensing structure",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "When your business does several things (making, trading, catering, importing): which kinds of business to declare and which licence covers them.",
+          "includes": [
+            "Review of all your activities and premises",
+            "Kinds of business mapped to the FoSCoS list",
+            "Licence category and fee for each premises",
+            "A short written recommendation"
+          ],
+          "deliverable": "A written licensing structure for your business",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "multi-location-licensing",
+          "name": "Multi-location Licensing",
+          "scope": "Licensing strategy for multiple premises",
+          "price": {
+            "type": "quote"
+          },
+          "summary": "Several outlets, units or warehouses, possibly across states: one plan for head-office and premises licences.",
+          "includes": [
+            "Map of your premises and activities by state",
+            "Head-office Central Licence planning",
+            "Licence category for each premises",
+            "A rollout plan and document checklist per location"
+          ],
+          "deliverable": "A multi-location licensing plan",
+          "turnaround": "Quoted with the scope"
+        },
+        {
+          "id": "licence-surrender-closure",
+          "name": "Licence Surrender / Closure",
+          "scope": "Application support and documentation",
+          "price": {
+            "type": "from",
+            "amount": 2500
+          },
+          "summary": "Closing a business or premises: surrender the licence properly so no returns or fees keep falling due.",
+          "includes": [
+            "Check of pending returns and obligations",
+            "Surrender application prepared with you"
+          ],
+          "deliverable": "A filed surrender request",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "application-clarification-resubmission",
+          "name": "Application Clarification / Resubmission",
+          "scope": "Response to authority observations or deficiencies",
+          "price": {
+            "type": "from",
+            "amount": 3500
+          },
+          "summary": "The officer has raised a query or marked your application deficient: we prepare a complete response.",
+          "includes": [
+            "Review of the officer’s observations",
+            "List of documents or corrections needed",
+            "Draft response for you to submit on FoSCoS"
+          ],
+          "deliverable": "A response ready to submit",
+          "turnaround": "2–4 working days"
+        },
+        {
+          "id": "inspection-support",
+          "name": "Inspection Support",
+          "scope": "Documentation review and inspection preparation",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "Before an FSSAI inspection: records, documents and premises readiness checked.",
+          "includes": [
+            "Review of records the inspector will ask for",
+            "Checklist against Schedule 4 hygiene requirements",
+            "Briefing call before the inspection"
+          ],
+          "deliverable": "An inspection readiness checklist and briefing",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "post-inspection-corrective-action",
+          "name": "Post-Inspection Corrective Action",
+          "scope": "Corrective action response support",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "After an inspection report or improvement points: a corrective-action plan and response.",
+          "includes": [
+            "Review of the inspection report",
+            "Corrective-action plan with owners and dates",
+            "Draft response to the authority"
+          ],
+          "deliverable": "A corrective-action response ready to submit",
+          "turnaround": "3–5 working days"
+        }
+      ]
+    },
+    {
+      "id": "classification",
+      "title": "Product classification & regulatory assessment",
+      "intro": "Where your product fits in FSSAI’s rules: its food category, the standard that applies, and the approval path if there isn’t one.",
+      "needs": [
+        "Product name and a short description",
+        "Full ingredient list with percentages",
+        "Any existing label or specification sheet"
+      ],
+      "services": [
+        {
+          "id": "product-category-identification",
+          "name": "Product Category Identification",
+          "scope": "Food category and regulatory pathway",
+          "price": {
+            "type": "fixed",
+            "amount": 3500,
+            "unit": "product"
+          },
+          "summary": "Which FSSAI food category your product falls in, and what that means for licensing and labelling.",
+          "includes": [
+            "Food category (FSSAI food category system)",
+            "Whether a product standard applies",
+            "Licensing implication (standardised, proprietary, nutraceutical or novel)"
+          ],
+          "deliverable": "A written classification note per product",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "detailed-product-classification",
+          "name": "Detailed Product Classification",
+          "scope": "Standards, category and regulatory assessment",
+          "price": {
+            "type": "range",
+            "amount": 5000,
+            "max": 7500,
+            "unit": "product"
+          },
+          "summary": "A fuller assessment: category, applicable standard, additive and labelling implications.",
+          "includes": [
+            "Category and applicable standard",
+            "Key compositional requirements",
+            "Additive and labelling implications",
+            "Recommended regulatory pathway"
+          ],
+          "deliverable": "A classification report per product",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "standardised-food-assessment",
+          "name": "Standardised Food Assessment",
+          "scope": "Verification against applicable product standard",
+          "price": {
+            "type": "fixed",
+            "amount": 5000,
+            "unit": "product"
+          },
+          "summary": "Check your product against the FSSAI standard it must meet.",
+          "includes": [
+            "Parameter-by-parameter comparison with the standard",
+            "Gaps and what to change"
+          ],
+          "deliverable": "A standard-compliance note per product",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "proprietary-food-assessment",
+          "name": "Proprietary Food Assessment",
+          "scope": "Ingredient/category assessment and pathway",
+          "price": {
+            "type": "range",
+            "amount": 7500,
+            "max": 12500,
+            "unit": "product"
+          },
+          "summary": "For products with no specific standard: whether they qualify as proprietary food and what that requires.",
+          "includes": [
+            "Proprietary-food eligibility check (sub-regulation 2.12)",
+            "Ingredient and additive permissibility",
+            "Licensing and labelling pathway"
+          ],
+          "deliverable": "A proprietary-food assessment per product",
+          "turnaround": "4–6 working days"
+        },
+        {
+          "id": "nutraceutical-health-supplement-classification",
+          "name": "Nutraceutical / Health Supplement Classification",
+          "scope": "Category, ingredient and pathway assessment",
+          "price": {
+            "type": "range",
+            "amount": 10000,
+            "max": 20000,
+            "unit": "product"
+          },
+          "summary": "Which category under the Nutraceutical Regulations 2016 your product belongs to, and whether its ingredients are permitted.",
+          "includes": [
+            "Category under the 2016 regulations (supplement, nutraceutical, FSDU, FSMP, functional food)",
+            "Ingredient and botanical permissibility",
+            "Pathway and licensing implication"
+          ],
+          "deliverable": "A classification report per product",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "novel-non-specified-food-assessment",
+          "name": "Novel / Non-Specified Food Assessment",
+          "scope": "Preliminary assessment and approval pathway",
+          "price": {
+            "type": "from",
+            "amount": 15000
+          },
+          "summary": "For new ingredients or foods without a standard: whether FSSAI product approval is needed and how to get it.",
+          "includes": [
+            "Preliminary non-specified food assessment",
+            "Approval route under the 2017 regulations",
+            "Data and documents the application will need"
+          ],
+          "deliverable": "A preliminary assessment and approval roadmap",
+          "turnaround": "7–10 working days"
+        },
+        {
+          "id": "food-additive-classification",
+          "name": "Food Additive Classification",
+          "scope": "Permissibility and applicable limits",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "Whether an additive is permitted in your food category, and at what level.",
+          "includes": [
+            "INS number and functional class",
+            "Permission in your food category",
+            "Maximum permitted level"
+          ],
+          "deliverable": "An additive permissibility note",
+          "turnaround": "2–4 working days"
+        },
+        {
+          "id": "ingredient-regulatory-status",
+          "name": "Ingredient Regulatory Status",
+          "scope": "Status of individual ingredient",
+          "price": {
+            "type": "from",
+            "amount": 3500,
+            "unit": "ingredient"
+          },
+          "summary": "Is this ingredient allowed in food in India, and under what conditions?",
+          "includes": [
+            "Regulatory status of the ingredient",
+            "Conditions or limits of use"
+          ],
+          "deliverable": "A status note per ingredient",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "product-naming-assessment",
+          "name": "Product Naming Assessment",
+          "scope": "Review of proposed product name",
+          "price": {
+            "type": "fixed",
+            "amount": 5000,
+            "unit": "product"
+          },
+          "summary": "Whether your proposed product name is allowed for what the product actually is.",
+          "includes": [
+            "Name against the applicable standard or category",
+            "Misleading-name risks",
+            "Suggested compliant names"
+          ],
+          "deliverable": "A naming note per product",
+          "turnaround": "2–3 working days"
+        }
+      ]
+    },
+    {
+      "id": "formulation",
+      "title": "Formulation compliance",
+      "intro": "Your recipe checked against FSSAI rules before it reaches the label: ingredients, additives, nutrients and compositional limits.",
+      "needs": [
+        "Final formulation with ingredient percentages",
+        "Specifications or certificates of analysis for key ingredients",
+        "Target market and product category, if known"
+      ],
+      "services": [
+        {
+          "id": "basic-formulation-review",
+          "name": "Basic Formulation Review",
+          "scope": "Ingredients and composition against applicable standard",
+          "price": {
+            "type": "fixed",
+            "amount": 5000,
+            "unit": "product"
+          },
+          "summary": "A first check of your recipe against the standard for its category.",
+          "includes": [
+            "Ingredients and composition against the standard",
+            "Obvious non-compliances flagged"
+          ],
+          "deliverable": "A review note per product",
+          "turnaround": "2–4 working days"
+        },
+        {
+          "id": "detailed-formulation-compliance",
+          "name": "Detailed Formulation Compliance",
+          "scope": "Ingredient, additive, category and compositional review",
+          "price": {
+            "type": "range",
+            "amount": 10000,
+            "max": 15000,
+            "unit": "product"
+          },
+          "summary": "A thorough review of every ingredient, additive and compositional limit.",
+          "includes": [
+            "Each ingredient’s status and limits",
+            "Additive permissions and levels",
+            "Compositional parameters against the standard",
+            "Recommendations to fix gaps"
+          ],
+          "deliverable": "A detailed compliance report per product",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "complex-formulation-review",
+          "name": "Complex Formulation Review",
+          "scope": "Nutraceuticals, fortified/proprietary or complex formulations",
+          "price": {
+            "type": "range",
+            "amount": 15000,
+            "max": 25000,
+            "unit": "product"
+          },
+          "summary": "For nutraceuticals, fortified foods, proprietary foods and multi-component products.",
+          "includes": [
+            "Category-specific rules (2016 nutraceutical regulations, fortification standards)",
+            "Botanical, nutrient and additive review",
+            "Compositional limits and declarations"
+          ],
+          "deliverable": "A detailed compliance report per product",
+          "turnaround": "7–10 working days"
+        },
+        {
+          "id": "ingredient-percentage-verification",
+          "name": "Ingredient Percentage Verification",
+          "scope": "Formulation totals and ingredient declarations",
+          "price": {
+            "type": "from",
+            "amount": 3500
+          },
+          "summary": "Check that your percentages add up and the declaration order is right.",
+          "includes": [
+            "Formulation totals",
+            "Descending-order declaration",
+            "Quantitative ingredient declaration (QUID) where needed"
+          ],
+          "deliverable": "A verification note",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "additive-compliance-review",
+          "name": "Additive Compliance Review",
+          "scope": "INS, function, category permission and maximum level",
+          "price": {
+            "type": "range",
+            "amount": 5000,
+            "max": 10000,
+            "unit": "product"
+          },
+          "summary": "Every additive in your product checked for permission and level.",
+          "includes": [
+            "INS number and function for each additive",
+            "Permission in your food category",
+            "Levels against maximum limits"
+          ],
+          "deliverable": "An additive compliance table per product",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "flavour-regulatory-review",
+          "name": "Flavour Regulatory Review",
+          "scope": "Flavour classification and declaration",
+          "price": {
+            "type": "range",
+            "amount": 3500,
+            "max": 5000,
+            "unit": "product"
+          },
+          "summary": "Natural, nature-identical or artificial flavour: correct classification and declaration.",
+          "includes": [
+            "Flavour classification",
+            "Declaration wording on the label"
+          ],
+          "deliverable": "A flavour note per product",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "vitamin-and-mineral-compliance",
+          "name": "Vitamin & Mineral Compliance",
+          "scope": "Permissibility, source and level assessment",
+          "price": {
+            "type": "range",
+            "amount": 5000,
+            "max": 10000,
+            "unit": "product"
+          },
+          "summary": "Added vitamins and minerals: permitted forms, sources and levels.",
+          "includes": [
+            "Permitted forms and sources",
+            "Levels against limits and RDA",
+            "Declaration requirements"
+          ],
+          "deliverable": "A compliance note per product",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "nutrient-rda-assessment",
+          "name": "Nutrient / RDA Assessment",
+          "scope": "Nutrient levels and applicable RDA declarations",
+          "price": {
+            "type": "range",
+            "amount": 5000,
+            "max": 8000,
+            "unit": "product"
+          },
+          "summary": "Nutrient levels against ICMR RDA values and how to declare them.",
+          "includes": [
+            "Nutrient levels per serve and per 100 g",
+            "Percentage of RDA",
+            "Declaration format"
+          ],
+          "deliverable": "An RDA table per product",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "reformulation-advisory",
+          "name": "Reformulation Advisory",
+          "scope": "Recommendations to make formulation compliant",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "When a recipe doesn’t comply: practical options to make it compliant.",
+          "includes": [
+            "Root cause of each non-compliance",
+            "Reformulation options with trade-offs",
+            "Follow-up review of the revised recipe"
+          ],
+          "deliverable": "A reformulation recommendation",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "vendor-ingredient-specification-review",
+          "name": "Vendor Ingredient Specification Review",
+          "scope": "Regulatory review of ingredient/specification documents",
+          "price": {
+            "type": "from",
+            "amount": 2500,
+            "unit": "ingredient"
+          },
+          "summary": "Your suppliers’ specifications checked for regulatory red flags.",
+          "includes": [
+            "Specification and CoA review",
+            "Regulatory red flags",
+            "Questions to ask the supplier"
+          ],
+          "deliverable": "A review note per ingredient",
+          "turnaround": "2–3 working days"
+        }
+      ]
+    },
+    {
+      "id": "soi",
+      "title": "Statement of ingredients (SOI)",
+      "intro": "The ingredient list on your pack, written the way the regulations require: order, names, class titles, INS numbers and allergens.",
+      "needs": [
+        "Final formulation with percentages",
+        "Compound-ingredient breakdowns",
+        "Additive list with INS numbers"
+      ],
+      "note": "A final SOI can only be issued when the formulation and ingredient composition are complete enough to calculate and verify the declaration.",
+      "services": [
+        {
+          "id": "soi-preparation",
+          "name": "SOI Preparation",
+          "scope": "Compliant ingredient declaration from final formulation",
+          "price": {
+            "type": "range",
+            "amount": 4000,
+            "max": 6000,
+            "unit": "SKU"
+          },
+          "summary": "We write the complete ingredient declaration from your final formulation.",
+          "includes": [
+            "Descending-order ingredient list",
+            "Class titles and INS numbers for additives",
+            "Allergen declaration",
+            "QUID where required"
+          ],
+          "deliverable": "A ready-to-print SOI per SKU",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "soi-review",
+          "name": "SOI Review",
+          "scope": "Review and correction of client-prepared SOI",
+          "price": {
+            "type": "range",
+            "amount": 3000,
+            "max": 5000,
+            "unit": "SKU"
+          },
+          "summary": "We check the ingredient list you have written and correct it.",
+          "includes": [
+            "Order, names and percentages",
+            "Additive and allergen declarations",
+            "Marked-up corrections"
+          ],
+          "deliverable": "A corrected SOI per SKU",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "compound-ingredient-assessment",
+          "name": "Compound Ingredient Assessment",
+          "scope": "Sub-ingredients and declaration requirements",
+          "price": {
+            "type": "from",
+            "amount": 3500
+          },
+          "summary": "How to declare compound ingredients (masalas, premixes, sauces) and their sub-ingredients.",
+          "includes": [
+            "When sub-ingredients must be listed",
+            "Declaration wording"
+          ],
+          "deliverable": "A declaration note",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "additive-declaration-review",
+          "name": "Additive Declaration Review",
+          "scope": "Class title, additive name/INS and declaration",
+          "price": {
+            "type": "from",
+            "amount": 3500
+          },
+          "summary": "Additives declared with the correct class title and name or INS number.",
+          "includes": [
+            "Class titles",
+            "Name or INS format",
+            "Colour and flavour declarations"
+          ],
+          "deliverable": "A review note",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "allergen-declaration-review",
+          "name": "Allergen Declaration Review",
+          "scope": "Identification and declaration of allergens",
+          "price": {
+            "type": "from",
+            "amount": 3000
+          },
+          "summary": "All allergens identified and declared as required.",
+          "includes": [
+            "Allergen identification from the formulation",
+            "Declaration and “may contain” wording"
+          ],
+          "deliverable": "A review note",
+          "turnaround": "2 working days"
+        }
+      ]
+    },
+    {
+      "id": "labelling",
+      "title": "Food label & artwork compliance",
+      "intro": "Your pack artwork checked against the FSS (Labelling and Display) Regulations and Legal Metrology rules before it goes to print.",
+      "needs": [
+        "Artwork files (PDF or high-resolution images) for each panel",
+        "Final formulation and nutrition data",
+        "Pack size and net quantity"
+      ],
+      "services": [
+        {
+          "id": "basic-artwork-review",
+          "name": "Basic Artwork Review",
+          "scope": "Mandatory FSSAI declarations",
+          "price": {
+            "type": "fixed",
+            "amount": 5000,
+            "unit": "SKU"
+          },
+          "summary": "A check that every mandatory FSSAI declaration is on your pack.",
+          "includes": [
+            "Name of food, ingredients, nutrition, veg/non-veg logo",
+            "FSSAI logo and licence number",
+            "Date marking, lot number, manufacturer details"
+          ],
+          "deliverable": "An issue list per SKU",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "comprehensive-artwork-review",
+          "name": "Comprehensive Artwork Review",
+          "scope": "Detailed FSSAI label compliance",
+          "price": {
+            "type": "range",
+            "amount": 7500,
+            "max": 12500,
+            "unit": "SKU"
+          },
+          "summary": "A detailed FSSAI label review: declarations, formats, sizes and wording.",
+          "includes": [
+            "All mandatory declarations and their format",
+            "Font sizes and panel placement",
+            "Claims and logos",
+            "Marked-up artwork"
+          ],
+          "deliverable": "A marked-up artwork and issue list per SKU",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "full-packaging-compliance-review",
+          "name": "Full Packaging Compliance Review",
+          "scope": "FSSAI + Legal Metrology + claims/declarations",
+          "price": {
+            "type": "range",
+            "amount": 12500,
+            "max": 20000,
+            "unit": "SKU"
+          },
+          "summary": "Everything on the pack: FSSAI labelling, Legal Metrology declarations and claims.",
+          "includes": [
+            "FSSAI labelling review",
+            "Legal Metrology (Packaged Commodities) review",
+            "Claims screening",
+            "Marked-up artwork with corrections"
+          ],
+          "deliverable": "A full compliance report and marked-up artwork per SKU",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "front-of-pack-review",
+          "name": "Front-of-Pack Review",
+          "scope": "Product name, brand, veg/non-veg logo, claims and key declarations",
+          "price": {
+            "type": "from",
+            "amount": 4000
+          },
+          "summary": "The front panel: product name, brand, logos and claims.",
+          "includes": [
+            "Product name against category",
+            "Veg/non-veg logo size and placement",
+            "Front-of-pack claims"
+          ],
+          "deliverable": "An issue list",
+          "turnaround": "2 working days"
+        },
+        {
+          "id": "back-of-pack-review",
+          "name": "Back-of-Pack Review",
+          "scope": "Ingredients, nutrition, allergens and mandatory information",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "The back panel: ingredients, nutrition, allergens and mandatory information.",
+          "includes": [
+            "SOI and allergen declaration",
+            "Nutrition table",
+            "Manufacturer, licence and date details"
+          ],
+          "deliverable": "An issue list",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "nutrition-information-review",
+          "name": "Nutrition Information Review",
+          "scope": "Nutrition table and declaration format",
+          "price": {
+            "type": "from",
+            "amount": 4000
+          },
+          "summary": "Your nutrition table checked for required nutrients, units and format.",
+          "includes": [
+            "Mandatory nutrients and units",
+            "Per 100 g / per serve format",
+            "RDA percentages where declared"
+          ],
+          "deliverable": "A review note",
+          "turnaround": "2 working days"
+        },
+        {
+          "id": "legal-metrology-declaration-review",
+          "name": "Legal Metrology Declaration Review",
+          "scope": "Net quantity, MRP, consumer care and applicable declarations",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "The Legal Metrology declarations on your pack.",
+          "includes": [
+            "Net quantity and its size",
+            "MRP and date of manufacture/packing",
+            "Consumer care details"
+          ],
+          "deliverable": "An issue list",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "kld-dieline-compliance-review",
+          "name": "KLD / Dieline Compliance Review",
+          "scope": "Declaration placement and panel/space assessment",
+          "price": {
+            "type": "range",
+            "amount": 5000,
+            "max": 8000,
+            "unit": "SKU"
+          },
+          "summary": "Your key-line drawing or dieline checked for where each declaration must go and how much space it needs.",
+          "includes": [
+            "Principal display panel area",
+            "Minimum font sizes by panel",
+            "Placement of mandatory declarations"
+          ],
+          "deliverable": "A marked-up dieline per SKU",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "pre-print-final-artwork-sign-off",
+          "name": "Pre-Print Final Artwork Sign-Off",
+          "scope": "Final verification after corrections",
+          "price": {
+            "type": "fixed",
+            "amount": 3500,
+            "unit": "SKU"
+          },
+          "summary": "A last check of the corrected artwork before it goes to print.",
+          "includes": [
+            "Verification that earlier corrections are done",
+            "Final read of all declarations"
+          ],
+          "deliverable": "A sign-off note per SKU",
+          "turnaround": "1–2 working days"
+        },
+        {
+          "id": "multi-sku-artwork-harmonisation",
+          "name": "Multi-SKU Artwork Harmonisation",
+          "scope": "Standardisation across product range",
+          "price": {
+            "type": "from",
+            "amount": 15000
+          },
+          "summary": "Consistent, compliant declarations across a whole product range.",
+          "includes": [
+            "Common template for declarations",
+            "Variant-specific elements identified",
+            "Range-wide issue list"
+          ],
+          "deliverable": "A harmonised declaration template",
+          "turnaround": "5–10 working days"
+        },
+        {
+          "id": "artwork-compliance-checklist",
+          "name": "Artwork Compliance Checklist",
+          "scope": "Written issue-wise compliance report",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "A written, issue-by-issue compliance report for your records or your design agency.",
+          "includes": [
+            "Issue, regulation reference and fix for each point"
+          ],
+          "deliverable": "A written compliance checklist",
+          "turnaround": "3–4 working days"
+        }
+      ]
+    },
+    {
+      "id": "claims",
+      "title": "Claims & advertising compliance",
+      "intro": "What you say about your food, on the pack and in marketing, checked against the FSS (Advertising and Claims) Regulations.",
+      "needs": [
+        "The exact claims or advertisement copy",
+        "Formulation and nutrition data behind each claim",
+        "Any evidence you already hold"
+      ],
+      "services": [
+        {
+          "id": "individual-claim-assessment",
+          "name": "Individual Claim Assessment",
+          "scope": "Review of one proposed claim",
+          "price": {
+            "type": "from",
+            "amount": 2500
+          },
+          "summary": "Is this one claim allowed, and on what conditions?",
+          "includes": [
+            "Claim type (nutrition, health, other)",
+            "Conditions it must meet",
+            "Compliant wording"
+          ],
+          "deliverable": "A claim note",
+          "turnaround": "2 working days"
+        },
+        {
+          "id": "complete-claims-review",
+          "name": "Complete Claims Review",
+          "scope": "All claims proposed on one SKU",
+          "price": {
+            "type": "range",
+            "amount": 5000,
+            "max": 10000
+          },
+          "summary": "Every claim on one product reviewed together.",
+          "includes": [
+            "Each claim classified and assessed",
+            "Conditions and evidence needed",
+            "Compliant alternatives"
+          ],
+          "deliverable": "A claims report for the SKU",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "nutrition-claim-review",
+          "name": "Nutrition Claim Review",
+          "scope": "High protein, low fat, fibre, sugar-related etc.",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "Nutrition claims such as “high protein”, “low fat”, “source of fibre” or “no added sugar”.",
+          "includes": [
+            "Thresholds for each claim",
+            "Check against your nutrition data",
+            "Required wording and conditions"
+          ],
+          "deliverable": "A nutrition-claim note",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "health-claim-review",
+          "name": "Health Claim Review",
+          "scope": "Assessment and substantiation requirements",
+          "price": {
+            "type": "range",
+            "amount": 7500,
+            "max": 15000
+          },
+          "summary": "Health claims and the evidence FSSAI expects behind them.",
+          "includes": [
+            "Whether the claim is permitted",
+            "Substantiation needed",
+            "Risk and wording recommendations"
+          ],
+          "deliverable": "A health-claim assessment",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "comparative-claim-review",
+          "name": "Comparative Claim Review",
+          "scope": "Comparative nutrition/product claims",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "Claims that compare your product with others (“30% less sugar”).",
+          "includes": [
+            "Reference product and basis of comparison",
+            "Minimum difference required",
+            "Wording"
+          ],
+          "deliverable": "A comparative-claim note",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "ingredient-functional-claim-review",
+          "name": "Ingredient / Functional Claim Review",
+          "scope": "Ingredient-related functional claims",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "Claims about what an ingredient does (“with ashwagandha for stress”).",
+          "includes": [
+            "Permissibility of the functional claim",
+            "Evidence required",
+            "Wording"
+          ],
+          "deliverable": "A claim note",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "claims-substantiation-dossier",
+          "name": "Claims Substantiation Dossier",
+          "scope": "Evidence assessment and justification",
+          "price": {
+            "type": "range",
+            "amount": 15000,
+            "max": 35000
+          },
+          "summary": "A structured dossier of the evidence behind your claims, ready for the authority if asked.",
+          "includes": [
+            "Evidence assessment",
+            "Scientific justification write-up",
+            "Dossier structured for the authority"
+          ],
+          "deliverable": "A substantiation dossier",
+          "turnaround": "10–15 working days"
+        },
+        {
+          "id": "advertisement-review",
+          "name": "Advertisement Review",
+          "scope": "Website, social, digital, print or promotional communication",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "Your advertisements checked for claims and misleading statements.",
+          "includes": [
+            "Claims and statements in the ad",
+            "Misleading or prohibited content",
+            "Corrected copy"
+          ],
+          "deliverable": "A reviewed ad copy",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "influencer-marketing-communication-review",
+          "name": "Influencer / Marketing Communication Review",
+          "scope": "Promotional statements and claims",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "Scripts and briefs for influencers and campaigns checked before they go live.",
+          "includes": [
+            "Claims in scripts and captions",
+            "Do’s and don’ts for the influencer brief"
+          ],
+          "deliverable": "A reviewed brief",
+          "turnaround": "2–3 working days"
+        }
+      ]
+    },
+    {
+      "id": "nutraceuticals",
+      "title": "Nutraceuticals, health supplements & specialty foods",
+      "intro": "For products under the FSS (Health Supplements, Nutraceuticals, FSDU, FSMP, Functional Food and Novel Food) Regulations 2016.",
+      "needs": [
+        "Formulation with ingredient quantities per serve",
+        "Botanical names and parts used",
+        "Intended claims and target consumers"
+      ],
+      "services": [
+        {
+          "id": "product-classification",
+          "name": "Product Classification",
+          "scope": "Regulatory category determination",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "Which category of the 2016 regulations your product belongs to.",
+          "includes": [
+            "Category determination",
+            "Schedule(s) that apply",
+            "Licensing implication (Central Licence)"
+          ],
+          "deliverable": "A classification note",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "ingredient-permissibility-assessment",
+          "name": "Ingredient Permissibility Assessment",
+          "scope": "Ingredients, botanicals, nutrients and additives",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "Every ingredient, botanical, nutrient and additive checked against the schedules.",
+          "includes": [
+            "Schedule-wise permissibility",
+            "Limits per daily usage",
+            "Ingredients needing approval"
+          ],
+          "deliverable": "A permissibility table",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "complete-formulation-assessment",
+          "name": "Complete Formulation Assessment",
+          "scope": "Detailed regulatory evaluation",
+          "price": {
+            "type": "range",
+            "amount": 15000,
+            "max": 25000,
+            "unit": "product"
+          },
+          "summary": "A detailed evaluation of the whole formulation.",
+          "includes": [
+            "Ingredients, nutrients and additives",
+            "Levels against schedules and RDA",
+            "Recommendations"
+          ],
+          "deliverable": "A formulation assessment report per product",
+          "turnaround": "7–10 working days"
+        },
+        {
+          "id": "nutrient-level-rda-assessment",
+          "name": "Nutrient Level / RDA Assessment",
+          "scope": "Nutrient quantities and limits",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "Nutrient quantities against permitted limits and RDA.",
+          "includes": [
+            "Levels per daily dose",
+            "Upper limits",
+            "Declaration format"
+          ],
+          "deliverable": "An RDA table",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "claims-assessment",
+          "name": "Claims Assessment",
+          "scope": "Nutrition, physiological and health-related claims",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "Claims for supplements and specialty foods.",
+          "includes": [
+            "Claim category and permissibility",
+            "Evidence needed",
+            "Wording"
+          ],
+          "deliverable": "A claims note",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "complete-label-review",
+          "name": "Complete Label Review",
+          "scope": "Specialty food/nutraceutical label",
+          "price": {
+            "type": "range",
+            "amount": 12500,
+            "max": 20000
+          },
+          "summary": "The full label, including the category-specific declarations the 2016 regulations require.",
+          "includes": [
+            "Mandatory and category-specific declarations",
+            "Advisory and warning statements",
+            "Marked-up artwork"
+          ],
+          "deliverable": "A marked-up label",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "end-to-end-product-compliance",
+          "name": "End-to-End Product Compliance",
+          "scope": "Classification + formulation + claims + label",
+          "price": {
+            "type": "range",
+            "amount": 30000,
+            "max": 50000,
+            "unit": "product"
+          },
+          "summary": "Everything for one product, from classification to a print-ready label.",
+          "includes": [
+            "Classification",
+            "Formulation assessment",
+            "Claims assessment",
+            "Label review and sign-off"
+          ],
+          "deliverable": "A complete compliance file per product",
+          "turnaround": "15–20 working days"
+        }
+      ]
+    },
+    {
+      "id": "approvals",
+      "title": "FSSAI product approval & special regulatory projects",
+      "intro": "For products and ingredients that need FSSAI’s approval, and for complex matters with the authority.",
+      "needs": [
+        "Product and ingredient details",
+        "Existing scientific data, studies and specifications",
+        "Any correspondence with FSSAI"
+      ],
+      "services": [
+        {
+          "id": "non-specified-food-preliminary-assessment",
+          "name": "Non-Specified Food Preliminary Assessment",
+          "scope": "Whether your product needs approval as a non-specified food, and what the application will require.",
+          "price": {
+            "type": "from",
+            "amount": 15000
+          },
+          "summary": "Whether your product needs approval as a non-specified food, and what the application will require.",
+          "includes": [
+            "Assessment under the 2017 approval regulations",
+            "Data gaps",
+            "Approval roadmap"
+          ],
+          "deliverable": "A preliminary assessment",
+          "turnaround": "7–10 working days"
+        },
+        {
+          "id": "ingredient-regulatory-gap-assessment",
+          "name": "Ingredient Regulatory Gap Assessment",
+          "scope": "What’s missing between your ingredient and what the regulations or an approval require.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "What’s missing between your ingredient and what the regulations or an approval require.",
+          "includes": [
+            "Status of the ingredient",
+            "Gaps and how to close them"
+          ],
+          "deliverable": "A gap assessment",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "regulatory-approval-strategy",
+          "name": "Regulatory Approval Strategy",
+          "scope": "The route to approval: category, data, timeline and risks.",
+          "price": {
+            "type": "from",
+            "amount": 20000
+          },
+          "summary": "The route to approval: category, data, timeline and risks.",
+          "includes": [
+            "Pathway options compared",
+            "Data and study plan",
+            "Timeline and risks"
+          ],
+          "deliverable": "A written approval strategy",
+          "turnaround": "10–15 working days"
+        },
+        {
+          "id": "dossier-preparation",
+          "name": "Dossier Preparation",
+          "scope": "The approval dossier prepared in the format FSSAI expects.",
+          "price": {
+            "type": "from",
+            "amount": 35000
+          },
+          "summary": "The approval dossier prepared in the format FSSAI expects.",
+          "includes": [
+            "Dossier structure and content",
+            "Scientific summaries",
+            "Final review before submission"
+          ],
+          "deliverable": "A submission-ready dossier",
+          "turnaround": "Depends on data; quoted with the scope"
+        },
+        {
+          "id": "scientific-regulatory-documentation-review",
+          "name": "Scientific / Regulatory Documentation Review",
+          "scope": "Your existing studies, reports and documents reviewed for regulatory use.",
+          "price": {
+            "type": "from",
+            "amount": 15000
+          },
+          "summary": "Your existing studies, reports and documents reviewed for regulatory use.",
+          "includes": [
+            "Relevance and quality of the evidence",
+            "Gaps for the intended use"
+          ],
+          "deliverable": "A review report",
+          "turnaround": "7–10 working days"
+        },
+        {
+          "id": "fssai-authority-query-response",
+          "name": "FSSAI Authority Query Response",
+          "scope": "A response to FSSAI’s queries on a product approval or application.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "A response to FSSAI’s queries on a product approval or application.",
+          "includes": [
+            "Analysis of the query",
+            "Draft response and supporting documents"
+          ],
+          "deliverable": "A response ready to submit",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "complex-regulatory-representation",
+          "name": "Complex Regulatory Representation",
+          "scope": "Complex matters that need sustained expert handling with the authority.",
+          "price": {
+            "type": "quote"
+          },
+          "summary": "Complex matters that need sustained expert handling with the authority.",
+          "includes": [
+            "Scoping call",
+            "Strategy and representation plan"
+          ],
+          "deliverable": "Agreed with the scope",
+          "turnaround": "Quoted with the scope"
+        }
+      ]
+    },
+    {
+      "id": "imports",
+      "title": "Imported food regulatory support",
+      "intro": "For importers and brand owners bringing food into India: products, labels and documents ready for FSSAI’s import clearance.",
+      "needs": [
+        "Product specifications and overseas label",
+        "Ingredient list and certificates of analysis",
+        "Your IEC and FSSAI import licence details"
+      ],
+      "services": [
+        {
+          "id": "import-product-compliance-assessment",
+          "name": "Import Product Compliance Assessment",
+          "scope": "Whether the imported product meets Indian standards and can be cleared.",
+          "price": {
+            "type": "from",
+            "amount": 10000,
+            "unit": "product"
+          },
+          "summary": "Whether the imported product meets Indian standards and can be cleared.",
+          "includes": [
+            "Category and applicable Indian standard",
+            "Ingredient and additive permissibility in India",
+            "Clearance risks"
+          ],
+          "deliverable": "An import compliance assessment per product",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "imported-label-review",
+          "name": "Imported Label Review",
+          "scope": "The imported pack label (and sticker) checked against Indian labelling rules.",
+          "price": {
+            "type": "from",
+            "amount": 7500,
+            "unit": "SKU"
+          },
+          "summary": "The imported pack label (and sticker) checked against Indian labelling rules.",
+          "includes": [
+            "Mandatory Indian declarations",
+            "Importer details and FSSAI logo",
+            "Sticker requirements"
+          ],
+          "deliverable": "An issue list per SKU",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "ingredient-additive-compliance-assessment",
+          "name": "Ingredient / Additive Compliance Assessment",
+          "scope": "Ingredients and additives permitted abroad but maybe not in India.",
+          "price": {
+            "type": "from",
+            "amount": 7500,
+            "unit": "product"
+          },
+          "summary": "Ingredients and additives permitted abroad but maybe not in India.",
+          "includes": [
+            "Ingredient and additive status in India",
+            "Limits and conditions"
+          ],
+          "deliverable": "A compliance table per product",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "india-specific-label-adaptation",
+          "name": "India-Specific Label Adaptation",
+          "scope": "An Indian-compliant label or sticker prepared from the overseas pack.",
+          "price": {
+            "type": "from",
+            "amount": 10000,
+            "unit": "SKU"
+          },
+          "summary": "An Indian-compliant label or sticker prepared from the overseas pack.",
+          "includes": [
+            "Adapted declarations and translations",
+            "Sticker or label layout inputs"
+          ],
+          "deliverable": "Label text ready for your designer, per SKU",
+          "turnaround": "4–6 working days"
+        },
+        {
+          "id": "import-documentation-regulatory-review",
+          "name": "Import Documentation Regulatory Review",
+          "scope": "Your shipment documents checked before the consignment arrives.",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "Your shipment documents checked before the consignment arrives.",
+          "includes": [
+            "Certificates, specifications and health certificates",
+            "Gaps that could delay clearance"
+          ],
+          "deliverable": "A document review note",
+          "turnaround": "2–4 working days"
+        },
+        {
+          "id": "regulatory-gap-assessment-india-vs-overseas-label",
+          "name": "Regulatory Gap Assessment – India vs Overseas Label",
+          "scope": "A side-by-side comparison of your overseas label with Indian requirements.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "A side-by-side comparison of your overseas label with Indian requirements.",
+          "includes": [
+            "Declaration-by-declaration comparison",
+            "What must change for India"
+          ],
+          "deliverable": "A gap assessment",
+          "turnaround": "4–5 working days"
+        },
+        {
+          "id": "import-compliance-advisory",
+          "name": "Import Compliance Advisory",
+          "scope": "Ongoing or complex import matters: portfolios, rejections at the port, new categories.",
+          "price": {
+            "type": "quote"
+          },
+          "summary": "Ongoing or complex import matters: portfolios, rejections at the port, new categories.",
+          "includes": [
+            "Scoping call",
+            "Advisory plan"
+          ],
+          "deliverable": "Agreed with the scope",
+          "turnaround": "Quoted with the scope"
+        }
+      ]
+    },
+    {
+      "id": "food-safety",
+      "title": "Food safety & operational compliance",
+      "intro": "Staying compliant after the licence: hygiene, food-safety management, traceability and audit readiness.",
+      "needs": [
+        "Your current SOPs and records",
+        "Premises layout and process flow",
+        "Recent inspection or audit reports, if any"
+      ],
+      "services": [
+        {
+          "id": "fssai-compliance-gap-assessment",
+          "name": "FSSAI Compliance Gap Assessment",
+          "scope": "Where your operation stands against FSSAI requirements, and what to fix first.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "Where your operation stands against FSSAI requirements, and what to fix first.",
+          "includes": [
+            "Review against licence conditions and Schedule 4",
+            "Prioritised gap list"
+          ],
+          "deliverable": "A gap assessment report",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "hygiene-schedule-4-documentation-review",
+          "name": "Hygiene / Schedule 4 Documentation Review",
+          "scope": "Your hygiene and sanitation documentation checked against Schedule 4.",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "Your hygiene and sanitation documentation checked against Schedule 4.",
+          "includes": [
+            "Cleaning, pest control and personal hygiene records",
+            "Missing records and templates"
+          ],
+          "deliverable": "A review report",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "regulatory-sop-preparation",
+          "name": "Regulatory SOP Preparation",
+          "scope": "Standard operating procedures written for your process and FSSAI’s expectations.",
+          "price": {
+            "type": "from",
+            "amount": 7500,
+            "unit": "SOP"
+          },
+          "summary": "Standard operating procedures written for your process and FSSAI’s expectations.",
+          "includes": [
+            "SOP drafted to your process",
+            "Record formats"
+          ],
+          "deliverable": "A ready-to-use SOP",
+          "turnaround": "3–5 working days per SOP"
+        },
+        {
+          "id": "fsms-documentation-support",
+          "name": "FSMS Documentation Support",
+          "scope": "Food Safety Management System documents, including the plan FSSAI asks for at renewal.",
+          "price": {
+            "type": "from",
+            "amount": 15000
+          },
+          "summary": "Food Safety Management System documents, including the plan FSSAI asks for at renewal.",
+          "includes": [
+            "FSMS plan",
+            "Hazard analysis and controls",
+            "Record formats"
+          ],
+          "deliverable": "An FSMS documentation set",
+          "turnaround": "10–15 working days"
+        },
+        {
+          "id": "recall-traceability-procedure-review",
+          "name": "Recall / Traceability Procedure Review",
+          "scope": "Your recall plan and traceability checked, as required for licence holders.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "Your recall plan and traceability checked, as required for licence holders.",
+          "includes": [
+            "Recall plan review",
+            "Traceability check",
+            "Mock-recall guidance"
+          ],
+          "deliverable": "A reviewed recall and traceability procedure",
+          "turnaround": "4–6 working days"
+        },
+        {
+          "id": "supplier-regulatory-compliance-checklist",
+          "name": "Supplier Regulatory Compliance Checklist",
+          "scope": "A checklist to qualify your suppliers on regulatory grounds.",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "A checklist to qualify your suppliers on regulatory grounds.",
+          "includes": [
+            "Supplier licence and document checks",
+            "Ingredient specification requirements"
+          ],
+          "deliverable": "A supplier checklist",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "internal-regulatory-audit",
+          "name": "Internal Regulatory Audit",
+          "scope": "An audit of your operation against FSSAI requirements, before the authority does it.",
+          "price": {
+            "type": "from",
+            "amount": 15000
+          },
+          "summary": "An audit of your operation against FSSAI requirements, before the authority does it.",
+          "includes": [
+            "Document and site audit",
+            "Findings graded by risk",
+            "Corrective actions"
+          ],
+          "deliverable": "An audit report",
+          "turnaround": "5–10 working days"
+        },
+        {
+          "id": "inspection-readiness-assessment",
+          "name": "Inspection Readiness Assessment",
+          "scope": "A mock inspection to get you ready for the real one.",
+          "price": {
+            "type": "from",
+            "amount": 15000
+          },
+          "summary": "A mock inspection to get you ready for the real one.",
+          "includes": [
+            "Mock inspection",
+            "Readiness score and action list"
+          ],
+          "deliverable": "A readiness report",
+          "turnaround": "5–7 working days"
+        }
+      ]
+    },
+    {
+      "id": "notices",
+      "title": "Notices, non-compliance & regulatory response",
+      "intro": "When the authority writes to you: notices, failed samples and non-compliance handled calmly and correctly.",
+      "needs": [
+        "The notice, report or letter you received",
+        "Your licence details",
+        "Relevant records, test reports and labels"
+      ],
+      "services": [
+        {
+          "id": "fssai-notice-review",
+          "name": "FSSAI Notice Review",
+          "scope": "What the notice means, how serious it is and what you must do by when.",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "What the notice means, how serious it is and what you must do by when.",
+          "includes": [
+            "Plain-language explanation",
+            "Deadlines and consequences",
+            "Recommended next steps"
+          ],
+          "deliverable": "A notice review note",
+          "turnaround": "1–2 working days"
+        },
+        {
+          "id": "regulatory-response-clarification-drafting",
+          "name": "Regulatory Response / Clarification Drafting",
+          "scope": "A written response or clarification to the authority.",
+          "price": {
+            "type": "range",
+            "amount": 7500,
+            "max": 15000
+          },
+          "summary": "A written response or clarification to the authority.",
+          "includes": [
+            "Facts and position assembled",
+            "Draft response with supporting documents"
+          ],
+          "deliverable": "A response ready to send",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "improvement-notice-support",
+          "name": "Improvement Notice Support",
+          "scope": "Complying with an improvement notice within its deadline.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "Complying with an improvement notice within its deadline.",
+          "includes": [
+            "Action plan for each point",
+            "Evidence of compliance",
+            "Response to the Food Safety Officer"
+          ],
+          "deliverable": "A compliance response",
+          "turnaround": "3–7 working days"
+        },
+        {
+          "id": "sampling-test-report-regulatory-assessment",
+          "name": "Sampling / Test Report Regulatory Assessment",
+          "scope": "A failed or borderline sample report assessed against the standard.",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "A failed or borderline sample report assessed against the standard.",
+          "includes": [
+            "Report against the standard and method",
+            "Options, including referral testing"
+          ],
+          "deliverable": "An assessment note",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "non-compliance-root-cause-assessment",
+          "name": "Non-Compliance Root-Cause Assessment",
+          "scope": "Why the non-compliance happened, so it doesn’t happen again.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "Why the non-compliance happened, so it doesn’t happen again.",
+          "includes": [
+            "Root-cause analysis",
+            "Preventive measures"
+          ],
+          "deliverable": "A root-cause report",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "capa-support",
+          "name": "CAPA Support",
+          "scope": "Corrective and preventive actions planned and documented.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "Corrective and preventive actions planned and documented.",
+          "includes": [
+            "CAPA plan",
+            "Verification of effectiveness"
+          ],
+          "deliverable": "A CAPA record",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "complex-authority-matter",
+          "name": "Complex Authority Matter",
+          "scope": "Serious or escalated matters with the authority.",
+          "price": {
+            "type": "from",
+            "amount": 20000
+          },
+          "summary": "Serious or escalated matters with the authority.",
+          "includes": [
+            "Case assessment",
+            "Strategy and communication plan",
+            "Drafting and follow-up"
+          ],
+          "deliverable": "Agreed with the scope",
+          "turnaround": "Depends on the matter"
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "title": "Regulatory research & technical opinion",
+      "intro": "Clear answers to regulatory questions, from a quick query to a detailed written opinion.",
+      "needs": [
+        "Your question and the context behind it",
+        "Relevant product or business details"
+      ],
+      "services": [
+        {
+          "id": "specific-regulatory-query",
+          "name": "Specific Regulatory Query",
+          "scope": "A focused answer to one regulatory question.",
+          "price": {
+            "type": "from",
+            "amount": 2500
+          },
+          "summary": "A focused answer to one regulatory question.",
+          "includes": [
+            "Answer with the regulation reference"
+          ],
+          "deliverable": "A short written answer",
+          "turnaround": "1–2 working days"
+        },
+        {
+          "id": "written-regulatory-opinion",
+          "name": "Written Regulatory Opinion",
+          "scope": "A written opinion you can rely on and share internally.",
+          "price": {
+            "type": "range",
+            "amount": 5000,
+            "max": 10000
+          },
+          "summary": "A written opinion you can rely on and share internally.",
+          "includes": [
+            "Analysis of the question",
+            "Opinion with references and caveats"
+          ],
+          "deliverable": "A signed-off written opinion",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "detailed-regulatory-research",
+          "name": "Detailed Regulatory Research",
+          "scope": "In-depth research across regulations, orders and guidance.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "In-depth research across regulations, orders and guidance.",
+          "includes": [
+            "Research across regulations and FSSAI orders",
+            "Summary of findings"
+          ],
+          "deliverable": "A research report",
+          "turnaround": "5–10 working days"
+        },
+        {
+          "id": "regulation-interpretation",
+          "name": "Regulation Interpretation",
+          "scope": "What a regulation or clause means for your business.",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "What a regulation or clause means for your business.",
+          "includes": [
+            "Interpretation with examples",
+            "Practical implications"
+          ],
+          "deliverable": "An interpretation note",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "regulatory-impact-assessment",
+          "name": "Regulatory Impact Assessment",
+          "scope": "How a regulation affects your products, labels and operations.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "How a regulation affects your products, labels and operations.",
+          "includes": [
+            "Products and processes affected",
+            "Changes needed and timelines"
+          ],
+          "deliverable": "An impact assessment",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "new-notification-amendment-impact-review",
+          "name": "New Notification / Amendment Impact Review",
+          "scope": "A new FSSAI notification or amendment read against your products.",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "A new FSSAI notification or amendment read against your products.",
+          "includes": [
+            "What changed",
+            "What you need to do, by when"
+          ],
+          "deliverable": "An impact note",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "product-portfolio-regulatory-assessment",
+          "name": "Product Portfolio Regulatory Assessment",
+          "scope": "Your whole product range assessed at once.",
+          "price": {
+            "type": "quote"
+          },
+          "summary": "Your whole product range assessed at once.",
+          "includes": [
+            "Portfolio review",
+            "Risk-ranked findings"
+          ],
+          "deliverable": "A portfolio assessment",
+          "turnaround": "Quoted with the scope"
+        }
+      ]
+    },
+    {
+      "id": "npd",
+      "title": "New product development: regulatory support",
+      "intro": "Regulatory input from idea to launch, so the product you develop is one you can sell.",
+      "needs": [
+        "Product concept and target claims",
+        "Draft formulation",
+        "Launch timeline"
+      ],
+      "services": [
+        {
+          "id": "regulatory-feasibility-assessment",
+          "name": "Regulatory Feasibility Assessment",
+          "scope": "Can this product be sold in India as you imagine it?",
+          "price": {
+            "type": "fixed",
+            "amount": 7500,
+            "unit": "product"
+          },
+          "summary": "Can this product be sold in India as you imagine it?",
+          "includes": [
+            "Category and pathway",
+            "Show-stoppers and risks"
+          ],
+          "deliverable": "A feasibility note per product",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "ingredient-and-additive-assessment",
+          "name": "Ingredient & Additive Assessment",
+          "scope": "Ingredients and additives for the new product checked early.",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "Ingredients and additives for the new product checked early.",
+          "includes": [
+            "Status and limits for each"
+          ],
+          "deliverable": "An assessment table",
+          "turnaround": "3–5 working days"
+        },
+        {
+          "id": "formulation-review",
+          "name": "Formulation Review",
+          "scope": "The development formulation reviewed against the rules.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "The development formulation reviewed against the rules.",
+          "includes": [
+            "Compositional and additive review",
+            "Recommendations"
+          ],
+          "deliverable": "A review report",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "product-name-claims-review",
+          "name": "Product Name + Claims Review",
+          "scope": "The name and claims you plan to use, before packaging is designed.",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "The name and claims you plan to use, before packaging is designed.",
+          "includes": [
+            "Name against category",
+            "Claims assessment",
+            "Compliant alternatives"
+          ],
+          "deliverable": "A review note",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "label-development-regulatory-inputs",
+          "name": "Label Development Regulatory Inputs",
+          "scope": "Everything your designer needs to put on the label, from day one.",
+          "price": {
+            "type": "from",
+            "amount": 7500
+          },
+          "summary": "Everything your designer needs to put on the label, from day one.",
+          "includes": [
+            "Mandatory declarations list",
+            "Text for SOI, nutrition and claims"
+          ],
+          "deliverable": "Label inputs for your designer",
+          "turnaround": "4–5 working days"
+        },
+        {
+          "id": "complete-regulatory-launch-support",
+          "name": "Complete Regulatory Launch Support",
+          "scope": "Regulatory support from concept to launch for one product.",
+          "price": {
+            "type": "range",
+            "amount": 25000,
+            "max": 50000,
+            "unit": "product"
+          },
+          "summary": "Regulatory support from concept to launch for one product.",
+          "includes": [
+            "Feasibility, formulation, claims and label",
+            "Licence endorsement for the product",
+            "Launch sign-off"
+          ],
+          "deliverable": "A launch-ready compliance file per product",
+          "turnaround": "Runs with your launch plan"
+        }
+      ]
+    },
+    {
+      "id": "ecommerce",
+      "title": "E-commerce & digital food compliance",
+      "intro": "Selling food online: product listings, websites and digital ads that meet FSSAI’s e-commerce rules.",
+      "needs": [
+        "Links or screenshots of listings and pages",
+        "Product labels",
+        "Your FSSAI licence details"
+      ],
+      "services": [
+        {
+          "id": "e-commerce-product-listing-review",
+          "name": "E-commerce Product Listing Review",
+          "scope": "A product listing checked for the information FSSAI requires online.",
+          "price": {
+            "type": "from",
+            "amount": 3500,
+            "unit": "SKU"
+          },
+          "summary": "A product listing checked for the information FSSAI requires online.",
+          "includes": [
+            "Mandatory listing information",
+            "Claims and images"
+          ],
+          "deliverable": "An issue list per SKU",
+          "turnaround": "2 working days"
+        },
+        {
+          "id": "website-regulatory-review",
+          "name": "Website Regulatory Review",
+          "scope": "Your brand website reviewed for claims and required disclosures.",
+          "price": {
+            "type": "from",
+            "amount": 10000
+          },
+          "summary": "Your brand website reviewed for claims and required disclosures.",
+          "includes": [
+            "Claims and product pages",
+            "Required disclosures"
+          ],
+          "deliverable": "A review report",
+          "turnaround": "4–5 working days"
+        },
+        {
+          "id": "online-claims-review",
+          "name": "Online Claims Review",
+          "scope": "Claims made across your online channels.",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "Claims made across your online channels.",
+          "includes": [
+            "Claims inventory and assessment",
+            "Corrected wording"
+          ],
+          "deliverable": "A claims note",
+          "turnaround": "3–4 working days"
+        },
+        {
+          "id": "marketplace-compliance-review",
+          "name": "Marketplace Compliance Review",
+          "scope": "What marketplaces (Amazon, Flipkart, quick-commerce apps) need from you as a food seller.",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "What marketplaces (Amazon, Flipkart, quick-commerce apps) need from you as a food seller.",
+          "includes": [
+            "Licence and listing requirements",
+            "Common rejection reasons"
+          ],
+          "deliverable": "A compliance checklist",
+          "turnaround": "2–3 working days"
+        },
+        {
+          "id": "digital-advertisement-compliance",
+          "name": "Digital Advertisement Compliance",
+          "scope": "Digital ads and social posts checked before they run.",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "Digital ads and social posts checked before they run.",
+          "includes": [
+            "Claims and statements",
+            "Corrected copy"
+          ],
+          "deliverable": "A reviewed ad copy",
+          "turnaround": "2–3 working days"
+        }
+      ]
+    },
+    {
+      "id": "audits",
+      "title": "Business & portfolio regulatory audit",
+      "intro": "A regulatory audit of your whole product range: classification, formulation, labels and claims, SKU by SKU.",
+      "needs": [
+        "List of SKUs with formulations",
+        "Current labels",
+        "Licence details"
+      ],
+      "services": [
+        {
+          "id": "portfolio-audit-up-to-5-skus",
+          "name": "Portfolio Audit – up to 5 SKUs",
+          "scope": "A regulatory audit for a small range.",
+          "price": {
+            "type": "from",
+            "amount": 25000
+          },
+          "summary": "A regulatory audit for a small range.",
+          "includes": [
+            "Classification, formulation, label and claims per SKU",
+            "Risk-ranked findings"
+          ],
+          "deliverable": "An audit report",
+          "turnaround": "10–15 working days"
+        },
+        {
+          "id": "portfolio-audit-6-10-skus",
+          "name": "Portfolio Audit – 6–10 SKUs",
+          "scope": "A regulatory audit for a mid-sized range.",
+          "price": {
+            "type": "from",
+            "amount": 40000
+          },
+          "summary": "A regulatory audit for a mid-sized range.",
+          "includes": [
+            "Classification, formulation, label and claims per SKU",
+            "Risk-ranked findings"
+          ],
+          "deliverable": "An audit report",
+          "turnaround": "15–20 working days"
+        },
+        {
+          "id": "portfolio-audit-11-25-skus",
+          "name": "Portfolio Audit – 11–25 SKUs",
+          "scope": "A regulatory audit for a larger range.",
+          "price": {
+            "type": "from",
+            "amount": 75000
+          },
+          "summary": "A regulatory audit for a larger range.",
+          "includes": [
+            "Classification, formulation, label and claims per SKU",
+            "Risk-ranked findings",
+            "Range-wide recommendations"
+          ],
+          "deliverable": "An audit report",
+          "turnaround": "20–30 working days"
+        },
+        {
+          "id": "portfolio-audit-large-portfolio",
+          "name": "Portfolio Audit – large portfolio",
+          "scope": "More than 25 SKUs, or several brands and categories.",
+          "price": {
+            "type": "quote"
+          },
+          "summary": "More than 25 SKUs, or several brands and categories.",
+          "includes": [
+            "Scoping call",
+            "Audit plan"
+          ],
+          "deliverable": "An audit report",
+          "turnaround": "Quoted with the scope"
+        }
+      ]
+    },
+    {
+      "id": "retainers",
+      "title": "Monthly regulatory retainers",
+      "intro": "A regulatory expert on call every month, for businesses with ongoing questions, launches and reviews.",
+      "needs": [
+        "Your products and current licences",
+        "The kind of support you expect each month"
+      ],
+      "services": [
+        {
+          "id": "retainer-essential",
+          "name": "Retainer – Essential",
+          "scope": "Routine queries and limited document reviews",
+          "price": {
+            "type": "monthly",
+            "amount": 15000
+          },
+          "summary": "For routine questions and a few reviews a month.",
+          "includes": [
+            "Routine regulatory queries",
+            "Limited document reviews",
+            "Email support"
+          ],
+          "deliverable": "Ongoing monthly support",
+          "turnaround": "Monthly"
+        },
+        {
+          "id": "retainer-professional",
+          "name": "Retainer – Professional",
+          "scope": "Ongoing product, artwork, licence and regulatory support",
+          "price": {
+            "type": "monthly",
+            "amount": 30000
+          },
+          "summary": "For businesses with regular products, artwork and licence work.",
+          "includes": [
+            "Product, artwork and licence support",
+            "Regulatory updates relevant to you",
+            "Calls as needed"
+          ],
+          "deliverable": "Ongoing monthly support",
+          "turnaround": "Monthly"
+        },
+        {
+          "id": "retainer-business",
+          "name": "Retainer – Business",
+          "scope": "Multi-product support and priority review",
+          "price": {
+            "type": "monthly",
+            "amount": 50000
+          },
+          "summary": "For multi-product businesses that need priority turnaround.",
+          "includes": [
+            "Multi-product support",
+            "Priority review",
+            "Monthly compliance check-in"
+          ],
+          "deliverable": "Ongoing monthly support",
+          "turnaround": "Monthly"
+        },
+        {
+          "id": "retainer-enterprise",
+          "name": "Retainer – Enterprise",
+          "scope": "Dedicated support for complex portfolios",
+          "price": {
+            "type": "quote"
+          },
+          "summary": "Dedicated support for complex portfolios.",
+          "includes": [
+            "Dedicated expert time",
+            "Custom scope and reporting"
+          ],
+          "deliverable": "Ongoing monthly support",
+          "turnaround": "Monthly"
+        }
+      ]
+    },
+    {
+      "id": "launch",
+      "title": "Product launch packages",
+      "intro": "Bundled regulatory work for launching a product, at a better price than buying each piece.",
+      "needs": [
+        "Final or near-final formulation",
+        "Draft label",
+        "Intended claims"
+      ],
+      "services": [
+        {
+          "id": "regulatory-starter",
+          "name": "Regulatory Starter",
+          "scope": "Classification + formulation review + basic recommendations",
+          "price": {
+            "type": "from",
+            "amount": 15000
+          },
+          "summary": "The essentials before you commit to a product.",
+          "includes": [
+            "Classification",
+            "Formulation review",
+            "Basic recommendations"
+          ],
+          "deliverable": "A starter compliance report",
+          "turnaround": "5–7 working days"
+        },
+        {
+          "id": "product-compliance",
+          "name": "Product Compliance",
+          "scope": "Classification + formulation + SOI/ingredient review + claims screening",
+          "price": {
+            "type": "from",
+            "amount": 20000
+          },
+          "summary": "Everything except the artwork.",
+          "includes": [
+            "Classification and formulation",
+            "SOI and ingredient review",
+            "Claims screening"
+          ],
+          "deliverable": "A product compliance file",
+          "turnaround": "7–10 working days"
+        },
+        {
+          "id": "complete-product-launch",
+          "name": "Complete Product Launch",
+          "scope": "Classification + formulation + SOI + additives + claims + nutrition + artwork",
+          "price": {
+            "type": "range",
+            "amount": 30000,
+            "max": 45000
+          },
+          "summary": "From recipe to print-ready label for one product.",
+          "includes": [
+            "Classification, formulation and additives",
+            "SOI, nutrition and claims",
+            "Artwork review and sign-off"
+          ],
+          "deliverable": "A launch-ready compliance file",
+          "turnaround": "10–15 working days"
+        },
+        {
+          "id": "complex-nutraceutical-launch",
+          "name": "Complex / Nutraceutical Launch",
+          "scope": "Detailed classification, ingredients, nutrients, additives, claims, formulation and label",
+          "price": {
+            "type": "range",
+            "amount": 40000,
+            "max": 60000
+          },
+          "summary": "The complete launch package for nutraceuticals and complex products.",
+          "includes": [
+            "Detailed classification and ingredient assessment",
+            "Nutrients, additives and claims",
+            "Formulation and label"
+          ],
+          "deliverable": "A launch-ready compliance file",
+          "turnaround": "15–20 working days"
+        }
+      ]
+    },
+    {
+      "id": "consultation",
+      "title": "Regulatory consultation",
+      "intro": "Time with the expert on a call: ask anything, get clear direction.",
+      "needs": [
+        "A short note of what you want to discuss",
+        "Any documents you want the expert to see first"
+      ],
+      "services": [
+        {
+          "id": "30-minute-consultation",
+          "name": "30-minute Consultation",
+          "scope": "A focused call for one or two questions.",
+          "price": {
+            "type": "fixed",
+            "amount": 1500
+          },
+          "summary": "A focused call for one or two questions.",
+          "includes": [
+            "30-minute call with the expert",
+            "Key points summarised by email"
+          ],
+          "deliverable": "A call and a short summary",
+          "turnaround": "Usually within 2 working days"
+        },
+        {
+          "id": "60-minute-consultation",
+          "name": "60-minute Consultation",
+          "scope": "Time to go through a product, a notice or a plan in detail.",
+          "price": {
+            "type": "fixed",
+            "amount": 2500
+          },
+          "summary": "Time to go through a product, a notice or a plan in detail.",
+          "includes": [
+            "60-minute call",
+            "Key points summarised by email"
+          ],
+          "deliverable": "A call and a short summary",
+          "turnaround": "Usually within 2 working days"
+        },
+        {
+          "id": "90-minute-detailed-consultation",
+          "name": "90-minute Detailed Consultation",
+          "scope": "A working session on a larger topic.",
+          "price": {
+            "type": "fixed",
+            "amount": 4000
+          },
+          "summary": "A working session on a larger topic.",
+          "includes": [
+            "90-minute call",
+            "Action points by email"
+          ],
+          "deliverable": "A call and action points",
+          "turnaround": "Usually within 3 working days"
+        },
+        {
+          "id": "consultation-written-regulatory-note",
+          "name": "Consultation + Written Regulatory Note",
+          "scope": "A call followed by a written note you can keep and share.",
+          "price": {
+            "type": "from",
+            "amount": 5000
+          },
+          "summary": "A call followed by a written note you can keep and share.",
+          "includes": [
+            "Consultation call",
+            "Written regulatory note"
+          ],
+          "deliverable": "A call and a written note",
+          "turnaround": "3–5 working days"
+        }
+      ]
+    }
+  ]
+}

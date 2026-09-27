@@ -218,3 +218,54 @@ ALTER TABLE documents ADD COLUMN IF NOT EXISTS ops_note text;
 ALTER TABLE documents ADD COLUMN IF NOT EXISTS ops_reviewed_by uuid REFERENCES users(id) ON DELETE SET NULL;
 ALTER TABLE documents ADD COLUMN IF NOT EXISTS ops_reviewed_at timestamptz;
 ALTER TABLE documents ADD COLUMN IF NOT EXISTS uploaded_by uuid REFERENCES users(id) ON DELETE SET NULL;  -- set when ops uploaded it
+
+-- Expert role (2026-09-27): works expert-service orders; created on the CLI like ops accounts.
+DO $$ BEGIN
+  ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_chk;
+  ALTER TABLE users ADD CONSTRAINT users_role_chk CHECK (role IN ('customer', 'ops', 'admin', 'expert'));
+END $$;
+
+-- Expert services (config/services.json): a customer buys a service or asks for a quote. Paid orders and
+-- quote requests appear in the expert queue; only experts take them. amount_due is what the customer
+-- still has to pay (the purchase itself, an expert's quote, or a top-up), GST included, in paise.
+CREATE TABLE IF NOT EXISTS service_orders (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  ref               text NOT NULL UNIQUE,
+  user_id           uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  service_id        text NOT NULL,
+  service_name      text NOT NULL,
+  section_id        text,
+  kind              text NOT NULL CHECK (kind IN ('buy', 'quote')),
+  quantity          integer NOT NULL DEFAULT 1 CHECK (quantity BETWEEN 1 AND 50),
+  unit              text,
+  brief             text,
+  status            text NOT NULL CHECK (status IN
+                      ('awaiting_payment', 'quote_requested', 'quoted', 'new', 'in_progress', 'awaiting_customer', 'completed', 'cancelled')),
+  amount_due_paise  integer CHECK (amount_due_paise IS NULL OR amount_due_paise > 0),
+  due_items         jsonb,
+  due_kind          text,        -- 'purchase' | 'quote' | 'topup'
+  due_note          text,
+  assignee_id       uuid REFERENCES users(id) ON DELETE SET NULL,
+  paid_at           timestamptz, -- first payment
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS service_orders_user_idx ON service_orders (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS service_orders_status_idx ON service_orders (status, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS order_events (
+  id        bigserial PRIMARY KEY,
+  order_id  uuid NOT NULL REFERENCES service_orders(id) ON DELETE CASCADE,
+  at        timestamptz NOT NULL DEFAULT now(),
+  actor_id  uuid REFERENCES users(id) ON DELETE SET NULL,   -- null: the system or the customer
+  kind      text NOT NULL,
+  detail    jsonb
+);
+CREATE INDEX IF NOT EXISTS order_events_order_idx ON order_events (order_id, at);
+
+-- Payments can be for an application (government fee) or an expert-service order.
+ALTER TABLE payments ALTER COLUMN application_id DROP NOT NULL;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS order_id uuid REFERENCES service_orders(id) ON DELETE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE payments ADD CONSTRAINT payments_target_chk CHECK (application_id IS NOT NULL OR order_id IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;

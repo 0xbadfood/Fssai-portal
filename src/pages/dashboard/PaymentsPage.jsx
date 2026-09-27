@@ -47,41 +47,27 @@ export default function PaymentsPage() {
 }
 
 function Checkout({ quote, onDone }) {
-  const [method, setMethod] = useState('upi')
-  const [upi, setUpi] = useState('')
-  const [bank, setBank] = useState(BANKS[0])
-  const [outcome, setOutcome] = useState('success')
-  const [state, setState] = useState({ busy: false, result: null, error: '' })
-  const test = quote.mode === 'test'
+  const [paid, setPaid] = useState(null)
 
-  async function pay() {
-    setState({ busy: true, result: null, error: '' })
-    const started = Date.now()
-    let result = null, error = ''
-    try {
-      const res = await fetch('/api/payments', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ applicationId: quote.applicationId, method, outcome }),
-      })
-      const body = await res.json().catch(() => ({}))
-      if (!res.ok) error = body.error || 'Payment could not be started.'
-      else result = body.payment
-    } catch {
-      error = 'Network problem. Nothing was charged; try again.'
-    }
-    // Keep the "processing" state visible briefly, like a real gateway.
-    await new Promise((r) => setTimeout(r, Math.max(0, 1400 - (Date.now() - started))))
-    setState({ busy: false, result, error })
+  async function pay(method, outcome) {
+    const res = await fetch('/api/payments', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ applicationId: quote.applicationId, method, outcome }),
+    })
+    const body = await res.json().catch(() => ({}))
+    if (!res.ok) return { error: body.error || 'Payment could not be started.' }
+    if (body.payment?.status === 'paid') setPaid(body.payment)
+    return { result: body.payment }
   }
 
-  if (state.result?.status === 'paid') {
+  if (paid) {
     return (
       <div className="rounded-[32px] bg-gradient-to-br from-emerald-500 to-teal-500 p-7 text-white shadow-xl shadow-emerald-100 sm:p-9">
         <CheckCircle2 size={48} />
         <h2 className="mt-3 text-3xl font-extrabold">Payment successful 🎉</h2>
         <p className="mt-2 text-lg text-white/90">
-          {rupees(state.result.amount)} paid · Reference <b className="font-mono">{state.result.reference}</b>
+          {rupees(paid.amount)} paid · Reference <b className="font-mono">{paid.reference}</b>
         </p>
         <p className="mt-1 text-white/85">Your application is submitted. Our team will call you for the OTP to file it on FoSCoS.</p>
         <Link to="/dashboard/overview" onClick={onDone} className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-bold text-emerald-700 shadow hover:bg-emerald-50">
@@ -113,7 +99,37 @@ function Checkout({ quote, onDone }) {
           <Lock size={12} /> Paid to the government through FoSCoS when we file your application.
         </p>
       </Card>
+      <PayPanel test={quote.mode === 'test'} label={`Pay ${rupees(quote.total)} and submit`} onPay={pay} />
+    </div>
+  )
+}
 
+/**
+ * The "Pay with" card: method, details, the test-mode simulator and the pay button. `onPay(method, outcome)`
+ * does the payment and returns { result } or { error }; used for the government fee and for expert services.
+ */
+export function PayPanel({ test, label, onPay }) {
+  const [method, setMethod] = useState('upi')
+  const [upi, setUpi] = useState('')
+  const [bank, setBank] = useState(BANKS[0])
+  const [outcome, setOutcome] = useState('success')
+  const [state, setState] = useState({ busy: false, result: null, error: '' })
+
+  async function pay() {
+    setState({ busy: true, result: null, error: '' })
+    const started = Date.now()
+    let out
+    try {
+      out = await onPay(method, outcome)
+    } catch {
+      out = { error: 'Network problem. Nothing was charged; try again.' }
+    }
+    // Keep the "processing" state visible briefly, like a real gateway.
+    await new Promise((r) => setTimeout(r, Math.max(0, 1400 - (Date.now() - started))))
+    setState({ busy: false, result: out.result || null, error: out.error || '' })
+  }
+
+  return (
       <Card className="relative">
         {test && (
           <div className="mb-5 flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
@@ -195,11 +211,10 @@ function Checkout({ quote, onDone }) {
               <Loader2 size={20} className="animate-spin" /> Processing…
             </>
           ) : (
-            <>Pay {rupees(quote.total)} and submit</>
+            <>{label}</>
           )}
         </button>
       </Card>
-    </div>
   )
 }
 

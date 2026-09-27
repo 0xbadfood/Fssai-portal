@@ -52,7 +52,7 @@ export default function SummaryStep({ app, flow, r, go }) {
               <li key={x}>• {x}</li>
             ))}
           </ul>
-          <Link to="/dashboard/support?topic=licence" className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-violet-700 shadow hover:bg-violet-50">
+          <Link to="/services?head=licensing-approvals" className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-violet-700 shadow hover:bg-violet-50">
             <MessageCircle size={20} /> Talk to an expert
           </Link>
         </div>

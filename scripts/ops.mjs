@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// Operations team accounts (admin only, on the server). There is no sign-up page for ops.
-//   node scripts/ops.mjs add --email a@b.in --name "Priya S" [--phone 98…] [--role ops|admin]
+// Team accounts: admin, ops and expert (admin only, on the server). There is no sign-up page for them.
+//   node scripts/ops.mjs add --email a@b.in --name "Priya S" [--phone 98…] [--role ops|admin|expert]
 //   node scripts/ops.mjs list
 //   node scripts/ops.mjs deactivate --email a@b.in      (can't sign in; open sessions end; cases stay assigned)
 //   node scripts/ops.mjs activate --email a@b.in
-//   node scripts/ops.mjs role --email a@b.in --role admin
+//   node scripts/ops.mjs role --email a@b.in --role admin|ops|expert
+// Experts work expert-service orders (/ops/expert); ops members work filing cases; the admin sees both.
 //   node scripts/ops.mjs reset-password --email a@b.in  (prints a new password; signs out every session)
 // New and reset passwords are generated and printed once; share them privately.
 import { randomBytes } from 'node:crypto'
@@ -21,7 +22,7 @@ const fail = (msg) => {
   process.exit(1)
 }
 const newPassword = () => randomBytes(12).toString('base64url')
-const ROLES = ['ops', 'admin']
+const ROLES = ['ops', 'admin', 'expert']
 
 async function findOps(email) {
   if (!email) fail('--email is required')
@@ -39,7 +40,7 @@ async function main() {
     const role = opt('role') || 'ops'
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) fail('--email is required and must be valid')
     if (!name) fail('--name is required')
-    if (!ROLES.includes(role)) fail('--role must be ops or admin')
+    if (!ROLES.includes(role)) fail('--role must be ops, admin or expert')
     const { rows } = await pool.query('SELECT role FROM users WHERE email = $1', [email])
     if (rows[0]) fail(`${email} already has an account (${rows[0].role}). Use another email for the operations account.`)
     const password = newPassword()
@@ -49,11 +50,12 @@ async function main() {
     console.log(`Added ${role} ${name} <${email}>\nPassword (shown once): ${password}\nSign in at /login; they land on /ops.`)
   } else if (cmd === 'list') {
     const { rows } = await pool.query(
-      `SELECT u.email, u.name, u.role, u.active, u.last_login_at, count(c.id) AS open_cases FROM users u
-         LEFT JOIN cases c ON c.assignee_id = u.id AND c.status NOT IN ('granted', 'rejected')
-        WHERE u.role IN ('ops', 'admin') GROUP BY u.id ORDER BY u.role, u.name`,
+      `SELECT u.email, u.name, u.role, u.active, u.last_login_at,
+              (SELECT count(*) FROM cases c WHERE c.assignee_id = u.id AND c.status NOT IN ('granted', 'rejected')) AS open_cases,
+              (SELECT count(*) FROM service_orders o WHERE o.assignee_id = u.id AND o.status NOT IN ('completed', 'cancelled')) AS open_orders
+         FROM users u WHERE u.role IN ('ops', 'admin', 'expert') ORDER BY u.role, u.name`,
     )
-    console.table(rows.map((r) => ({ email: r.email, name: r.name, role: r.role, active: r.active, open_cases: Number(r.open_cases), last_login: r.last_login_at?.toISOString().slice(0, 16) ?? '-' })))
+    console.table(rows.map((r) => ({ email: r.email, name: r.name, role: r.role, active: r.active, open_cases: Number(r.open_cases), open_orders: Number(r.open_orders), last_login: r.last_login_at?.toISOString().slice(0, 16) ?? '-' })))
   } else if (cmd === 'deactivate' || cmd === 'activate') {
     const u = await findOps(opt('email'))
     await pool.query('UPDATE users SET active = $2 WHERE id = $1', [u.id, cmd === 'activate'])
@@ -65,7 +67,7 @@ async function main() {
   } else if (cmd === 'role') {
     const u = await findOps(opt('email'))
     const role = opt('role')
-    if (!ROLES.includes(role)) fail('--role must be ops or admin')
+    if (!ROLES.includes(role)) fail('--role must be ops, admin or expert')
     await pool.query('UPDATE users SET role = $2 WHERE id = $1', [u.id, role])
     console.log(`${u.email} is now ${role}.`)
   } else if (cmd === 'reset-password') {

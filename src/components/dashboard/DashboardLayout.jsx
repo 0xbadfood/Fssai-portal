@@ -9,6 +9,7 @@ const NAV = [
   { to: '/dashboard/apply', label: 'My Application', icon: Sparkles },
   { to: '/dashboard/premises', label: 'Premises', icon: MapPin },
   { to: '/dashboard/documents', label: 'Document Vault', icon: FolderOpen },
+  { to: '/dashboard/services', label: 'Expert services', icon: UserCheck },
   { to: '/dashboard/payments', label: 'Payments', icon: CreditCard },
   { to: '/dashboard/support', label: 'Support', icon: LifeBuoy },
 ]
@@ -56,7 +57,7 @@ export default function DashboardLayout() {
 
         <div className="p-4">
           <Link
-            to="/dashboard/support"
+            to="/services"
             className="group block overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-orange-400 p-5 text-white shadow-lg shadow-violet-200"
           >
             <UserCheck size={22} />
