@@ -200,7 +200,7 @@ export function Services() {
 const FAQS = [
   {
     q: `Is ${BRAND_DOMAIN} the official FSSAI website?`,
-    a: 'No. We are a private compliance-assistance service, not affiliated with FSSAI. We prepare your application and help you file it on the Government’s official FoSCoS portal (fscos.fssai.gov.in).',
+    a: 'No. We are a private compliance-assistance service, not affiliated with FSSAI. We prepare your application and help you file it on the Government’s official FoSCoS portal (foscos.fssai.gov.in).',
   },
   {
     q: 'Which licence do I need?',

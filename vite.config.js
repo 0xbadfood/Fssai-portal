@@ -1,6 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { readFileSync } from 'node:fs'
 import apiPlugin from './server/apiPlugin.js'
+
+// Public hostnames, shared with the API (emailed links): config/site.json.
+const SITE = JSON.parse(readFileSync(new URL('./config/site.json', import.meta.url), 'utf8'))
 
 // Browser security headers for every response. The CSP allows only this site plus Google Fonts; PDF pages are
 // rendered by a same-origin worker and shown as blob:/data: images.
@@ -31,13 +35,13 @@ export default defineConfig({
     host: '10.8.0.2', // VPN interface only; Caddy on the VPN master terminates HTTPS and proxies here
     port: 8310,
     strictPort: true,
-    allowedHosts: ['fssai.photovault.live'],
+    allowedHosts: SITE.hosts,
     headers: SECURITY_HEADERS,
   },
   server: {
     host: '10.8.0.2', // VPN interface only; Caddy on the VPN master terminates HTTPS and proxies here
     port: 8310,
     strictPort: true,
-    allowedHosts: ['fssai.photovault.live'],
+    allowedHosts: SITE.hosts,
   },
 })

@@ -1,4 +1,4 @@
-# FSSAI Online — Portal Frontend (mockup)
+# MyFoodLicense — portal (myfoodlicense.com)
 
 React + Vite + Tailwind SPA with a small Node API (auth, document upload/verification) backed by PostgreSQL.
 

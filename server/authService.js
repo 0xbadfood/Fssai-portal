@@ -155,7 +155,7 @@ export async function requestPasswordReset({ email }, { ip, origin }) {
   const link = `${origin}/reset-password#token=${token}`
   await sendMail({
     to: mail,
-    subject: 'Reset your FSSAI Online password',
+    subject: 'Reset your MyFoodLicense password',
     text: `Hi ${rows[0].name},\n\nUse this link to choose a new password. It works once and expires in ${RESET_MINUTES} minutes:\n\n${link}\n\nIf you didn't ask for this, you can ignore this email; your password stays the same.\n`,
   })
 }

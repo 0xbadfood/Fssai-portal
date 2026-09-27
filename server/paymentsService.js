@@ -33,7 +33,7 @@ function quoteFor(row, docs) {
   const r = { licence: plan.result.licence, kind: plan.kind, ready: plan.ready }
   const items = [{ label: `Government fee: ${r.licence} (1 year)`, amount: plan.result.fee }]
   const service = Number(config().serviceFeeRupees) || 0
-  if (service > 0) items.push({ label: 'FSSAI Online service fee', amount: service })
+  if (service > 0) items.push({ label: 'MyFoodLicense service fee', amount: service })
   return { r, items, total: items.reduce((s, i) => s + i.amount, 0), mode: config().mode }
 }
 

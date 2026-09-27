@@ -1,5 +1,5 @@
 {
-  "from": "FSSAI Online <no-reply@fssaionline.co.in>",
+  "from": "MyFoodLicense <no-reply@myfoodlicense.com>",
   "smtp": {
     "host": "smtp.example.com",
     "port": 587,

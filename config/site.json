@@ -1,0 +1,5 @@
+{
+  "note": "Public hostnames the portal answers to (Caddy on 10.8.0.1 terminates HTTPS and proxies here). Emailed links use the host the request came in on; `canonical` is used when that is unknown. fssai.photovault.live stays until myfoodlicense.com is live.",
+  "hosts": ["myfoodlicense.com", "www.myfoodlicense.com", "fssai.photovault.live"],
+  "canonical": "myfoodlicense.com"
+}

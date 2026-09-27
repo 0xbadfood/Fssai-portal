@@ -1,7 +1,7 @@
 import React from 'react'
 import { Leaf } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { BRAND_NAME, BRAND_TAGLINE } from '../lib/brand.js'
+import { BRAND_NAME, BRAND_TAGLINE, BRAND_TLD } from '../lib/brand.js'
 
 export default function Logo({ withTagline = true, to = '/', dark = false }) {
   const content = (
@@ -15,7 +15,7 @@ export default function Logo({ withTagline = true, to = '/', dark = false }) {
             {BRAND_NAME}
           </span>
           <span className="rounded bg-violet-50 px-1 py-0.5 text-[10px] font-bold text-violet-600 ring-1 ring-violet-100">
-            .co.in
+            {BRAND_TLD}
           </span>
         </div>
         {withTagline && (

@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { COOKIE, login, logout, requestPasswordReset, resetPassword, signup, userFromToken } from './authService.js'
 import { listDocuments, readDocumentFile, uploadDocument } from './documentsService.js'
 import { answerSession, previewSession, rateSession, restartSession, resumeSession, undoSession } from './intake/sessions.js'
@@ -7,8 +10,13 @@ import { addNote, caseDocumentFile, getCase, isOps, listCases, reviewDocument, s
 import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
 
 const MAX_BODY = 30_000_000
-// The portal's public address (matches preview.allowedHosts in vite.config.js); used in emailed links.
-const PUBLIC_ORIGIN = 'https://fssai.photovault.live'
+// The portal's public addresses (config/site.json, also vite's allowedHosts). Emailed links use the host the
+// request came in on, so a reset link from myfoodlicense.com points back to myfoodlicense.com.
+const SITE = JSON.parse(readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'config', 'site.json'), 'utf8'))
+const publicOrigin = (req) => {
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().replace(/:\d+$/, '').toLowerCase()
+  return `https://${SITE.hosts.includes(host) ? host : SITE.canonical}`
+}
 
 // Per-IP budget for the public intake chat (one request per answer): 60 requests per minute.
 const interpretHits = new Map()
@@ -107,7 +115,7 @@ async function handler(req, res, next) {
     }
     if (req.method === 'POST' && url === '/api/auth/forgot') {
       // Never build the emailed link from a client-supplied host (reset-link poisoning).
-      await requestPasswordReset(JSON.parse((await readBody(req)) || '{}'), { ip: ctx.ip, origin: PUBLIC_ORIGIN })
+      await requestPasswordReset(JSON.parse((await readBody(req)) || '{}'), { ip: ctx.ip, origin: publicOrigin(req) })
       return json(res, 200, { ok: true })
     }
     if (req.method === 'POST' && url === '/api/auth/reset') {

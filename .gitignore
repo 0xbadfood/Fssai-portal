@@ -19,3 +19,4 @@ documents/*.mp4
 
 # FoSCoS test credentials (local only)
 creds
+preview.log

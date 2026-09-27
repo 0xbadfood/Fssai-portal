@@ -43,7 +43,7 @@ async function main() {
     const { rows } = await pool.query('SELECT role FROM users WHERE email = $1', [email])
     if (rows[0]) fail(`${email} already has an account (${rows[0].role}). Use another email for the operations account.`)
     const password = newPassword()
-    await pool.query("INSERT INTO users (email, password_hash, name, business_name, phone, role) VALUES ($1, $2, $3, 'FSSAI Online operations', $4, $5)", [
+    await pool.query("INSERT INTO users (email, password_hash, name, business_name, phone, role) VALUES ($1, $2, $3, 'MyFoodLicense operations', $4, $5)", [
       email, await hashPassword(password), name, opt('phone') || '-', role,
     ])
     console.log(`Added ${role} ${name} <${email}>\nPassword (shown once): ${password}\nSign in at /login; they land on /ops.`)
