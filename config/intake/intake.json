@@ -4,6 +4,6 @@
   "records": "records.v3.jsonl",
   "textSteps": ["activity", "service", "manufacture", "trade", "export", "place", "online"],
   "parsedSteps": ["state", "turnover"],
-  "clm": { "url": "http://127.0.0.1:8700", "model": "fssai-v-hard", "threshold": 0.8, "timeoutMs": 4000 },
+  "clm": { "url": "http://10.8.0.2:8700", "model": "fssai-v-hard", "threshold": 0.8, "timeoutMs": 4000 },
   "silentReviewer": { "url": "http://10.8.0.4:8001/v1", "model": "qwen3.8-flash-next", "timeoutMs": 120000 }
 }

@@ -6,6 +6,11 @@ import apiPlugin from './server/apiPlugin.js'
 // Public hostnames, shared with the API (emailed links): config/site.json.
 const SITE = JSON.parse(readFileSync(new URL('./config/site.json', import.meta.url), 'utf8'))
 
+// Where the server listens. Default: this machine's VPN address (Caddy on the VPN master proxies to it).
+// On deploy the systemd unit sets PORTAL_HOST=127.0.0.1 (its own Caddy proxies to it).
+const LISTEN_HOST = process.env.PORTAL_HOST || '10.8.0.2'
+const LISTEN_PORT = Number(process.env.PORTAL_PORT) || 8310
+
 // Browser security headers for every response. The CSP allows only this site plus Google Fonts; PDF pages are
 // rendered by a same-origin worker and shown as blob:/data: images.
 const SECURITY_HEADERS = {
@@ -32,15 +37,15 @@ const SECURITY_HEADERS = {
 export default defineConfig({
   plugins: [react(), apiPlugin()],
   preview: {
-    host: '10.8.0.2', // VPN interface only; Caddy on the VPN master terminates HTTPS and proxies here
-    port: 8310,
+    host: LISTEN_HOST, // never a public interface: a Caddy in front terminates HTTPS and proxies here
+    port: LISTEN_PORT,
     strictPort: true,
     allowedHosts: SITE.hosts,
     headers: SECURITY_HEADERS,
   },
   server: {
-    host: '10.8.0.2', // VPN interface only; Caddy on the VPN master terminates HTTPS and proxies here
-    port: 8310,
+    host: LISTEN_HOST, // never a public interface: a Caddy in front terminates HTTPS and proxies here
+    port: LISTEN_PORT,
     strictPort: true,
     allowedHosts: SITE.hosts,
   },
