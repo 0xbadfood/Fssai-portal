@@ -29,6 +29,11 @@ Catalogue from `FSSAI_Food_Regulatory_Services_Rate_Sheet.docx` → `config/serv
   - The hand-off from an expert to ops, when an expert-placement case becomes a filing: a case link and a logged transfer. Not built yet.
   - Feed the expert's placement decisions back into the graph (lab) as new kinds of business.
 
+## Mobile app (started 2026-09-29)
+
+Flutter customer app in `mobile/`. **Where it stands and what's next: `mobile/README.md` → Status.** Customers only;
+team accounts are refused by the server when signing in from the app.
+
 ## Other open items
 
 - Email verification (no 2FA for now). Password reset is done; it needs `config/mail.json` (SMTP) to actually deliver emails.
