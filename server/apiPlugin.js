@@ -10,6 +10,7 @@ import { handleWebhook, startCheckout, syncCheckout } from './checkoutService.js
 import { paymentMode } from './cashfree.js'
 import { addOrderNote, cancelMyOrder, chargeOrder, createOrder, getMyOrder, getOrder, isStaff, listMyOrders, listOrders, myOrderMessages, payOrder, publicCatalogue, replyToOrder, setOrderStatus, takeOrder, transferOrder } from './servicesService.js'
 import { addNote, caseDocumentFile, getCase, listCases, reviewDocument, setStatus, takeCase, transferCase, updateDetail, uploadForCustomer } from './opsService.js'
+import { CONTACT_VIA, SUPPORT_TOPICS } from '../src/lib/supportTopics.js'
 import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
 
 const MAX_BODY = 30_000_000
@@ -20,6 +21,14 @@ const publicOrigin = (req) => {
   const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().replace(/:\d+$/, '').toLowerCase()
   return `https://${SITE.hosts.includes(host) ? host : SITE.canonical}`
 }
+
+// Document types as the upload screens show them (labels and the checks the AI runs), without the model's prompts.
+const DOC_TYPES = JSON.parse(readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'config', 'document-types.json'), 'utf8')).types
+const appConfig = () => ({
+  docTypes: Object.fromEntries(Object.entries(DOC_TYPES).map(([id, t]) => [id, { label: t.label, description: t.description, questions: t.questions.map((q) => ({ id: q.id, q: q.q })) }])),
+  supportTopics: SUPPORT_TOPICS,
+  contactVia: CONTACT_VIA,
+})
 
 // Per-IP budget for the public intake chat (one request per answer): 60 requests per minute.
 const interpretHits = new Map()
@@ -50,6 +59,12 @@ function readBody(req) {
 
 const parseCookies = (req) =>
   Object.fromEntries(String(req.headers.cookie || '').split(';').map((c) => c.trim().split(/=(.*)/s).slice(0, 2)).filter(([k]) => k))
+
+// The mobile app (mobile/) sends its session token as a bearer token instead of a cookie. Sign-in answers it with
+// the token in the body only when it identifies itself; browsers keep the HttpOnly cookie. A bearer token is never
+// sent by a browser on its own, so it needs no same-origin check beyond the JSON-only rule below.
+const isApp = (req) => req.headers['x-mfl-client'] === 'app'
+const bearer = (req) => /^Bearer ([\w-]{20,100})$/.exec(String(req.headers.authorization || ''))?.[1]
 
 // Caddy terminates TLS and forwards X-Forwarded-Proto; the app is only reachable via the VPN interface.
 const isHttps = (req) => String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim() === 'https'
@@ -88,16 +103,18 @@ async function handler(req, res, next) {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.setHeader('Content-Security-Policy', "frame-ancestors 'none'")
   try {
-    const token = parseCookies(req)[COOKIE]
+    const token = bearer(req) || parseCookies(req)[COOKIE]
     const ctx = { ip: clientIp(req), userAgent: req.headers['user-agent'] }
     if (req.method !== 'GET') assertSameOrigin(req)
 
     if (req.method === 'POST' && (url === '/api/auth/login' || url === '/api/auth/signup')) {
       const body = JSON.parse(await readBody(req))
-      const { user, session } = await (url.endsWith('login') ? login(body, ctx) : signup(body, ctx))
+      const { user, session } = await (url.endsWith('login') ? login(body, ctx, { customersOnly: isApp(req) }) : signup(body, ctx))
       setSessionCookie(req, res, session.token, session.maxAge)
-      return json(res, 200, { user })
+      return json(res, 200, isApp(req) ? { user, token: session.token } : { user })
     }
+    // What the app needs to render the same screens as the web: document types, support topics.
+    if (req.method === 'GET' && url === '/api/app/config') return json(res, 200, appConfig())
     const intake = url.match(/^\/api\/intake\/(preview|resume|answer|undo|restart|rate)$/)
     if (req.method === 'POST' && intake) {
       // Public landing-page chat. The conversation lives on the server; typed answers use records and CLM only,
@@ -131,7 +148,7 @@ async function handler(req, res, next) {
     if (req.method === 'POST' && url === '/api/auth/reset') {
       const { user, session } = await resetPassword(JSON.parse((await readBody(req)) || '{}'), ctx)
       setSessionCookie(req, res, session.token, session.maxAge)
-      return json(res, 200, { user })
+      return json(res, 200, isApp(req) && !isStaff(user) ? { user, token: session.token } : { user })
     }
     if (req.method === 'POST' && url === '/api/auth/logout') {
       await logout(token)
@@ -140,6 +157,10 @@ async function handler(req, res, next) {
     }
 
     const user = await userFromToken(token)
+    // The app is for customers only: a team account's session is never accepted from it.
+    if (user && isStaff(user) && (isApp(req) || bearer(req))) {
+      return json(res, 403, { error: 'Team accounts sign in on the web console, not in the app.' })
+    }
     if (url === '/api/auth/me') {
       if (!user) return json(res, 401, { error: 'Not signed in' })
       const { id: _internal, ...publicUser } = user

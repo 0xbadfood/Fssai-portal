@@ -91,7 +91,8 @@ export async function signup({ businessName, name, email, phone, password }, { u
   return { user: publicUser(user), session: await createSession(user.id, userAgent) }
 }
 
-export async function login({ email, password }, { ip, userAgent }) {
+/** `customersOnly`: the mobile app, where team accounts (ops, admin, expert) cannot sign in. */
+export async function login({ email, password }, { ip, userAgent }, { customersOnly = false } = {}) {
   await ensureSchema()
   const mail = validateEmail(email)
   if (typeof password !== 'string' || !password || password.length > 128) throw httpError(400, 'Enter your password.')
@@ -108,6 +109,8 @@ export async function login({ email, password }, { ip, userAgent }) {
     throw httpError(401, 'Incorrect email or password.')
   }
   attempts.delete(key)
+  // Checked only after the password, so the app never reveals which emails are team accounts.
+  if (customersOnly && (user.role || 'customer') !== 'customer') throw httpError(403, 'Team accounts sign in on the web console, not in the app.')
   await pool.query('UPDATE users SET last_login_at = now() WHERE id = $1', [user.id])
   return { user: publicUser(user), session: await createSession(user.id, userAgent, user.role) }
 }
