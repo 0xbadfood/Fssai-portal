@@ -113,6 +113,12 @@ Survey (2026-09-25): `~/fssai-robot/docs/FOSCOS_SURVEY.md` + `FOSCOS_SURVEY_ADDE
   - what FoSCoS actually asks for: its public document pages (`/document-required/SL`, `/document-required/CL`, the registration list) and, when the robot reaches it, the live upload step of the application, including state-specific "other documents".
 
   Check the live file limits (type; size 2/3/5 MB across sources, so trust the live page) at the same time.
+- **Done 2026-10-01: the public list, checked.** FoSCoS's "KOB wise Required Documents" page, scraped for all 38 kinds of business, matches graph v3. That page covers licences only; registration was checked against the separate registration list, not this scrape. Snapshot and scraper are in the lab (`sources/foscos/web/required-documents-2026-10-01.*`, `tools/scrape-foscos-required-documents.cjs`). Two gaps were added to the graph: radiation processing (DAE licence and self-declaration) and direct seller (the agreement). For the expert:
+  - Non-specified food: FoSCoS lists no recall plan and asks for an "undertaking (only for proprietary foods)"; we ask for product approval.
+  - Our extras from the March 2021 order (nutraceutical specification, proprietary composition, packaged-water pesticide report, repacker NOC) go under FoSCoS "Other documents".
+- **Ops "FoSCoS documents" checklist (built 2026-10-01):** the case page lists every FoSCoS slot in FoSCoS's wording (`config/intake/documents.json` → `foscos`). Each slot holds one file the team will upload, checked against FoSCoS's rules (PDF/JPG/PNG, at most 5 MB, no password-protected PDFs): the customer's copy, a file the team prepared, or a not-applicable mark. Stored in `case_files` and logged. The team prepares the special documents (letterhead declarations, Form IX, recall plan…) by hand for now, to learn them. Next:
+  - a "combine into one PDF" for slots fed by several customer uploads (photo ID + address proof);
+  - later, a template engine that pre-fills the letterhead documents from what we already have, for the customer to print, sign and upload again.
 - A logged-in look around the dashboard, drafts and the upload step, with a person solving the CAPTCHA, can wait (test credentials in `creds`, git-ignored).
 
 ## Intake automaton & layered answers

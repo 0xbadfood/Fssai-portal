@@ -9,7 +9,7 @@ import { currentQuote, listPayments, payApplication } from './paymentsService.js
 import { handleWebhook, startCheckout, syncCheckout } from './checkoutService.js'
 import { paymentMode } from './cashfree.js'
 import { addOrderNote, cancelMyOrder, chargeOrder, createOrder, getMyOrder, getOrder, isStaff, listMyOrders, listOrders, myOrderMessages, payOrder, publicCatalogue, replyToOrder, setOrderStatus, takeOrder, transferOrder } from './servicesService.js'
-import { addNote, caseDocumentFile, getCase, listCases, reviewDocument, setStatus, takeCase, transferCase, updateDetail, uploadForCustomer } from './opsService.js'
+import { addNote, caseDocumentFile, caseFileDownload, getCase, listCases, reviewDocument, setCaseFile, setStatus, takeCase, transferCase, updateDetail, uploadForCustomer } from './opsService.js'
 import { CONTACT_VIA, SUPPORT_TOPICS } from '../src/lib/supportTopics.js'
 import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
 
@@ -208,6 +208,17 @@ async function handler(req, res, next) {
           : action === 'note' ? await addNote(user, id, body)
           : await uploadForCustomer(user, id, body)
         return json(res, 200, out)
+      }
+      // The FoSCoS checklist: set a slot's file (or mark it not applicable), and download a slot's file.
+      const slot = url.match(/^\/api\/ops\/cases\/([0-9a-f-]{36})\/foscos\/([a-z0-9_]{1,40})$/)
+      if (req.method === 'POST' && slot) return json(res, 200, await setCaseFile(user, slot[1], slot[2], JSON.parse((await readBody(req)) || '{}')))
+      const slotFile = url.match(/^\/api\/ops\/cases\/([0-9a-f-]{36})\/foscos-files\/([0-9a-f-]{36})$/)
+      if (req.method === 'GET' && slotFile) {
+        const { mime, fileName, data } = await caseFileDownload(user, slotFile[1], slotFile[2])
+        res.setHeader('content-type', mime)
+        res.setHeader('content-disposition', `${(req.url || '').includes('?download') ? 'attachment' : 'inline'}; filename="${fileName.replace(/[^\w.\- ]/g, '_')}"`)
+        res.setHeader('cache-control', 'private, no-store')
+        return res.end(data)
       }
       const review = url.match(/^\/api\/ops\/cases\/([0-9a-f-]{36})\/documents\/([0-9a-f-]{36})\/review$/)
       if (req.method === 'POST' && review) return json(res, 200, await reviewDocument(user, review[1], review[2], JSON.parse((await readBody(req)) || '{}')))

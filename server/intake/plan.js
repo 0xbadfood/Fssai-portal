@@ -135,6 +135,31 @@ function documentsFor(result, kind, info) {
   return { docs: [...upload.values()].filter((d) => DOC_TYPES[d.id]), filingCall }
 }
 
+/**
+ * The FoSCoS checklist (ops): every document of the result as FoSCoS names its slot, with the customer's upload
+ * types that feed it, and a hint when the slot looks not applicable (proprietor and Form IX, no water used).
+ */
+function checklistFor(result, info) {
+  const naHint = {
+    form_ix: info.entity_type === 'Proprietorship',
+    water_report: info.water_source === 'Water not used',
+  }
+  return (result?.documents || []).map((d) => {
+    const f = DOC_MAP.foscos?.[d.id] || {}
+    return {
+      id: d.id,
+      label: d.label,
+      slot: f.slot || null,
+      other: !!f.other,
+      tip: f.tip || null,
+      feeds: (DOC_MAP.upload[d.id] || []).map((t) => t.type).filter((t) => DOC_TYPES[t]),
+      optional: (DOC_MAP.upload[d.id] || []).length > 0 && DOC_MAP.upload[d.id].every((t) => t.optional),
+      na: f.na || null,
+      naLikely: !!naHint[d.id],
+    }
+  })
+}
+
 // ---------- The filled-in form ----------
 
 function buildForm(facts, info, result, kind, docs, docsByType) {
@@ -184,7 +209,7 @@ function buildForm(facts, info, result, kind, docs, docsByType) {
 
 /**
  * The plan for an application: { result, kind, intakeDone, fields, prefill, readFromDocs, docs, filingCall,
- * missingFields, missingDocs, ready, form }. user: { name, businessName, phone, email }.
+ * checklist, missingFields, missingDocs, ready, form }. user: { name, businessName, phone, email }.
  */
 export function planFor(facts, info = {}, docsByType = {}, user = {}) {
   const result = resultFor(facts)
@@ -195,6 +220,7 @@ export function planFor(facts, info = {}, docsByType = {}, user = {}) {
   const { docs, filingCall } = intakeDone && kind ? documentsFor(result, kind, info) : { docs: [], filingCall: [] }
   const missingFields = fields.filter((fd) => !filled(info[fd.id])).map((fd) => fd.id)
   const missingDocs = docs.filter((d) => !d.optional && !isDocOk(docsByType[d.id])).map((d) => d.id)
+  const checklist = intakeDone && kind ? checklistFor(result, info) : []
   const { documents, ...publicResult } = result || {}
   return {
     result: result ? publicResult : null,
@@ -205,6 +231,7 @@ export function planFor(facts, info = {}, docsByType = {}, user = {}) {
     readFromDocs,
     docs,
     filingCall,
+    checklist,
     missingFields,
     missingDocs,
     ready: intakeDone && !!kind && !missingFields.length && !missingDocs.length,

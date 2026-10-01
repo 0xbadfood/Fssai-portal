@@ -1,12 +1,15 @@
 // Operations console: the queue of paid applications (cases) and who works each one.
 // Only ops team members and the admin get here (requireOps); every change is written to case_events.
+import { createHash, randomUUID } from 'node:crypto'
 import { readFileSync } from 'node:fs'
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { ensureSchema, pool, repoRoot } from './db.js'
-import { documentsByUser, readDocumentFile, uploadDocument } from './documentsService.js'
+import { dbConfig, ensureSchema, pool, repoRoot, resolveStoragePath } from './db.js'
+import { documentsByUser, isEncryptedPdf, readDocumentFile, uploadDocument } from './documentsService.js'
 import { cleanFacts, intakeView } from './intake/index.js'
-import { FIELDS, planFor } from './intake/plan.js'
+import { FIELDS, isDocOk, planFor } from './intake/plan.js'
 import { crossCheck } from './opsCheck.js'
+import { decrypt, encrypt } from './storageCrypto.js'
 
 const DOC_TYPES = JSON.parse(readFileSync(path.join(repoRoot, 'config/document-types.json'), 'utf8')).types
 
@@ -200,6 +203,16 @@ export async function getCase(user, id, { logView = true } = {}) {
   }
   const needed = plan.docs.map((d) => docRow(d.id, d))
   const others = Object.keys(docs).filter((t) => !plan.docs.some((d) => d.id === t)).map((t) => docRow(t, null))
+  const files = await currentCaseFiles(id)
+  const feed = (t) => {
+    const d = docs[t]
+    return {
+      docTypeId: t,
+      label: DOC_TYPES[t]?.label || t,
+      doc: d ? { id: d.id, fileName: d.file.name, ok: isDocOk(d), problem: foscosProblem(d.file.mime, d.file.sizeBytes, d.pdfEncrypted) } : null,
+    }
+  }
+  const foscos = plan.checklist.map((c) => ({ ...c, feeds: c.feeds.map(feed), file: files[c.id] || null }))
 
   return {
     case: {
@@ -218,6 +231,8 @@ export async function getCase(user, id, { logView = true } = {}) {
     documents: needed,
     otherDocuments: others,
     filingCall: plan.filingCall,
+    foscos,
+    foscosRules: { types: 'PDF, JPG or PNG', maxMb: FOSCOS_MAX_BYTES / 1024 / 1024 },
     crossCheck: crossCheck(r.info, docs),
     form: plan.form,
     events: events.map((e) => ({ id: e.id, at: e.at, kind: e.kind, actor: e.actor || null, detail: e.detail })),
@@ -305,4 +320,136 @@ export async function caseDocumentFile(user, id, docId, { preview }) {
   const file = await readDocumentFile(rows[0].user_id, docId, { preview })
   if (!preview) await logCaseEvent(pool, id, user.id, 'document_viewed', { document: docId, fileName: file.fileName })
   return file
+}
+
+// ---------- The FoSCoS checklist: the file for each FoSCoS document slot ----------
+
+// What FoSCoS accepts in a document slot (its upload screens: pdf, jpeg, jpg, png; max 5 MB). One file per slot.
+const FOSCOS_TYPES = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' }
+const FOSCOS_MAX_BYTES = 5 * 1024 * 1024
+
+/** Why a file can't go to FoSCoS as it is, or null. */
+function foscosProblem(mime, size, encryptedPdf) {
+  if (!FOSCOS_TYPES[mime]) return 'FoSCoS takes PDF, JPG or PNG only.'
+  if (size > FOSCOS_MAX_BYTES) return `Larger than ${FOSCOS_MAX_BYTES / 1024 / 1024} MB, the FoSCoS limit.`
+  if (encryptedPdf) return 'Password-protected PDF: the officer can\'t open it. Save an unlocked copy.'
+  return null
+}
+
+/** The type of a file from its first bytes (the browser's claim isn't trusted). */
+function sniff(bytes) {
+  if (bytes.subarray(0, 5).toString('latin1') === '%PDF-') return 'application/pdf'
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg'
+  if (bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png'
+  return null
+}
+
+const caseFileRecord = (r) => ({
+  id: r.id,
+  kind: r.kind,
+  note: r.note,
+  fileName: r.file_name,
+  mime: r.mime,
+  sizeBytes: r.size_bytes,
+  fromCustomer: !!r.source_document_id,
+  addedBy: r.added_by_name || null,
+  addedAt: r.added_at,
+})
+
+/** Current file (or not-applicable mark) per slot of a case. */
+async function currentCaseFiles(caseId) {
+  const { rows } = await pool.query(
+    'SELECT f.*, u.name AS added_by_name FROM case_files f LEFT JOIN users u ON u.id = f.added_by WHERE f.case_id = $1 AND f.superseded_at IS NULL',
+    [caseId],
+  )
+  return Object.fromEntries(rows.map((r) => [r.slot, caseFileRecord(r)]))
+}
+
+/**
+ * Set a slot of the FoSCoS checklist. body: { file: data URL, fileName } (a file the ops team prepared),
+ * { useDocument: id } (the customer's own copy, if FoSCoS can take it as it is), { notApplicable: reason }, or { clear: true }.
+ */
+export async function setCaseFile(user, id, slot, body = {}) {
+  requireOps(user)
+  await ensureSchema()
+  if (!/^[0-9a-f-]{36}$/.test(String(id))) throw httpError(404, 'Case not found')
+  const { rows } = await pool.query(
+    'SELECT c.user_id, a.facts, a.info FROM cases c JOIN applications a ON a.id = c.application_id WHERE c.id = $1',
+    [id],
+  )
+  if (!rows[0]) throw httpError(404, 'Case not found')
+  const userId = rows[0].user_id
+  const docs = (await documentsByUser([userId]))[userId] || {}
+  const item = planFor(cleanFacts(rows[0].facts), rows[0].info, docs, {}).checklist.find((c) => c.id === slot)
+  if (!item) throw httpError(400, 'This document is not on the case\'s FoSCoS list.')
+
+  let row = null // the new case_files row, if any
+  let stored = null // { bytes, mime, fileName, sourceDocumentId }
+  if (body.clear) {
+    // nothing to add: the current entry is superseded below
+  } else if (typeof body.notApplicable === 'string') {
+    const note = body.notApplicable.trim().slice(0, 300)
+    if (!note) throw httpError(400, 'Say why it does not apply.')
+    row = { kind: 'na', note }
+  } else if (body.useDocument) {
+    const t = item.feeds.find((f) => docs[f]?.id === body.useDocument)
+    if (!t) throw httpError(400, 'That document is not one of the customer\'s uploads for this slot.')
+    const d = docs[t]
+    if (!isDocOk(d)) throw httpError(400, 'That document was rejected. Use an accepted copy.')
+    const problem = foscosProblem(d.file.mime, d.file.sizeBytes, d.pdfEncrypted)
+    if (problem) throw httpError(400, problem)
+    const file = await readDocumentFile(userId, d.id)
+    stored = { bytes: file.data, mime: file.mime, fileName: file.fileName, sourceDocumentId: d.id }
+  } else if (typeof body.file === 'string' && body.file.startsWith('data:')) {
+    const bytes = Buffer.from(body.file.slice(body.file.indexOf(',') + 1), 'base64')
+    const mime = sniff(bytes)
+    const problem = foscosProblem(mime, bytes.length, mime === 'application/pdf' && isEncryptedPdf(bytes))
+    if (problem) throw httpError(400, problem)
+    stored = { bytes, mime, fileName: String(body.fileName || `${slot}.${FOSCOS_TYPES[mime]}`).slice(0, 200), sourceDocumentId: null }
+  } else {
+    throw httpError(400, 'Nothing to save')
+  }
+
+  let written = null
+  if (stored) {
+    const fileId = randomUUID()
+    const rel = path.posix.join(dbConfig.storageDir, userId, `case-${fileId}.${FOSCOS_TYPES[stored.mime]}`)
+    written = resolveStoragePath(rel)
+    await mkdir(path.dirname(written), { recursive: true, mode: 0o700 })
+    await writeFile(written, encrypt(stored.bytes, rel), { mode: 0o600 })
+    row = {
+      id: fileId, kind: 'file', note: null, file_name: stored.fileName, mime: stored.mime, size_bytes: stored.bytes.length, storage_path: rel,
+      sha256: createHash('sha256').update(stored.bytes).digest('hex'), source_document_id: stored.sourceDocumentId,
+    }
+  }
+  try {
+    await withCase(id, async (client) => {
+      await client.query('UPDATE case_files SET superseded_at = now() WHERE case_id = $1 AND slot = $2 AND superseded_at IS NULL', [id, slot])
+      if (row) {
+        await client.query(
+          `INSERT INTO case_files (id, case_id, slot, kind, note, file_name, mime, size_bytes, storage_path, sha256, source_document_id, added_by)
+           VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+          [row.id || null, id, slot, row.kind, row.note, row.file_name || null, row.mime || null, row.size_bytes || null, row.storage_path || null, row.sha256 || null, row.source_document_id || null, user.id],
+        )
+      }
+      const action = body.clear ? 'cleared' : row.kind === 'na' ? 'not_applicable' : row.source_document_id ? 'customer_copy' : 'uploaded'
+      await logCaseEvent(client, id, user.id, 'foscos_file', { slot, label: item.label, action, fileName: row?.file_name || null, note: row?.note || null })
+    })
+  } catch (e) {
+    if (written) await unlink(written).catch(() => {})
+    throw e
+  }
+  return getCase(user, id, { logView: false })
+}
+
+/** A checklist file for download (to upload on FoSCoS); every download is logged. */
+export async function caseFileDownload(user, id, fileId) {
+  requireOps(user)
+  await ensureSchema()
+  const { rows } = await pool.query("SELECT slot, file_name, mime, storage_path FROM case_files WHERE id = $1 AND case_id = $2 AND kind = 'file'", [fileId, id])
+  if (!rows[0]) throw httpError(404, 'Not found')
+  const r = rows[0]
+  const data = decrypt(await readFile(resolveStoragePath(r.storage_path)), r.storage_path)
+  await logCaseEvent(pool, id, user.id, 'document_viewed', { caseFile: fileId, fileName: r.file_name })
+  return { mime: r.mime, fileName: r.file_name, data }
 }

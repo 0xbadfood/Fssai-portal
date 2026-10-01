@@ -291,3 +291,25 @@ CREATE TABLE IF NOT EXISTS gateway_orders (
   CONSTRAINT gateway_orders_target_chk CHECK ((application_id IS NULL) <> (order_id IS NULL))
 );
 CREATE INDEX IF NOT EXISTS gateway_orders_user_idx ON gateway_orders (user_id, created_at DESC);
+
+-- The FoSCoS checklist of a case: the file the ops team will upload to each FoSCoS document slot (FoSCoS takes one
+-- file per slot), or the slot marked not applicable. slot = the graph's document id (config/intake/documents.json).
+-- Files are stored encrypted like documents; source_document_id is set when the customer's own copy was used.
+CREATE TABLE IF NOT EXISTS case_files (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id             uuid NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  slot                text NOT NULL,
+  kind                text NOT NULL CHECK (kind IN ('file', 'na')),
+  note                text,                             -- why not applicable, or a note on the file
+  file_name           text,
+  mime                text,
+  size_bytes          integer,
+  storage_path        text,
+  sha256              text,
+  source_document_id  uuid REFERENCES documents(id) ON DELETE SET NULL,
+  added_by            uuid REFERENCES users(id) ON DELETE SET NULL,
+  added_at            timestamptz NOT NULL DEFAULT now(),
+  superseded_at       timestamptz,
+  CONSTRAINT case_files_file_chk CHECK (kind = 'na' OR storage_path IS NOT NULL)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS case_files_current_uq ON case_files (case_id, slot) WHERE superseded_at IS NULL;

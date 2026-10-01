@@ -14,6 +14,38 @@
   "filingCall": [
     "reg_photo", "directors_list", "constitution", "form_ix", "unit_photos", "equipment_list", "recall_plan",
     "export_declaration", "eou_certificate", "milk_source_plan", "raw_material_source", "manufacturer_noc",
-    "product_specification", "composition", "product_approval", "pesticide_report"
-  ]
+    "product_specification", "composition", "product_approval", "pesticide_report",
+    "dae_licence", "radiation_declaration", "direct_selling_agreement"
+  ],
+  "noteFoscos": "foscos: each graph document's slot on FoSCoS, in FoSCoS's own wording (sources/foscos/web/required-documents-2026-10-01.md in the lab; registration: documentsrequiredforregistrationcertificate). FoSCoS takes one file per slot: PDF, JPG or PNG, up to 5 MB. 'other: true' = not a slot of its own on FoSCoS's list; it goes under Other documents (March 2021 order). 'na' = when the slot does not apply (the ops team marks it).",
+  "foscos": {
+    "reg_photo": {"slot": "Photo"},
+    "reg_photo_id": {"slot": "Government issued Photo ID such as AADHAAR, PAN, Voter ID etc."},
+    "reg_address_proof": {"slot": "Proof of Address of Businesses activity (if address is other than as mentioned in Photo ID Card)", "na": "The premises address is the one on the photo ID"},
+    "directors_list": {"slot": "List of Directors/Partners/Proprietor/ExecutiveMembers of Society/Trust with full address and contact details with nomination of authorized signatory"},
+    "photo_id_signatory": {"slot": "Photo I.D and address proof issued by Government authority of Proprietor/Partner/Director(s)/Authorised Signatory.", "tip": "One file: the photo ID and the address proof together."},
+    "premises_proof": {"slot": "Proof of possession of premises. (Sale deed/ Rent agreement/ Electricity bill, etc.)"},
+    "constitution": {"slot": "Partnership Deed/Self Declaration for Proprietorship/Memorandum & Articles of Association towards the constitution of the firm / Copy of certificate obtained under Coop Act-1861/ Multi State Coop Act-2002 in case of Cooperative", "tip": "For a company (MoA), FoSCoS asks for three pages: the certificate of incorporation, the authorisation of the food business, and the list of directors with addresses."},
+    "form_ix": {"slot": "Form IX: Nomination of Person as per Clause 2.5of FSS Rules, 2008 (Not applicable in case of Proprietor)", "na": "Proprietorship"},
+    "layout_plan": {"slot": "Blueprint/layout plan of the processing unit showing the dimensions in metres/square metres and operation-wise area allocation"},
+    "unit_photos": {"slot": "Production unit photographs"},
+    "equipment_list": {"slot": "Name and List of Equipments and Machinery along with the number, installed capacity and horsepower used"},
+    "water_report": {"slot": "Analysis report(Chemical & Bacteriological)of water to be used as ingredient in food from a recognized/ public health laboratory to confirm the potability indicating the name of authorized representative of Lab who collected the sample and date of collecting sample. (Not Applicable if water is not being used as ingredient)", "na": "Water is not used as an ingredient"},
+    "recall_plan": {"slot": "Recall Plan"},
+    "iec": {"slot": "Import Export Code (IEC) document issued by DGFT"},
+    "export_declaration": {"slot": "Undertaking for not selling the food products in domestic market."},
+    "eou_certificate": {"slot": "Ministry of Commerce Certificate for 100% EOU"},
+    "vehicle_list": {"slot": "List of Vehicle Registration numbers"},
+    "milk_source_plan": {"slot": "Source or procurement plan for milk"},
+    "raw_material_source": {"slot": "Source of raw material"},
+    "municipal_noc": {"slot": "NoC from Municipal Corporation / local body"},
+    "dae_licence": {"slot": "License obtained from Dept of Atomic Energy"},
+    "radiation_declaration": {"slot": "Self-declaration to comply with the conditions for approval, operation, license and process control prescribed under the Atomic Energy (Radiation Processing of Food and Allied Products) Rules, 2012"},
+    "direct_selling_agreement": {"slot": "Copy of agreement with the Direct Selling Entity"},
+    "manufacturer_noc": {"other": true, "tip": "Repackers upload it under Other documents; relabellers upload it against items 6–9 of list B1."},
+    "product_specification": {"other": true},
+    "composition": {"other": true},
+    "product_approval": {"other": true},
+    "pesticide_report": {"other": true}
+  }
 }

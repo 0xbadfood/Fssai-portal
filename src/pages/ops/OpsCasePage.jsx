@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { AlertTriangle, CheckCircle2, ExternalLink, Loader2, Lock, Mail, MessageSquarePlus, Pencil, Phone, UploadCloud, XCircle } from 'lucide-react'
+import { AlertTriangle, Ban, CheckCircle2, Download, ExternalLink, Loader2, Lock, Mail, MessageSquarePlus, Pencil, Phone, UploadCloud, XCircle } from 'lucide-react'
 import { DOC_TYPES, PdfPasswordError, prepareFile } from '../../lib/documents.js'
 import { BackToQueue } from './OpsLayout.jsx'
 
@@ -79,6 +79,7 @@ export default function OpsCasePage() {
               ))}
             </div>
           </Section>
+          <FoscosChecklist data={data} base={base} busy={busy} act={act} />
           <Details data={data} busy={busy} act={act} />
           <Answers data={data} />
         </div>
@@ -103,15 +104,6 @@ export default function OpsCasePage() {
               </p>
             )}
           </Section>
-          {data.filingCall.length > 0 && (
-            <Section title="Prepared with the customer" note="Letterhead declarations and other items for the filing session.">
-              <ul className="space-y-1 text-sm text-slate-700">
-                {data.filingCall.map((d) => (
-                  <li key={d.id}>• {d.label}</li>
-                ))}
-              </ul>
-            </Section>
-          )}
           <Timeline events={data.events} names={names} statusLabel={statusLabel} busy={busy} act={act} />
         </div>
       </div>
@@ -357,6 +349,166 @@ function DocCard({ row, base, busy, act }) {
   )
 }
 
+const readDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader()
+    r.onload = () => resolve(r.result)
+    r.onerror = () => reject(new Error('Could not read this file.'))
+    r.readAsDataURL(file)
+  })
+
+/**
+ * The FoSCoS checklist: one row per document slot on FoSCoS, in FoSCoS's wording, with the file the team will
+ * upload there (the customer's own copy, or one the team prepared), or the slot marked not applicable.
+ */
+function FoscosChecklist({ data, base, busy, act }) {
+  const rows = data.foscos
+  if (!rows.length) return null
+  const done = rows.filter((r) => r.file).length
+  const { types, maxMb } = data.foscosRules
+  return (
+    <Section
+      title="FoSCoS documents"
+      note={`What goes into each document slot on FoSCoS, in its order and wording. One file per slot: ${types}, up to ${maxMb} MB.`}
+      right={<span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${done === rows.length ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{done} of {rows.length} ready</span>}
+    >
+      <ol className="space-y-2">
+        {rows.map((r, i) => (
+          <SlotRow key={r.id} n={i + 1} row={r} base={base} busy={busy} act={act} maxMb={maxMb} />
+        ))}
+      </ol>
+    </Section>
+  )
+}
+
+function SlotRow({ n, row, base, busy, act, maxMb }) {
+  const f = row.file
+  const input = useRef(null)
+  const [na, setNa] = useState(null) // reason being typed, or null
+  const [error, setError] = useState('')
+  const set = (body) => act(`foscos/${row.id}`, body)
+
+  async function upload(file) {
+    setError('')
+    if (!/\.(pdf|jpe?g|png)$/i.test(file.name)) return setError('FoSCoS takes PDF, JPG or PNG only.')
+    if (file.size > maxMb * 1024 * 1024) return setError(`This file is larger than ${maxMb} MB, the FoSCoS limit. Compress it first.`)
+    try {
+      await set({ file: await readDataUrl(file), fileName: file.name }) // a server refusal shows at the top of the page
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
+  const state = f?.kind === 'file' ? 'ready' : f?.kind === 'na' ? 'na' : row.optional ? 'optional' : 'needed'
+  const chip = {
+    ready: ['Ready', 'bg-emerald-50 text-emerald-700'],
+    na: ['Not applicable', 'bg-slate-100 text-slate-500'],
+    optional: ['Optional', 'bg-slate-100 text-slate-500'],
+    needed: ['Needed', 'bg-amber-50 text-amber-800'],
+  }[state]
+  return (
+    <li className={`rounded-xl border p-3 ${state === 'ready' ? 'border-emerald-200' : 'border-slate-200'}`}>
+      <input ref={input} type="file" accept="application/pdf,.pdf,image/jpeg,image/png" className="hidden" onChange={(e) => { if (e.target.files[0]) upload(e.target.files[0]); e.target.value = '' }} />
+      <div className="flex gap-3">
+        <span className="w-5 shrink-0 pt-0.5 text-right font-mono text-xs font-bold text-slate-400">{n}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-900">{row.slot || row.label}</p>
+              {row.slot && row.slot !== row.label && <p className="text-xs text-slate-500">{row.label}</p>}
+              {row.other && <p className="text-xs font-semibold text-violet-700">Not a slot of its own on FoSCoS: upload it under "Other documents".</p>}
+              {row.tip && <p className="text-xs text-violet-700">{row.tip}</p>}
+            </div>
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${chip[1]}`}>{chip[0]}</span>
+          </div>
+
+          {f?.kind === 'file' && (
+            <p className="mt-1.5 text-xs text-slate-600">
+              <b>{f.fileName}</b> · {(f.sizeBytes / 1024 / 1024).toFixed(2)} MB · {f.fromCustomer ? "customer's copy" : 'prepared by the team'}
+              {f.addedBy && ` · ${f.addedBy}`} · {when(f.addedAt)}
+            </p>
+          )}
+          {f?.kind === 'na' && <p className="mt-1.5 text-xs text-slate-600">Not applicable: {f.note}{f.addedBy && ` (${f.addedBy})`}</p>}
+          {!f && row.naLikely && <p className="mt-1.5 text-xs font-semibold text-amber-800">Looks not applicable: {row.na}.</p>}
+
+          {!f && row.feeds.length > 0 && (
+            <ul className="mt-1.5 space-y-1">
+              {row.feeds.map((x) => (
+                <li key={x.docTypeId} className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-slate-500">Customer's {x.label.toLowerCase()}:</span>
+                  {!x.doc ? (
+                    <span className="text-slate-400">not uploaded yet</span>
+                  ) : (
+                    <>
+                      <a href={`${base}/documents/${x.doc.id}/file`} target="_blank" rel="noopener noreferrer" className="font-semibold text-violet-700 hover:underline">
+                        {x.doc.fileName}
+                      </a>
+                      {!x.doc.ok ? (
+                        <span className="text-red-700">rejected</span>
+                      ) : x.doc.problem ? (
+                        <span className="text-amber-800">{x.doc.problem}</span>
+                      ) : (
+                        <button disabled={busy} onClick={() => set({ useDocument: x.doc.id })} className="rounded-md bg-violet-600 px-2 py-0.5 font-bold text-white disabled:opacity-40">
+                          Use this
+                        </button>
+                      )}
+                    </>
+                  )}
+                </li>
+              ))}
+              {row.feeds.length > 1 && <li className="text-xs text-slate-500">FoSCoS wants these as one file: combine them and upload the result.</li>}
+            </ul>
+          )}
+
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {f?.kind === 'file' && (
+              <>
+                <a href={`${base}/foscos-files/${f.id}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                  <ExternalLink size={12} /> Open
+                </a>
+                <a href={`${base}/foscos-files/${f.id}?download`} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                  <Download size={12} /> Download
+                </a>
+              </>
+            )}
+            <button disabled={busy} onClick={() => input.current?.click()} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40">
+              <UploadCloud size={12} /> {f?.kind === 'file' ? 'Replace' : 'Upload file'}
+            </button>
+            {f?.kind !== 'na' && na == null && (
+              <button disabled={busy} onClick={() => setNa(row.naLikely ? row.na : '')} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40">
+                <Ban size={12} /> Not applicable
+              </button>
+            )}
+            {f && (
+              <button disabled={busy} onClick={() => set({ clear: true })} className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 disabled:opacity-40">
+                Clear
+              </button>
+            )}
+          </div>
+          {na != null && (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault()
+                if (await set({ notApplicable: na })) setNa(null)
+              }}
+              className="mt-2 flex flex-wrap gap-1.5"
+            >
+              <input autoFocus value={na} onChange={(e) => setNa(e.target.value)} placeholder="Why it doesn't apply (for the log)" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm" />
+              <button disabled={busy || !na.trim()} className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">
+                Mark
+              </button>
+              <button type="button" onClick={() => setNa(null)} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100">
+                Cancel
+              </button>
+            </form>
+          )}
+          {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+        </div>
+      </div>
+    </li>
+  )
+}
+
 /** Form A/B details; each correction is logged with the old value. */
 function Details({ data, busy, act }) {
   const [editing, setEditing] = useState(null)
@@ -516,6 +668,12 @@ function describe(e, names, statusLabel) {
       return `${who} uploaded ${doc(d.docType)} for the customer (AI: ${d.ai})`
     case 'document_viewed':
       return `${who} opened ${d.fileName}`
+    case 'foscos_file':
+      return d.action === 'cleared'
+        ? `${who} cleared the FoSCoS file for ${d.label}`
+        : d.action === 'not_applicable'
+          ? `${who} marked ${d.label} not applicable: "${d.note}"`
+          : `${who} set the FoSCoS file for ${d.label}: ${d.fileName}${d.action === 'customer_copy' ? " (customer's copy)" : ''}`
     case 'case_viewed':
       return `${who} opened the case`
     default:
