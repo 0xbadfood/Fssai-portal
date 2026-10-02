@@ -203,9 +203,10 @@ CREATE TABLE IF NOT EXISTS case_events (
 );
 CREATE INDEX IF NOT EXISTS case_events_case_idx ON case_events (case_id, at);
 
--- Applications paid before cases existed get one (idempotent).
+-- Applications paid before cases existed get one (idempotent). Expert-service payments have no application.
 INSERT INTO cases (application_id, user_id, opened_at)
-  SELECT p.application_id, p.user_id, min(p.created_at) FROM payments p WHERE p.status = 'paid' GROUP BY p.application_id, p.user_id
+  SELECT p.application_id, p.user_id, min(p.created_at) FROM payments p
+  WHERE p.status = 'paid' AND p.application_id IS NOT NULL GROUP BY p.application_id, p.user_id
   ON CONFLICT (application_id) DO NOTHING;
 
 -- Case track: 'filing' (paid applications); 'expert' comes with the expert workflow (TODO.md).
