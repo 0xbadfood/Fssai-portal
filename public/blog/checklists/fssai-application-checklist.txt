@@ -1,0 +1,37 @@
+MYFOODLICENSE.COM — APPLICATION PREPARATION WORKSHEET
+Source review: 2 October 2026 | Regulatory expert review pending
+
+This is an original preparation aid. Use the live FoSCoS KoB document
+requirements for the application; not every item below is a mandatory upload.
+
+Applicant/entity: _____________________________
+Premises: ____________________________________
+Activities/KoBs: ______________________________
+Route assessed by: ____________________________
+Date of assessment: ___________________________
+
+[ ] Record the exact applicant and legal entity name.
+[ ] Identify the authorised signatory/contact and supporting authority.
+[ ] Map the activities at the actual premises.
+[ ] Check the current eligibility row and any exceptions.
+[ ] Save the applicable official document list.
+[ ] Collect the registration photo, photo ID and conditional address proof,
+    if the registration route applies.
+[ ] Check required entity and premises documents for the chosen licence route.
+[ ] For manufacturing, resolve product-classification questions.
+[ ] Check activity-dependent layout, equipment, water and FSMS requirements.
+[ ] For importing, assess the applicable importer/IEC evidence.
+[ ] Reconcile names and addresses across supporting documents.
+[ ] Verify readable scans, page completeness and relevant dates.
+[ ] Follow each current upload field's format and size requirements.
+[ ] Save the final application, files and payment acknowledgement.
+[ ] Record the application reference and monitor communications.
+[ ] Record the actual deadline and response to any query.
+
+Outstanding item | Owner | Evidence needed | Target date
+______________________________________________________
+______________________________________________________
+______________________________________________________
+
+Official applications: https://foscos.fssai.gov.in/
+myfoodlicense.com is an independent consultancy, unaffiliated with FSSAI.

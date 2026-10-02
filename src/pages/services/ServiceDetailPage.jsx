@@ -1,17 +1,21 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, ClipboardList, Clock, FileCheck2, Info, Loader2, Minus, Plus, ShieldCheck, ShoppingCart, Send } from 'lucide-react'
+import { ArrowLeft, BookOpen, CheckCircle2, ClipboardList, Clock, FileCheck2, Info, Loader2, Minus, Plus, ShieldCheck, ShoppingCart, Send } from 'lucide-react'
 import LandingNavbar from '../../components/landing/LandingNavbar.jsx'
 import Footer from '../../components/landing/Footer.jsx'
 import { isOpsRole, useAuth } from '../../lib/auth.jsx'
 import { TONES, api, findService, priceLabel, rupees, unitOf, useCatalogue } from '../../lib/catalogue.js'
 import { ServiceBar } from './ServicesPage.jsx'
+import { useMeta } from '../../seo/useMeta.js'
+import { notFoundMeta, serviceMeta } from '../../seo/meta.js'
+import blogLinks from '../../seo/blogLinks.json'
 
 /** One expert service: what to expect, and Buy (or Request a quote) at the bottom. */
 export default function ServiceDetailPage() {
   const { id } = useParams()
   const { cat, error } = useCatalogue()
   const found = cat && findService(cat, id)
+  useMeta(found ? serviceMeta(cat, found) : cat ? notFoundMeta() : null)
 
   return (
     <div className="min-h-screen bg-white">
@@ -33,6 +37,7 @@ export default function ServiceDetailPage() {
 function Detail({ cat, svc, section, head }) {
   const tone = TONES[head?.tone] || TONES.violet
   const related = section.services.filter((s) => s.id !== svc.id).slice(0, 4)
+  const guides = blogLinks.byService[svc.id] || []
   return (
     <>
       <section className="relative overflow-hidden border-b border-slate-100" style={{ backgroundImage: `linear-gradient(135deg, ${tone.soft}, #ffffff 60%)` }}>
@@ -96,6 +101,21 @@ function Detail({ cat, svc, section, head }) {
           <BuyCard svc={svc} tone={tone} gstRate={cat.gstRate} />
         </aside>
       </section>
+
+      {guides.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+          <h2 className="mb-4 text-lg font-extrabold text-slate-800">Free guides on this topic</h2>
+          <ul className="grid gap-3 lg:grid-cols-2">
+            {guides.map((g) => (
+              <li key={g.slug}>
+                <a href={`/blog/${g.slug}`} className="flex h-full items-center gap-3 rounded-2xl bg-slate-50 px-5 py-4 font-semibold text-slate-700 ring-1 ring-slate-100 hover:bg-violet-50 hover:text-violet-700">
+                  <BookOpen size={18} className="shrink-0" style={{ color: tone.from }} /> {g.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {related.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">

@@ -5,6 +5,7 @@ import LandingChat from './LandingChat.jsx'
 import RotatingHeadline from './RotatingHeadline.jsx'
 import { SERVICES } from '../../lib/services.js'
 import { BRAND_DOMAIN } from '../../lib/brand.js'
+import blogLinks from '../../seo/blogLinks.json'
 
 export function Hero() {
   return (
@@ -15,9 +16,9 @@ export function Hero() {
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 pb-20 pt-12 sm:px-6 lg:grid-cols-[1.05fr,1fr] lg:px-8 lg:pt-20">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-violet-700 shadow-sm ring-1 ring-violet-100">
-            <Sparkles size={14} /> AI-powered FSSAI compliance
-          </span>
+          <h1 className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-violet-700 shadow-sm ring-1 ring-violet-100">
+            <Sparkles size={14} /> FSSAI registration &amp; food licence online, with experts
+          </h1>
           <RotatingHeadline />
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-600">
             Snap two photos, tap a few answers, and our AI fills in your forms. Our FSSAI experts check everything
@@ -197,7 +198,34 @@ export function Services() {
   )
 }
 
-const FAQS = [
+/** The pillar guides of the blog (static pages, so plain links). */
+export function Guides() {
+  return (
+    <section id="guides" className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+      <Heading
+        kicker="Free guides"
+        title="FSSAI rules, explained in plain language"
+        subtitle="Licences, labels, claims, supplements and imports, checked against the 2026 rules and the official notifications."
+      />
+      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {blogLinks.pillars.map((g) => (
+          <a key={g.slug} href={`/blog/${g.slug}`} className="group flex flex-col rounded-3xl border border-slate-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-200/70">
+            <span className="text-xs font-bold uppercase tracking-wider text-violet-600">{g.cluster}</span>
+            <span className="mt-2 flex-1 font-extrabold leading-snug text-slate-900">{g.title}</span>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-violet-600 group-hover:gap-2">Read the guide <ArrowRight size={15} /></span>
+          </a>
+        ))}
+      </div>
+      <div className="mt-8 text-center">
+        <a href="/blog" className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-violet-700 shadow-sm ring-1 ring-violet-200 hover:bg-violet-50">
+          Browse all FSSAI guides <ArrowRight size={15} />
+        </a>
+      </div>
+    </section>
+  )
+}
+
+export const FAQS = [
   {
     q: `Is ${BRAND_DOMAIN} the official FSSAI website?`,
     a: 'No. We are a private compliance-assistance service, not affiliated with FSSAI. We prepare your application and help you file it on the Government’s official FoSCoS portal (foscos.fssai.gov.in).',
@@ -241,7 +269,8 @@ export function FAQ() {
                     {on ? <Minus size={14} /> : <Plus size={14} />}
                   </span>
                 </button>
-                {on && <p className="mt-3 text-sm leading-relaxed text-slate-600">{f.a}</p>}
+                {/* Closed answers stay in the page (hidden) so search engines read every answer. */}
+                <p hidden={!on} className="mt-3 text-sm leading-relaxed text-slate-600">{f.a}</p>
               </div>
             )
           })}

@@ -4,11 +4,14 @@ import { ArrowRight, BadgeCheck, CalendarClock, CheckCircle2, CreditCard, FlaskC
 import LandingNavbar from '../../components/landing/LandingNavbar.jsx'
 import Footer from '../../components/landing/Footer.jsx'
 import { TONES, priceLabel, useCatalogue } from '../../lib/catalogue.js'
+import { useMeta } from '../../seo/useMeta.js'
+import { servicesMeta } from '../../seo/meta.js'
 
 const HEAD_ICON = { 'licensing-approvals': BadgeCheck, product: FlaskConical, 'labels-claims': Tags, 'specialty-imports': Ship, compliance: ShieldCheck, advisory: MessagesSquare }
 
 /** Expert services: the whole catalogue, grouped under headings, each service a 3D bar. */
 export default function ServicesPage() {
+  useMeta(servicesMeta())
   const { cat, error } = useCatalogue()
   const [q, setQ] = useState('')
   const [params] = useSearchParams()

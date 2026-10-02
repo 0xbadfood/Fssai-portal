@@ -3,8 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { UserPlus } from 'lucide-react'
 import { useAuth } from '../lib/auth.jsx'
 import { AuthShell, Field } from './LoginPage.jsx'
+import { useMeta } from '../seo/useMeta.js'
+import { privateMeta } from '../seo/meta.js'
 
 export default function SignupPage() {
+  useMeta(privateMeta('Create your free account', '/signup'))
   const { signup } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()

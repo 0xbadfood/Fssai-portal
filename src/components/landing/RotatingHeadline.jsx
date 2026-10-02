@@ -39,9 +39,9 @@ export default function RotatingHeadline() {
 
   return (
     <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <h1 className="sr-only">
+      <p className="sr-only">
         {LINES[0].lead} {LINES[0].punch}
-      </h1>
+      </p>
       <p aria-hidden="true" className="mt-5 grid text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-[3.4rem]">
         {LINES.map((line, i) => (
           <span

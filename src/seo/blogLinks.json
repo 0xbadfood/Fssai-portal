@@ -1,0 +1,610 @@
+{
+ "pillars": [
+  {
+   "slug": "fssai-licence-registration-guide",
+   "title": "FSSAI Licence & Registration in 2026: The Complete Guide",
+   "cluster": "Registration & licensing"
+  },
+  {
+   "slug": "fssai-labelling-requirements",
+   "title": "FSSAI Labelling Requirements: A Complete Guide for Packaged Food Brands",
+   "cluster": "Labelling & packaging"
+  },
+  {
+   "slug": "food-claims-india",
+   "title": "Food Claims in India: What You Can Say on Packs, Websites and Ads",
+   "cluster": "Claims & advertising"
+  },
+  {
+   "slug": "standardised-proprietary-non-specified-food",
+   "title": "Standardised, Proprietary or Non-Specified Food? A Guide to FSSAI Product Classification",
+   "cluster": "Product classification & approvals"
+  },
+  {
+   "slug": "nutraceutical-regulations-india",
+   "title": "Nutraceutical Regulations in India: A Complete Guide for Supplement Brands",
+   "cluster": "Supplements & nutraceuticals"
+  },
+  {
+   "slug": "importing-food-india-fssai",
+   "title": "Importing Food into India: FSSAI Clearance, Labels and Common Rejection Risks",
+   "cluster": "Imported food"
+  },
+  {
+   "slug": "fssai-compliance-after-licence",
+   "title": "FSSAI Compliance After You Get the Licence: Inspections, Notices, Testing and Records",
+   "cluster": "Inspections & compliance"
+  },
+  {
+   "slug": "launch-packaged-food-brand-india",
+   "title": "Launching a Packaged Food Brand in India: The Regulatory Roadmap",
+   "cluster": "Launching a food brand"
+  }
+ ],
+ "byService": {
+  "additive-compliance-review": [
+   {
+    "slug": "food-additives-permitted-limits",
+    "title": "Food Additives in India: Permitted Lists and Maximum Levels"
+   }
+  ],
+  "additive-declaration-review": [
+   {
+    "slug": "food-additives-ins-label",
+    "title": "Declaring Food Additives on a Label: Class Titles and INS Numbers"
+   }
+  ],
+  "advertisement-review": [
+   {
+    "slug": "misleading-food-ads-penalties",
+    "title": "Misleading Food Ads: Penalties and Real Examples"
+   }
+  ],
+  "allergen-declaration-review": [
+   {
+    "slug": "allergen-labelling-india",
+    "title": "Allergen Labelling in India: What to Declare and How"
+   }
+  ],
+  "application-clarification-resubmission": [
+   {
+    "slug": "documents-required-fssai-licence",
+    "title": "Documents Required for FSSAI Registration and Licence: A Practical Checklist"
+   },
+   {
+    "slug": "fssai-application-reverted-rejected",
+    "title": "FSSAI Application Reverted or Rejected? How to Respond"
+   },
+   {
+    "slug": "foscos-otp-document-upload-problems",
+    "title": "FoSCoS OTP Not Received or Documents Not Uploading: Practical Fixes"
+   }
+  ],
+  "artwork-compliance-checklist": [
+   {
+    "slug": "food-label-mistakes",
+    "title": "12 Label Mistakes That Get Food Products Into Trouble"
+   }
+  ],
+  "back-of-pack-review": [
+   {
+    "slug": "best-before-use-by-expiry",
+    "title": "Date Marking: Best Before vs Use By vs Expiry"
+   }
+  ],
+  "basic-artwork-review": [
+   {
+    "slug": "mandatory-food-label-declarations",
+    "title": "Mandatory Label Declarations for Packaged Food in India (Checklist)"
+   },
+   {
+    "slug": "fssai-logo-licence-number-label",
+    "title": "FSSAI Logo and Licence Number on the Label: Rules"
+   }
+  ],
+  "basic-fssai-registration": [
+   {
+    "slug": "fssai-licence-registration-guide",
+    "title": "FSSAI Licence & Registration in 2026: The Complete Guide"
+   },
+   {
+    "slug": "documents-required-fssai-licence",
+    "title": "Documents Required for FSSAI Registration and Licence: A Practical Checklist"
+   },
+   {
+    "slug": "apply-fssai-licence-foscos",
+    "title": "How to Apply for an FSSAI Licence on FoSCoS: Step by Step"
+   },
+   {
+    "slug": "fssai-registration-home-bakers",
+    "title": "FSSAI Registration for Home Bakers and Home Kitchens"
+   }
+  ],
+  "capa-support": [
+   {
+    "slug": "capa-food-safety",
+    "title": "CAPA for Food Businesses: Corrective and Preventive Action Done Properly"
+   }
+  ],
+  "central-fssai-licence-new": [
+   {
+    "slug": "fssai-licence-registration-guide",
+    "title": "FSSAI Licence & Registration in 2026: The Complete Guide"
+   },
+   {
+    "slug": "fssai-licence-fees",
+    "title": "FSSAI Licence Fees in 2026: Government Fee vs Professional Fee Explained"
+   },
+   {
+    "slug": "fssai-licence-food-importers",
+    "title": "FSSAI Licence for Food Importers: Central Licence, IEC and Process"
+   },
+   {
+    "slug": "fssai-licence-food-exporters",
+    "title": "FSSAI Licence for Exporters: Do You Need One?"
+   }
+  ],
+  "change-in-constitution-business-details": [
+   {
+    "slug": "fssai-change-ownership-company-name",
+    "title": "Change of Ownership, Partners or Company Name on an FSSAI Licence"
+   }
+  ],
+  "claims-assessment": [
+   {
+    "slug": "supplement-claims-allowed-india",
+    "title": "Claims for Supplements: What's Allowed"
+   }
+  ],
+  "claims-substantiation-dossier": [
+   {
+    "slug": "food-claims-india",
+    "title": "Food Claims in India: What You Can Say on Packs, Websites and Ads"
+   },
+   {
+    "slug": "food-claim-substantiation-file",
+    "title": "Do You Need Evidence for Your Claim? Building a Substantiation File"
+   }
+  ],
+  "comparative-claim-review": [
+   {
+    "slug": "comparative-food-claims",
+    "title": "Comparative Claims (\"30% Less Sugar\"): How to Make Them Safely"
+   }
+  ],
+  "complete-claims-review": [
+   {
+    "slug": "food-claims-india",
+    "title": "Food Claims in India: What You Can Say on Packs, Websites and Ads"
+   }
+  ],
+  "complete-formulation-assessment": [
+   {
+    "slug": "gummies-effervescents-supplement-formats",
+    "title": "Gummies, Effervescents and Novel Formats: Regulatory Pitfalls"
+   }
+  ],
+  "complete-label-review": [
+   {
+    "slug": "health-supplement-label-warnings",
+    "title": "Labelling a Health Supplement: Mandatory Warnings and Declarations"
+   }
+  ],
+  "complete-product-launch": [
+   {
+    "slug": "launch-packaged-food-brand-india",
+    "title": "Launching a Packaged Food Brand in India: The Regulatory Roadmap"
+   }
+  ],
+  "complete-regulatory-launch-support": [
+   {
+    "slug": "food-product-compliance-cost-india",
+    "title": "How Much Does It Cost to Make a Food Product Compliant in India?"
+   }
+  ],
+  "complex-authority-matter": [
+   {
+    "slug": "fssai-licence-suspension-cancellation",
+    "title": "Suspension or Cancellation of an FSSAI Licence: What to Do"
+   }
+  ],
+  "complex-nutraceutical-launch": [
+   {
+    "slug": "launch-protein-powder-brand",
+    "title": "How to Launch a Protein Powder Brand in India: Regulatory Checklist"
+   }
+  ],
+  "comprehensive-artwork-review": [
+   {
+    "slug": "fssai-labelling-requirements",
+    "title": "FSSAI Labelling Requirements: A Complete Guide for Packaged Food Brands"
+   }
+  ],
+  "detailed-product-classification": [
+   {
+    "slug": "standardised-proprietary-non-specified-food",
+    "title": "Standardised, Proprietary or Non-Specified Food? A Guide to FSSAI Product Classification"
+   }
+  ],
+  "dossier-preparation": [
+   {
+    "slug": "non-specified-food-approval",
+    "title": "Non-Specified Food and Novel Ingredient Approval: Process, Time and Cost"
+   }
+  ],
+  "end-to-end-product-compliance": [
+   {
+    "slug": "nutraceutical-regulations-india",
+    "title": "Nutraceutical Regulations in India: A Complete Guide for Supplement Brands"
+   }
+  ],
+  "flavour-regulatory-review": [
+   {
+    "slug": "flavour-declarations-food-labels",
+    "title": "Flavours on Food Labels: Natural, Nature-Identical and Artificial"
+   }
+  ],
+  "front-of-pack-review": [
+   {
+    "slug": "veg-non-veg-logo-rules",
+    "title": "Veg and Non-Veg Logo Rules (Size, Colour, Placement)"
+   },
+   {
+    "slug": "front-of-pack-labelling-india",
+    "title": "Front-of-Pack Labelling in India: Where Things Stand"
+   }
+  ],
+  "fsms-documentation-support": [
+   {
+    "slug": "fsms-plan-fssai",
+    "title": "FSMS Plan: What FSSAI Expects and How to Write One"
+   }
+  ],
+  "fssai-compliance-gap-assessment": [
+   {
+    "slug": "fssai-annual-return-d1",
+    "title": "FSSAI Annual Return (Form D-1): Who Must File and By When"
+   },
+   {
+    "slug": "fssai-compliance-after-licence",
+    "title": "FSSAI Compliance After You Get the Licence: Inspections, Notices, Testing and Records"
+   },
+   {
+    "slug": "fostac-food-safety-supervisor",
+    "title": "FoSTaC Training and the Food Safety Supervisor Requirement"
+   },
+   {
+    "slug": "six-monthly-food-lab-testing",
+    "title": "Six-Monthly Lab Testing for Manufacturers: Who Must Do It"
+   }
+  ],
+  "fssai-notice-review": [
+   {
+    "slug": "fssai-notice-reply",
+    "title": "Received an FSSAI Notice? What It Means and What to Do Next"
+   }
+  ],
+  "full-packaging-compliance-review": [
+   {
+    "slug": "fssai-labelling-requirements",
+    "title": "FSSAI Labelling Requirements: A Complete Guide for Packaged Food Brands"
+   }
+  ],
+  "health-claim-review": [
+   {
+    "slug": "nutrition-vs-health-claims",
+    "title": "Nutrition Claims vs Health Claims: The Difference and Why It Matters"
+   },
+   {
+    "slug": "immunity-booster-food-claims",
+    "title": "\"Immunity Booster\" and Other Risky Claims Brands Still Make"
+   }
+  ],
+  "hygiene-schedule-4-documentation-review": [
+   {
+    "slug": "schedule-4-hygiene-requirements",
+    "title": "Schedule 4 Hygiene Requirements, Explained Simply"
+   }
+  ],
+  "import-compliance-advisory": [
+   {
+    "slug": "fssai-import-rejection-reasons",
+    "title": "Why Imported Food Gets Rejected at the Port (and How to Avoid It)"
+   }
+  ],
+  "import-documentation-regulatory-review": [
+   {
+    "slug": "fssai-import-clearance-process",
+    "title": "FSSAI Import Clearance Explained: From Shipment to Release"
+   }
+  ],
+  "import-product-compliance-assessment": [
+   {
+    "slug": "importing-food-india-fssai",
+    "title": "Importing Food into India: FSSAI Clearance, Labels and Common Rejection Risks"
+   }
+  ],
+  "imported-label-review": [
+   {
+    "slug": "importing-food-india-fssai",
+    "title": "Importing Food into India: FSSAI Clearance, Labels and Common Rejection Risks"
+   }
+  ],
+  "improvement-notice-support": [
+   {
+    "slug": "fssai-improvement-notice",
+    "title": "FSSAI Improvement Notices: Required Measures, Deadlines and Appeal Rights"
+   }
+  ],
+  "india-specific-label-adaptation": [
+   {
+    "slug": "imported-food-labels-stickers-language",
+    "title": "Imported Food Labels in India: Language Rules and Permitted Stickers"
+   }
+  ],
+  "individual-claim-assessment": [
+   {
+    "slug": "natural-fresh-pure-original-food-claims",
+    "title": "Can You Call Your Food \"Natural\", \"Fresh\", \"Pure\" or \"Original\"?"
+   }
+  ],
+  "influencer-marketing-communication-review": [
+   {
+    "slug": "influencer-food-advertising-rules",
+    "title": "Influencer Marketing for Food Brands: The Rules on Claims"
+   }
+  ],
+  "ingredient-additive-compliance-assessment": [
+   {
+    "slug": "ingredients-allowed-abroad-india",
+    "title": "Allowed Abroad, Not Allowed in India: Additives and Ingredients to Watch"
+   }
+  ],
+  "ingredient-permissibility-assessment": [
+   {
+    "slug": "probiotics-prebiotics-india",
+    "title": "Probiotics and Prebiotics: Permitted Strains and Claims"
+   },
+   {
+    "slug": "botanical-ingredients-nutraceuticals",
+    "title": "Botanicals in Nutraceuticals: How to Check if a Plant Ingredient Is Permitted"
+   }
+  ],
+  "ingredient-regulatory-status": [
+   {
+    "slug": "ingredient-permitted-india",
+    "title": "Is This Ingredient Allowed in India? How to Check an Ingredient's Status"
+   }
+  ],
+  "inspection-readiness-assessment": [
+   {
+    "slug": "fssai-inspection-checklist",
+    "title": "FSSAI Inspection Checklist: How to Prepare"
+   }
+  ],
+  "kld-dieline-compliance-review": [
+   {
+    "slug": "small-pack-multipack-label-rules",
+    "title": "Label Rules for Small Packs and Multipacks"
+   }
+  ],
+  "label-development-regulatory-inputs": [
+   {
+    "slug": "food-label-packaging-designer-brief",
+    "title": "What Your Packaging Designer Needs from You Before Designing a Food Label"
+   }
+  ],
+  "legal-metrology-declaration-review": [
+   {
+    "slug": "legal-metrology-food-packaging",
+    "title": "Legal Metrology on Food Packs: Net Quantity, MRP and Consumer Care"
+   }
+  ],
+  "licence-modification": [
+   {
+    "slug": "fssai-licence-modification",
+    "title": "How to Modify an FSSAI Licence: Adding Products, Changing Address or Capacity"
+   },
+   {
+    "slug": "organic-vegan-logo-endorsement",
+    "title": "Organic (Jaivik Bharat) and Vegan Logos: How to Get Endorsement"
+   }
+  ],
+  "licence-renewal": [
+   {
+    "slug": "fssai-licence-renewal",
+    "title": "FSSAI Licence Renewal in 2026: Perpetual Validity, Annual Fees and Legacy Certificates"
+   }
+  ],
+  "licence-surrender-closure": [
+   {
+    "slug": "surrender-close-fssai-licence",
+    "title": "How to Surrender or Close an FSSAI Licence"
+   }
+  ],
+  "marketplace-compliance-review": [
+   {
+    "slug": "fssai-online-food-sellers",
+    "title": "FSSAI Licence for E-commerce and Online Food Sellers (Amazon, Flipkart, Quick Commerce)"
+   },
+   {
+    "slug": "sell-food-amazon-flipkart-blinkit-zepto",
+    "title": "Selling on Amazon, Flipkart, Blinkit and Zepto: Food Seller Requirements"
+   }
+  ],
+  "multi-location-licensing": [
+   {
+    "slug": "fssai-head-office-branch-licences",
+    "title": "Multi-State Operations: Head Office Licence and Branch Licences"
+   }
+  ],
+  "multi-sku-artwork-harmonisation": [
+   {
+    "slug": "harmonise-food-labels-product-range",
+    "title": "Harmonising Labels Across a Product Range"
+   }
+  ],
+  "multiple-kob-assessment": [
+   {
+    "slug": "fssai-registration-vs-licence",
+    "title": "FSSAI Registration vs State Licence vs Central Licence: Which One Do You Need?"
+   },
+   {
+    "slug": "kind-of-business-fssai",
+    "title": "Kind of Business (KOB) on FoSCoS Explained and How to Pick the Right One"
+   },
+   {
+    "slug": "multiple-kind-of-business-fssai",
+    "title": "Running Several Kinds of Business Under One Licence"
+   },
+   {
+    "slug": "fssai-repackers-relabellers",
+    "title": "FSSAI for Repackers and Relabellers"
+   }
+  ],
+  "new-notification-amendment-impact-review": [
+   {
+    "slug": "fssai-monthly-updates",
+    "title": "FSSAI Updates: September 2026 Roundup for Food Businesses"
+   },
+   {
+    "slug": "fssai-laboratory-analysis-amendment",
+    "title": "FSSAI Laboratory Amendment 2026: Changes Effective from April 2027"
+   }
+  ],
+  "nutraceutical-health-supplement-classification": [
+   {
+    "slug": "health-supplement-nutraceutical-fsdu-fsmp",
+    "title": "Health Supplement vs Nutraceutical vs FSDU vs FSMP: Which Category Is Your Product?"
+   }
+  ],
+  "nutrient-level-rda-assessment": [
+   {
+    "slug": "supplement-rda-permitted-nutrient-forms",
+    "title": "Vitamins and Minerals in Supplements: RDA Limits and Permitted Forms"
+   }
+  ],
+  "nutrition-claim-review": [
+   {
+    "slug": "high-protein-low-fat-sugar-free-criteria",
+    "title": "\"High Protein\", \"Low Fat\", \"Sugar Free\": Criteria for Nutrition Claims"
+   },
+   {
+    "slug": "no-added-sugar-vs-sugar-free",
+    "title": "\"No Added Sugar\" vs \"Sugar Free\" vs \"Zero Sugar\""
+   }
+  ],
+  "nutrition-information-review": [
+   {
+    "slug": "nutrition-information-table-india",
+    "title": "How to Make a Nutrition Information Table for Your Label"
+   }
+  ],
+  "pre-print-final-artwork-sign-off": [
+   {
+    "slug": "food-label-pre-print-checklist",
+    "title": "Pre-Print Checklist: What to Check Before Your Label Goes to the Printer"
+   }
+  ],
+  "product-category-identification": [
+   {
+    "slug": "fssai-food-category-system",
+    "title": "FSSAI Food Category System Explained (with Examples)"
+   }
+  ],
+  "product-classification": [
+   {
+    "slug": "fssai-ayush-herbal-ayurvedic-foods",
+    "title": "FSSAI or AYUSH? Herbal and Ayurvedic Products Explained"
+   }
+  ],
+  "product-naming-assessment": [
+   {
+    "slug": "fssai-food-product-naming",
+    "title": "Can You Use This Product Name? FSSAI Rules on Naming Food"
+   }
+  ],
+  "proprietary-food-assessment": [
+   {
+    "slug": "standardised-proprietary-non-specified-food",
+    "title": "Standardised, Proprietary or Non-Specified Food? A Guide to FSSAI Product Classification"
+   },
+   {
+    "slug": "standardised-vs-proprietary-food",
+    "title": "Standardised vs Proprietary Food: What's the Difference?"
+   }
+  ],
+  "recall-traceability-procedure-review": [
+   {
+    "slug": "food-recall-traceability-plan",
+    "title": "Food Recall Plan and Traceability: A Template Approach"
+   }
+  ],
+  "reformulation-advisory": [
+   {
+    "slug": "reformulate-food-regulatory-compliance",
+    "title": "When Your Recipe Doesn't Comply: Reformulating Without Losing the Product"
+   }
+  ],
+  "regulatory-feasibility-assessment": [
+   {
+    "slug": "food-product-regulatory-feasibility",
+    "title": "Regulatory Feasibility: Questions to Answer Before Developing a New Product"
+   }
+  ],
+  "regulatory-gap-assessment-india-vs-overseas-label": [
+   {
+    "slug": "eu-us-vs-india-food-labels",
+    "title": "Your EU/US Label vs Indian Requirements: A Side-by-Side Comparison"
+   }
+  ],
+  "sampling-test-report-regulatory-assessment": [
+   {
+    "slug": "food-sample-failed-fssai",
+    "title": "Your Food Sample Failed the Lab Test: Your Options"
+   }
+  ],
+  "soi-preparation": [
+   {
+    "slug": "statement-of-ingredients-fssai",
+    "title": "How to Write a Statement of Ingredients the FSSAI Way (Order, Percentages, Compound Ingredients)"
+   }
+  ],
+  "standardised-food-assessment": [
+   {
+    "slug": "millet-food-standards-labelling",
+    "title": "Millet Products: Standards and Labelling"
+   }
+  ],
+  "state-fssai-licence-new": [
+   {
+    "slug": "fssai-registration-vs-licence",
+    "title": "FSSAI Registration vs State Licence vs Central Licence: Which One Do You Need?"
+   },
+   {
+    "slug": "fssai-licence-fees",
+    "title": "FSSAI Licence Fees in 2026: Government Fee vs Professional Fee Explained"
+   },
+   {
+    "slug": "fssai-licence-cloud-kitchen",
+    "title": "FSSAI Licence for Cloud Kitchens (Swiggy & Zomato Requirements)"
+   },
+   {
+    "slug": "fssai-licence-restaurants-caterers",
+    "title": "FSSAI Licence for Restaurants, Cafés and Caterers"
+   }
+  ],
+  "vitamin-and-mineral-compliance": [
+   {
+    "slug": "fortified-foods-plus-f-logo",
+    "title": "Fortified Foods and the +F Logo"
+   }
+  ],
+  "website-regulatory-review": [
+   {
+    "slug": "d2c-food-brand-compliance",
+    "title": "D2C Food Brand Compliance Checklist (Website, Marketplaces, Labels)"
+   }
+  ]
+ }
+}

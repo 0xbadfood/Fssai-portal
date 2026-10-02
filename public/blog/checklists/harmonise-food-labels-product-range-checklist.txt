@@ -1,0 +1,11 @@
+MYFOODLICENSE.COM — Harmonising Labels Across a Product Range
+Preparation worksheet | reviewed 2 October 2026
+
+[ ] Build a complete SKU and source matrix.
+[ ] Identify genuinely common elements.
+[ ] Protect formula-specific declarations.
+[ ] Map pack-size and site variants.
+[ ] Use controlled file and batch references.
+[ ] Apply changes to all affected versions.
+
+Educational aid. Read the linked official sources and confirm the requirements for your actual business.

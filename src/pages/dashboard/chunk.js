@@ -1,0 +1,10 @@
+// Everything the customer dashboard needs, loaded as one chunk by App.jsx when a dashboard route is first opened.
+export { default as DashboardLayout } from '../../components/dashboard/DashboardLayout.jsx'
+export { default as DashboardHome } from './DashboardHome.jsx'
+export { default as DashboardIndex } from './DashboardIndex.jsx'
+export { default as ApplyPage } from './apply/ApplyPage.jsx'
+export { default as DocumentsPage } from './DocumentsPage.jsx'
+export { default as PremisesPage } from './PremisesPage.jsx'
+export { default as SupportPage } from './SupportPage.jsx'
+export { default as PaymentsPage, PaymentReturnPage } from './PaymentsPage.jsx'
+export { MyServicesPage, ServiceCheckoutPage } from './ServiceOrders.jsx'

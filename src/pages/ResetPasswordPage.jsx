@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { KeyRound } from 'lucide-react'
 import { AuthShell, Field } from './LoginPage.jsx'
+import { useMeta } from '../seo/useMeta.js'
+import { privateMeta } from '../seo/meta.js'
 
 // The token arrives in the URL fragment (#token=…), which browsers never send to servers or in referrers.
 const tokenFromHash = () => new URLSearchParams(window.location.hash.slice(1)).get('token') || ''
 
 export default function ResetPasswordPage() {
+  useMeta(privateMeta('Choose a new password', '/reset-password'))
   const [token] = useState(tokenFromHash)
   const [form, setForm] = useState({ password: '', confirm: '' })
   const [state, setState] = useState({ busy: false, error: '' })

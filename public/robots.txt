@@ -1,0 +1,13 @@
+# myfoodlicense.com — served as-is on the canonical host only.
+# Every other hostname (www, test hosts) gets "Disallow: /" from server/seo.js.
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /ops
+Disallow: /api/
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://myfoodlicense.com/sitemap.xml

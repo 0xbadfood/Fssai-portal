@@ -1,6 +1,7 @@
 # dependencies and build output
 node_modules/
 dist/
+.ssr/
 
 # user data: encrypted uploaded documents (personal data) — never commit
 storage/

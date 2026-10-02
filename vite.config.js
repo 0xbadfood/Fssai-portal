@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { readFileSync } from 'node:fs'
 import apiPlugin from './server/apiPlugin.js'
+import seoPlugin from './server/seo.js'
 
 // Public hostnames, shared with the API (emailed links): config/site.json.
 const SITE = JSON.parse(readFileSync(new URL('./config/site.json', import.meta.url), 'utf8'))
@@ -11,7 +12,7 @@ const SITE = JSON.parse(readFileSync(new URL('./config/site.json', import.meta.u
 const LISTEN_HOST = process.env.PORTAL_HOST || '10.8.0.2'
 const LISTEN_PORT = Number(process.env.PORTAL_PORT) || 8310
 
-// Browser security headers for every response. The CSP allows only this site plus Google Fonts and the payment
+// Browser security headers for every response. The CSP allows only this site plus the payment
 // gateway's checkout (Cashfree's SDK, which sends the page to its payment page); PDF pages are rendered by a
 // same-origin worker and shown as blob:/data: images.
 const CASHFREE = 'https://sdk.cashfree.com https://sandbox.cashfree.com https://api.cashfree.com'
@@ -19,8 +20,8 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'",
     `script-src 'self' https://sdk.cashfree.com`,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: blob:",
     "worker-src 'self' blob:",
     `connect-src 'self' ${CASHFREE}`,
@@ -38,7 +39,7 @@ const SECURITY_HEADERS = {
 }
 
 export default defineConfig({
-  plugins: [react(), apiPlugin()],
+  plugins: [react(), seoPlugin(), apiPlugin()],
   preview: {
     host: LISTEN_HOST, // never a public interface: a Caddy in front terminates HTTPS and proxies here
     port: LISTEN_PORT,

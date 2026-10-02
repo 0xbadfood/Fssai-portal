@@ -4,8 +4,11 @@ import { LogIn } from 'lucide-react'
 import Logo from '../components/Logo.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
 import { isOpsRole, useAuth } from '../lib/auth.jsx'
+import { useMeta } from '../seo/useMeta.js'
+import { privateMeta } from '../seo/meta.js'
 
 export default function LoginPage() {
+  useMeta(privateMeta('Sign in', '/login'))
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()

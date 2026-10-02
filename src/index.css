@@ -1,3 +1,5 @@
+@import '@fontsource-variable/inter';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,7 +9,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -65,4 +67,32 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .bar3d { transition: none; }
+}
+
+/* Blog article bodies (authored HTML from content/blog/posts.json, rendered by src/pages/blog/BlogPages.jsx). */
+@layer components {
+  .blog-prose { @apply text-[17px] leading-[1.75] text-slate-700; overflow-wrap: break-word; }
+  .blog-prose > :first-child { @apply mt-0; }
+  .blog-prose h2 { @apply mt-12 scroll-mt-24 text-2xl font-extrabold tracking-tight text-slate-900; }
+  .blog-prose h3 { @apply mt-8 text-lg font-bold text-slate-900; }
+  .blog-prose p { @apply mt-4; }
+  .blog-prose a { @apply font-semibold text-violet-700 underline decoration-violet-200 underline-offset-2 hover:decoration-violet-500; }
+  .blog-prose a.source-link { @apply font-medium; }
+  .blog-prose ul { @apply mt-4 list-disc space-y-2 pl-6 marker:text-violet-400; }
+  .blog-prose ol { @apply mt-4 list-decimal space-y-2 pl-6 marker:font-bold marker:text-violet-500; }
+  .blog-prose strong { @apply font-bold text-slate-900; }
+  .blog-prose .table-wrap { @apply mt-6 overflow-x-auto rounded-2xl ring-1 ring-slate-200; }
+  .blog-prose table { @apply w-full border-collapse text-left text-sm leading-relaxed; }
+  .blog-prose th { @apply bg-slate-50 px-4 py-3 align-top font-bold text-slate-800; }
+  .blog-prose td { @apply border-t border-slate-100 px-4 py-3 align-top; }
+  .blog-prose .note,
+  .blog-prose .checklist { @apply mt-6 rounded-2xl bg-violet-50/70 p-5 ring-1 ring-violet-100; }
+  .blog-prose .example { @apply mt-6 rounded-2xl bg-amber-50 p-5 ring-1 ring-amber-200; }
+  .blog-prose .example .label { @apply text-xs font-bold uppercase tracking-wider text-amber-800; }
+  .blog-prose .note > :first-child,
+  .blog-prose .example > :first-child,
+  .blog-prose .checklist > :first-child { @apply mt-0; }
+  .blog-prose .download { @apply inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-bold no-underline ring-1 ring-violet-200 hover:bg-violet-50; }
+  .blog-prose figure { @apply mt-6; }
+  .blog-prose img { @apply h-auto max-w-full rounded-2xl; }
 }

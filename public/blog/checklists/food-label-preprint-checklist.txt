@@ -1,0 +1,38 @@
+MYFOODLICENSE.COM — PRE-PRINT FOOD LABEL REVIEW WORKSHEET
+Source review: 2 October 2026 | Regulatory expert review pending
+
+Educational preparation aid. Confirm applicable requirements, exemptions,
+product-specific rules and effective dates for the actual product and pack.
+
+Product/SKU: _________________________________
+Recipe version: ______________________________
+Artwork/dieline version: ______________________
+Planned production period: ____________________
+Regulatory reviewer: __________________________
+
+[ ] Confirm product classification and descriptive food name.
+[ ] Obtain the final recipe and compound-ingredient components.
+[ ] Review ingredients, additive declarations and supplier specifications.
+[ ] Assess applicable allergens and cross-contact information.
+[ ] Check nutrition evidence, units, reporting basis and serving assumptions.
+[ ] Check the applicable vegetarian/non-vegetarian declaration and presentation.
+[ ] Reconcile responsible entities, addresses and FSSAI information.
+[ ] Review applicable quantity, price and consumer-care declarations.
+[ ] Review batch and date coding, storage and use information.
+[ ] Check any specialised warnings or declarations.
+[ ] Assess every claim, visual emphasis and associated evidence.
+[ ] For imports, review original label, Indian adaptation and origin details.
+[ ] Evaluate any proposed exemption and record the applicable source.
+[ ] Check amendments by effective date, including relevant future transitions.
+[ ] Review legibility, folds, seals, coding area and actual pack dimensions.
+[ ] Compare printer's proof with the corrected final artwork.
+[ ] Archive comments, resolved actions and named sign-off.
+[ ] Update website and marketplace images when artwork changes.
+
+Issue | Source/condition | Correction | Owner | Closed
+____________________________________________________
+____________________________________________________
+____________________________________________________
+
+This worksheet is not regulatory approval or a compliant artwork template.
+myfoodlicense.com is an independent consultancy, unaffiliated with FSSAI.

@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import Logo from '../Logo.jsx'
 
-const LINKS = [
+export const LINKS = [
+  { href: '/', label: 'Home' },
   { href: '/#how', label: 'How it works' },
   { href: '/services', label: 'Expert services' },
+  { href: '/blog', label: 'Guides' },
   { href: '/#faq', label: 'FAQ' },
 ]
 

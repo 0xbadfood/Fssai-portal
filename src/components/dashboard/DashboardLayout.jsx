@@ -3,6 +3,8 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { ArrowRight, ChevronDown, CreditCard, FolderOpen, Home, LifeBuoy, LogOut, MapPin, Menu, Sparkles, UserCheck, X } from 'lucide-react'
 import Logo from '../Logo.jsx'
 import { useAuth } from '../../lib/auth.jsx'
+import { useMeta } from '../../seo/useMeta.js'
+import { privateMeta } from '../../seo/meta.js'
 
 const NAV = [
   { to: '/dashboard/overview', label: 'Dashboard', icon: Home },
@@ -15,6 +17,7 @@ const NAV = [
 ]
 
 export default function DashboardLayout() {
+  useMeta(privateMeta('Dashboard', null))
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   useEffect(() => {

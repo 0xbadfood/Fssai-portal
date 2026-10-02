@@ -1,0 +1,34 @@
+MYFOODLICENSE.COM — FOOD IMPORT PRE-SHIPMENT REVIEW WORKSHEET
+Source review: 2 October 2026 | Regulatory expert review pending
+
+Importer/legal entity: _________________________
+Supplier/manufacturer: ________________________
+Products and batches: _________________________
+Expected shipment/arrival: ____________________
+Customs broker/contact: _______________________
+
+[ ] Review importer credentials and the applicable licence/IEC position.
+[ ] Obtain the complete formulation and component information.
+[ ] Establish product classification and ingredient/additive questions.
+[ ] Resolve any applicable prior approval or specialised category issue.
+[ ] Review the original label and proposed Indian adaptation.
+[ ] Assess claims and supporting evidence.
+[ ] Review any proposed rectification against current permitted procedures.
+[ ] Match product descriptions to the invoice and shipment documents.
+[ ] Assemble applicable origin, Bill of Entry and conditional documents.
+[ ] Record manufacture, expiry and other relevant dates by batch.
+[ ] Have the applicable balance-shelf-life calculation reviewed.
+[ ] Leave a realistic commercial margin for transit, review and distribution.
+[ ] Check current Customs/SWIFT and FSSAI workflow instructions.
+[ ] Coordinate inspection access and product/batch identification.
+[ ] Track sampling and testing records where required.
+[ ] Preserve current payment demands and acknowledgements.
+[ ] Retain decisions and actual deadlines if an issue is raised.
+
+Open issue | Supplier/broker action | Reviewer | Dispatch decision
+_______________________________________________________________
+_______________________________________________________________
+_______________________________________________________________
+
+This worksheet is not a guarantee of import clearance.
+myfoodlicense.com is an independent consultancy, unaffiliated with FSSAI.

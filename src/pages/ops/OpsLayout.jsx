@@ -3,11 +3,14 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { LogOut, ShieldCheck } from 'lucide-react'
 import Logo from '../../components/Logo.jsx'
 import { useAuth } from '../../lib/auth.jsx'
+import { useMeta } from '../../seo/useMeta.js'
+import { privateMeta } from '../../seo/meta.js'
 
 const ROLE_LABEL = { admin: 'Admin', ops: 'Operations team', expert: 'Expert' }
 
 /** Operations console shell: a plain top bar, wide content (the team works on laptops). */
 export default function OpsLayout() {
+  useMeta(privateMeta('Operations', null))
   const { session, logout } = useAuth()
   const navigate = useNavigate()
   return (

@@ -2,8 +2,11 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { KeyRound, MailCheck } from 'lucide-react'
 import { AuthShell, Field } from './LoginPage.jsx'
+import { useMeta } from '../seo/useMeta.js'
+import { privateMeta } from '../seo/meta.js'
 
 export default function ForgotPasswordPage() {
+  useMeta(privateMeta('Reset your password', '/forgot-password'))
   const [email, setEmail] = useState('')
   const [state, setState] = useState({ busy: false, sent: false, error: '' })
 

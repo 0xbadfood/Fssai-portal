@@ -2,8 +2,11 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { Compass } from 'lucide-react'
 import Logo from '../components/Logo.jsx'
+import { useMeta } from '../seo/useMeta.js'
+import { notFoundMeta } from '../seo/meta.js'
 
 export default function NotFoundPage() {
+  useMeta(notFoundMeta())
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
       <Logo to="/" />
@@ -16,6 +19,9 @@ export default function NotFoundPage() {
         <Link to="/" className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
           Go to Homepage
         </Link>
+        <a href="/blog" className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-white">
+          FSSAI guides
+        </a>
         <Link to="/dashboard" className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700">
           Go to Dashboard
         </Link>

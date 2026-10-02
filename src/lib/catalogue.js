@@ -9,16 +9,35 @@ export async function api(path, body) {
   return data
 }
 
+// Prerendered service pages carry the catalogue (scripts/seo/prerender.mjs), so they render before the fetch.
+let cached = null
+try {
+  const embedded = typeof document !== 'undefined' && document.getElementById('catalogue-data')
+  if (embedded) cached = JSON.parse(embedded.textContent)
+} catch {
+  cached = null
+}
+/** Used by the prerender, which has the catalogue at hand. */
+export function primeCatalogue(cat) {
+  cached = cat
+}
+
 let pending = null
 export function useCatalogue() {
-  const [cat, setCat] = useState(null)
+  const [cat, setCat] = useState(cached)
   const [error, setError] = useState('')
   useEffect(() => {
+    // Always ask the server once per page load: an embedded copy is from the build and prices may have changed.
     pending ??= api('/api/services')
-    pending.then(setCat).catch((e) => {
-      pending = null
-      setError(e.message)
-    })
+    pending
+      .then((c) => {
+        cached = c
+        setCat(c)
+      })
+      .catch((e) => {
+        pending = null
+        if (!cached) setError(e.message)
+      })
   }, [])
   return { cat, error }
 }
