@@ -98,7 +98,41 @@ export function decide(spec, config, raw, { today = new Date().toISOString().sli
 const IMAGE_URL = /^data:image\/(jpeg|png|webp);base64,/
 export const MAX_PAGES = 4
 
-/** fromPdf: the pages were rendered from an uploaded PDF (not photographed). */
+/** The browser sends the PDF text as "--- page N ---" blocks; -> text per page index (missing pages get ''). */
+export function splitPdfText(pdfText, count) {
+  const out = Array(count).fill('')
+  const parts = String(pdfText || '').split(/^--- page (\d+) ---$/m)
+  if (parts.length < 3) out[0] = String(pdfText || '') // no markers: treat it all as the first page's
+  for (let i = 1; i + 1 < parts.length; i += 2) if (+parts[i] >= 1 && +parts[i] <= count) out[+parts[i] - 1] = parts[i + 1].trim()
+  return out
+}
+
+/** Several single-page answers as one: a check passes if any page passed it, a field comes from the first page that
+ * has it, the document matches if any page does. Quality: the best page's score, and a flag only if every page has it
+ * (a sharp page 1 isn't failed by fine print on page 4). */
+export function mergePages(raws) {
+  const list = raws.filter(Boolean)
+  const main = list.find((r) => r.matches_expected === true) || list[0] || {}
+  const answers = {}
+  for (const r of list) for (const [id, a] of Object.entries(r.answers || {})) if (!answers[id] || (a?.answer === true && answers[id].answer !== true)) answers[id] = a
+  const extracted = {}
+  for (const r of [main, ...list]) for (const [k, v] of Object.entries(r.extracted || {})) if (extracted[k] == null && v != null && v !== '') extracted[k] = v
+  const flagSets = list.map((r) => (Array.isArray(r.quality?.flags) ? r.quality.flags : []))
+  return {
+    detected_document_type: main.detected_document_type,
+    matches_expected: list.some((r) => r.matches_expected === true),
+    answers,
+    extracted,
+    quality: {
+      score: Math.max(0, ...list.map((r) => Number(r.quality?.score) || 0)),
+      flags: flagSets.length ? flagSets[0].filter((f) => flagSets.every((fs) => fs.includes(f))) : [],
+    },
+  }
+}
+
+/** fromPdf: the pages were rendered from an uploaded PDF (not photographed).
+ * Pages go to the model one at a time, and checking stops at the first page after which the document is accepted
+ * (right document, required checks, date, quality): later pages (terms, adverts) are never sent. */
 export async function verifyDocument({ docTypeId, pages, fromPdf = false, pdfText = '' }) {
   const provider = providerConfig()
   const config = readJson('document-types.json')
@@ -110,10 +144,19 @@ export async function verifyDocument({ docTypeId, pages, fromPdf = false, pdfTex
   if (pages.some((p) => p.length > provider.maxImageBytes * 1.4)) throw Object.assign(new Error('Image too large'), { status: 413 })
 
   const today = new Date().toISOString().slice(0, 10)
-  const multi = pages.length > 1 ? `\nThe document is given as ${pages.length} page images in order; judge the document as a whole.` : ''
-  const { model, json } = await chatJson('verifyDocument', [
-    { type: 'text', text: buildPrompt(spec, today, { fromPdf, pdfText }) + multi },
-    ...pages.map((url) => ({ type: 'image_url', image_url: { url } })),
-  ])
-  return { model, verifiedAt: new Date().toISOString(), ...decide(spec, config, json, { today, fromPdf }) }
+  const texts = splitPdfText(pdfText, pages.length)
+  const raws = []
+  let model, result
+  for (let i = 0; i < pages.length; i++) {
+    const which = pages.length > 1 ? `\nThis is page ${i + 1} of ${pages.length} of the document; the other pages are checked separately, so answer for what this page shows.` : ''
+    const reply = await chatJson('verifyDocument', [
+      { type: 'text', text: buildPrompt(spec, today, { fromPdf, pdfText: texts[i] }) + which },
+      { type: 'image_url', image_url: { url: pages[i] } },
+    ])
+    model = reply.model
+    raws.push(reply.json)
+    result = decide(spec, config, mergePages(raws), { today, fromPdf })
+    if (result.decision === 'accepted') break
+  }
+  return { model, verifiedAt: new Date().toISOString(), pagesChecked: raws.length, ...result }
 }
