@@ -8,6 +8,14 @@ import { emailProblem, emailSuggestion, mobileProblem, normalizeMobile, password
 import { useMeta } from '../seo/useMeta.js'
 import { privateMeta } from '../seo/meta.js'
 
+// The box already shows +91: drop a typed or pasted +91 / 91 / 0 in front, and anything that isn't a digit, space or dash.
+function localMobile(v) {
+  const s = v.replace(/^\s*\+\s*91[\s-]*/, '').replace(/[^\d\s-]/g, '')
+  const d = s.replace(/\D/g, '')
+  if ((d.length === 12 && d.startsWith('91')) || (d.length === 11 && d.startsWith('0'))) return d.slice(-10)
+  return s.slice(0, 14)
+}
+
 export default function SignupPage() {
   useMeta(privateMeta('Create your free account', '/signup'))
   const { signup } = useAuth()
@@ -84,7 +92,7 @@ export default function SignupPage() {
           inputMode="numeric"
           prefix="+91"
           value={form.phone}
-          onChange={(v) => set('phone')(v.replace(/[^\d\s+-]/g, '').slice(0, 16))}
+          onChange={(v) => set('phone')(localMobile(v))}
           onBlur={blur('phone')}
           placeholder="98765 43210"
           autoComplete="tel-national"
