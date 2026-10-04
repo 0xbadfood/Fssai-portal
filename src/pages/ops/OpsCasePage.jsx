@@ -55,7 +55,7 @@ export default function OpsCasePage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="font-mono text-xs font-bold text-slate-500">CASE {c.ref}</p>
-          <h1 className="text-2xl font-extrabold text-slate-900">{data.info.legal_name || data.customer.businessName}</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900">{data.info.legal_name || data.customer.businessName || data.customer.name}</h1>
           <p className="text-sm text-slate-500">
             {data.info.applicant_name || data.customer.name} · opened {when(c.openedAt)}
           </p>
@@ -88,7 +88,7 @@ export default function OpsCasePage() {
           <CaseControls data={data} busy={busy} act={act} />
           <Section title="Customer">
             <p className="font-bold text-slate-900">{data.customer.name}</p>
-            <p className="text-sm text-slate-500">{data.customer.businessName}</p>
+            {data.customer.businessName && <p className="text-sm text-slate-500">{data.customer.businessName}</p>}
             <div className="mt-2 space-y-1 text-sm">
               <a href={`tel:${data.info.mobile || data.customer.phone}`} className="flex items-center gap-2 font-semibold text-violet-700 hover:underline">
                 <Phone size={14} /> {data.info.mobile || data.customer.phone}

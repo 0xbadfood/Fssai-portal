@@ -114,7 +114,7 @@ function Topbar({ onMenu }) {
           </span>
           <span className="hidden text-left sm:block">
             <span className="block text-sm font-bold text-slate-800">{session?.name}</span>
-            <span className="block text-xs text-slate-400">{session?.businessName}</span>
+            {session?.businessName && <span className="block text-xs text-slate-400">{session.businessName}</span>}
           </span>
           <ChevronDown size={14} className="hidden text-slate-400 sm:block" />
         </button>

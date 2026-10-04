@@ -69,7 +69,8 @@ export async function signup({ businessName, name, email, phone, password }, { u
     if (typeof v !== 'string' || !v.trim() || v.length > max) throw httpError(400, `${label} is required.`)
     return v.trim()
   }
-  const biz = clean(businessName, 'Business name')
+  // Optional: the business is named on each application. Older mobile builds still send it.
+  const biz = typeof businessName === 'string' && businessName.trim() ? businessName.trim().slice(0, 150) : null
   const nm = clean(name, 'Your name')
   const ph = clean(phone, 'Phone number', 20)
   if (!/^[0-9+()\-\s]{7,20}$/.test(ph)) throw httpError(400, 'Enter a valid phone number.')

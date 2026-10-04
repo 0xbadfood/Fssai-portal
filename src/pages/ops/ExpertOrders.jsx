@@ -213,8 +213,8 @@ export function ExpertOrderPage() {
         </div>
         <div className="space-y-5">
           <Panel title="Customer">
-            <p className="font-bold text-slate-900">{customer.business}</p>
-            <p className="text-sm text-slate-700">{customer.name}</p>
+            <p className="font-bold text-slate-900">{customer.business || customer.name}</p>
+            {customer.business && <p className="text-sm text-slate-700">{customer.name}</p>}
             <p className="text-sm text-slate-700">{customer.phone} · {customer.email}</p>
           </Panel>
           <Panel title="Expert">

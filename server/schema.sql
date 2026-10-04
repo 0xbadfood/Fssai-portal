@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
   email          text NOT NULL UNIQUE,          -- stored lower-case
   password_hash  text NOT NULL,                 -- scrypt$N$r$p$salt$hash (per-user random salt)
   name           text NOT NULL,
-  business_name  text NOT NULL,
+  business_name  text,                          -- optional since 2026-10-04: the business is named on each application (info.legal_name)
   phone          text NOT NULL,
   created_at     timestamptz NOT NULL DEFAULT now(),
   last_login_at  timestamptz
@@ -314,3 +314,7 @@ CREATE TABLE IF NOT EXISTS case_files (
   CONSTRAINT case_files_file_chk CHECK (kind = 'na' OR storage_path IS NOT NULL)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS case_files_current_uq ON case_files (case_id, slot) WHERE superseded_at IS NULL;
+
+-- 2026-10-04: sign-up no longer asks for a business name (an owner can have outlets under different names);
+-- each application carries its own (info.legal_name). Older accounts keep theirs as a pre-fill.
+ALTER TABLE users ALTER COLUMN business_name DROP NOT NULL;

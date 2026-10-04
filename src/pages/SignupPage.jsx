@@ -11,7 +11,7 @@ export default function SignupPage() {
   const { signup } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [form, setForm] = useState({ businessName: '', name: '', email: '', phone: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -41,7 +41,6 @@ export default function SignupPage() {
       </div>
       {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Field label="Business name" value={form.businessName} onChange={set('businessName')} placeholder="Acme Foods Pvt. Ltd." />
         <Field label="Your name" value={form.name} onChange={set('name')} placeholder="Rahul Kumar" />
         <Field label="Email address" type="email" value={form.email} onChange={set('email')} placeholder="you@business.com" />
         <Field label="Phone number" type="tel" value={form.phone} onChange={set('phone')} placeholder="98765 43210" />

@@ -85,7 +85,7 @@ export async function listCases(user) {
       id: r.id,
       ref: r.app_id.slice(0, 8).toUpperCase(),
       status: r.status,
-      business: r.info?.legal_name || r.business_name,
+      business: r.info?.legal_name || r.business_name || r.name,
       owner: r.info?.applicant_name || r.name,
       phone: r.info?.mobile || r.phone,
       email: r.email,
