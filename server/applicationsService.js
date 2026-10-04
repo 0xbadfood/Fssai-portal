@@ -104,13 +104,19 @@ export async function listApplications(user) {
   )
   const docs = await documentsForApplications(rows.map((r) => ({ userId: user.id, applicationId: r.id })))
   return rows.map((r) => {
-    const plan = planFor(cleanFacts(r.facts), r.info, docs[r.id], user)
+    const facts = cleanFacts(r.facts)
+    const plan = planFor(facts, r.info, docs[r.id], user)
+    const summary = intakeView(facts).summary || []
     return {
       id: r.id,
       parentId: r.parent_id || null,
       status: r.status,
       step: r.step,
       business: r.info?.legal_name || null,
+      entityType: r.info?.entity_type || null,
+      applicant: r.info?.applicant_name || null,
+      place: summary.find((x) => x.id === 'place')?.value || null,
+      fee: plan.result?.fee ?? null,
       premises: { address: r.info?.premises_address || null, city: r.info?.city || null, state: r.info?.state || null },
       licence: plan.result?.licence || null,
       ready: plan.ready,

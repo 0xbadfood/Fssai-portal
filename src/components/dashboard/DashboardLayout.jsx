@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, ChevronDown, CreditCard, FolderOpen, Home, Layers, LifeBuoy, LogOut, MapPin, Menu, Sparkles, UserCheck, X } from 'lucide-react'
+import { ArrowRight, ChevronDown, CreditCard, FolderOpen, Home, Layers, LifeBuoy, LogOut, MapPin, Menu, UserCheck, X } from 'lucide-react'
 import Logo from '../Logo.jsx'
 import { useAuth } from '../../lib/auth.jsx'
 import { useMeta } from '../../seo/useMeta.js'
 import { privateMeta } from '../../seo/meta.js'
-import { applicationName, useApplications } from '../../lib/applications.js'
-import { selectApplication, useSelectedApplicationId } from '../../lib/selectedApplication.js'
+import { useApplications } from '../../lib/applications.js'
+import { useSelectedApplicationId } from '../../lib/selectedApplication.js'
 
 const NAV = [
   { to: '/dashboard/overview', label: 'Dashboard', icon: Home },
-  { to: '/dashboard/applications', label: 'My applications', icon: Layers },
-  { to: '/dashboard/apply', label: 'Application', icon: Sparkles },
+  // The tables of businesses and premises; an application opened from them (/dashboard/apply) belongs here too.
+  { to: '/dashboard/applications', label: 'My applications', icon: Layers, also: ['/dashboard/apply'] },
   { to: '/dashboard/premises', label: 'Premises', icon: MapPin },
   { to: '/dashboard/documents', label: 'Document Vault', icon: FolderOpen },
   { to: '/dashboard/services', label: 'Expert services', icon: UserCheck },
@@ -48,7 +48,7 @@ export default function DashboardLayout() {
                 to={item.to}
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-2xl px-4 py-3 text-[15px] font-bold transition ${
-                    isActive
+                    isActive || item.also?.includes(location.pathname)
                       ? 'bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-200'
                       : 'text-slate-600 hover:bg-violet-50 hover:text-violet-700'
                   }`
@@ -91,7 +91,8 @@ export default function DashboardLayout() {
 // Pages that work on one application: with several, say which one and let the customer switch.
 const PER_APPLICATION = ['/dashboard/apply', '/dashboard/overview', '/dashboard/premises', '/dashboard/documents', '/dashboard/payments']
 
-function ApplicationSwitcher() {
+/** Which business and premises the page is about, with a way back to the tables to pick another. */
+function WorkingOn() {
   const location = useLocation()
   const { list, reload } = useApplications()
   const selected = useSelectedApplicationId()
@@ -101,22 +102,17 @@ function ApplicationSwitcher() {
   if (!list || list.length < 2 || !PER_APPLICATION.includes(location.pathname)) return null
   // No selection yet: the pages show the latest opened one (pending ones last), as the server does.
   const current = list.find((a) => a.id === selected) || [...list].sort((a, b) => (a.status === 'pending') - (b.status === 'pending'))[0]
+  const where = [current.premises.address, current.premises.city].filter(Boolean).join(', ')
   return (
-    <label className="flex min-w-0 items-center gap-2 text-sm">
-      <span className="hidden font-semibold text-slate-500 sm:inline">Application:</span>
-      <select
-        value={current.id}
-        onChange={(e) => selectApplication(e.target.value)}
-        className="min-w-0 max-w-[14rem] truncate rounded-xl border border-slate-200 bg-white px-3 py-2 font-semibold text-slate-800 shadow-sm focus:border-violet-400 focus:outline-none sm:max-w-xs"
-      >
-        {list.map((a) => (
-          <option key={a.id} value={a.id}>
-            {applicationName(a)}
-            {a.status === 'pending' ? ' (pending)' : a.status === 'ready' ? ' (submitted)' : ''}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="flex min-w-0 items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm shadow-sm ring-1 ring-slate-100">
+      <span className="min-w-0 truncate">
+        <span className="font-bold capitalize text-slate-800">{current.business || 'New business'}</span>
+        <span className="hidden text-slate-500 sm:inline"> · {where || 'premises not entered yet'}</span>
+      </span>
+      <Link to="/dashboard/applications" className="shrink-0 font-semibold text-violet-700 hover:underline">
+        Change
+      </Link>
+    </div>
   )
 }
 
@@ -139,7 +135,7 @@ function Topbar({ onMenu }) {
       <div className="lg:hidden">
         <Logo withTagline={false} />
       </div>
-      <ApplicationSwitcher />
+      <WorkingOn />
       <div className="relative ml-auto">
         <button
           onClick={() => setOpen((o) => !o)}
