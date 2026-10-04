@@ -7,6 +7,7 @@ export const LINKS = [
   { href: '/', label: 'Home' },
   { href: '/#how', label: 'How it works' },
   { href: '/services', label: 'Expert services' },
+  { href: '/about', label: 'Our expert' },
   { href: '/blog', label: 'Guides' },
   { href: '/#faq', label: 'FAQ' },
 ]

@@ -6,6 +6,7 @@ import { BRAND_NAME } from '../../lib/brand.js'
 const LINKS = [
   { href: '/#how', label: 'How it works' },
   { href: '/services', label: 'Expert services' },
+  { href: '/about', label: 'Our expert' },
   { href: '/blog', label: 'Guides' },
   { href: '/#faq', label: 'FAQ' },
   { href: '/login', label: 'Sign in' },

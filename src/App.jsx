@@ -9,6 +9,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import ServicesPage from './pages/services/ServicesPage.jsx'
 import ServiceDetailPage from './pages/services/ServiceDetailPage.jsx'
+import ExpertPage from './pages/ExpertPage.jsx'
 
 // The dashboard and the ops console load on demand (one chunk each), so the public pages stay light.
 const dashboard = () => import('./pages/dashboard/chunk.js')
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/services/:id" element={<ServiceDetailPage />} />
+        <Route path="/about" element={<ExpertPage />} />
 
         <Route
           path="/dashboard"

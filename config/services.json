@@ -4,6 +4,16 @@
   "gstin": "",
   "tentative": true,
   "expert": {
+    "name": "Priyanka Sinha",
+    "title": "Lead, Regulatory Affairs",
+    "location": "Bengaluru, Karnataka",
+    "education": [
+      {
+        "institution": "IIT Kharagpur"
+      }
+    ],
+    "linkedin": "https://in.linkedin.com/in/priyanka-sinha-6850269",
+    "photo": null,
     "headline": "Led by a food regulatory expert with more than 20 years in the food industry",
     "summary": "Our regulatory lead has spent over two decades inside the food industry and has worked with leading names including Unilever, Reliance and MTR Foods. That experience spans licensing, product development, labelling and dealing with the authority, from a single product to large portfolios.",
     "companies": [
@@ -25,7 +35,29 @@
         "label": "specialist services"
       }
     ],
-    "confirm": "Profile wording from the business owner; companies listed as past experience, not endorsements. Add name, photo and qualifications when available."
+    "expertise": [
+      {
+        "title": "FSSAI licensing & FoSCoS",
+        "text": "Registration, State and Central licences, modifications, renewals and the documents the authority asks for."
+      },
+      {
+        "title": "Labelling & Legal Metrology",
+        "text": "Labels and artwork checked against the FSSAI Labelling and Display Regulations and the Legal Metrology (Packaged Commodities) Rules."
+      },
+      {
+        "title": "Product development & classification",
+        "text": "Formulations placed in the right standard or category before launch, from a single product to large portfolios."
+      },
+      {
+        "title": "Excise compliance",
+        "text": "Alcoholic beverage products, where FSSAI standards and state excise rules apply together."
+      },
+      {
+        "title": "Dealing with the authority",
+        "text": "Officer queries, inspections, improvement notices and failed samples."
+      }
+    ],
+    "confirm": "Profile from the expert's LinkedIn (in.linkedin.com/in/priyanka-sinha-6850269, public snippet 2026-10-04: Lead Regulatory Affairs, IIT Kharagpur, Bengaluru, 'compliance of Excise, FSSAI & Legal Metrology') plus the business owner's wording; companies listed as past experience, not endorsements. Expertise texts are TENTATIVE. Still needed from the expert: photo (public/expert/…, set `photo`), degree and year, and sign-off on every line."
   },
   "terms": [
     {

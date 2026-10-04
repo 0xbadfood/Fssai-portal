@@ -101,6 +101,41 @@ export function serviceMeta(cat, { svc, section }) {
   }
 }
 
+export const EXPERT_ID = `${SITE_URL}/about#expert`
+
+export function expertMeta(x) {
+  return {
+    title: withBrand(`${x.name}, FSSAI Regulatory Expert`),
+    description: snippet(`${x.name} leads our FSSAI work: ${x.summary}`),
+    path: '/about',
+    type: 'profile',
+    jsonLd: [
+      {
+        '@type': 'ProfilePage',
+        '@id': abs('/about'),
+        url: abs('/about'),
+        name: `${x.name}, FSSAI regulatory expert`,
+        inLanguage: 'en-IN',
+        mainEntity: {
+          '@type': 'Person',
+          '@id': EXPERT_ID,
+          name: x.name,
+          jobTitle: x.title,
+          description: x.summary,
+          ...(x.photo ? { image: abs(x.photo) } : {}),
+          worksFor: { '@id': ORG_ID },
+          alumniOf: x.education.map((e) => ({ '@type': 'CollegeOrUniversity', name: e.institution })),
+          homeLocation: { '@type': 'Place', name: x.location },
+          knowsAbout: x.expertise.map((e) => e.title),
+          sameAs: [x.linkedin],
+        },
+      },
+      organization(),
+      breadcrumbs([['Home', '/'], ['Our expert', '/about']]),
+    ],
+  }
+}
+
 export function blogIndexMeta(count) {
   return {
     title: `FSSAI Guides: Licences, Labelling, Claims & Imports | ${BRAND_NAME}`,

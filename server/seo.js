@@ -45,6 +45,7 @@ export function sitemapXml({ posts, updated }, catalogue = publicCatalogue()) {
       image ? `\n    <image:image><image:loc>${xmlEsc(SITE_URL + image)}</image:loc></image:image>` : ''}\n  </url>`
   const entries = [
     url('/', null, '/og-default.png'),
+    url('/about', services),
     url('/services', services),
     ...catalogue.sections.flatMap((s) => s.services.map((svc) => url(`/services/${svc.id}`, services))),
     url('/blog', updated),

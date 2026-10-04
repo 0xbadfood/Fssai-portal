@@ -4,6 +4,7 @@
 //   dist/index.html                landing page          dist/blog.html         all guides
 //   dist/services.html             expert services       dist/blog/<slug>.html  one guide each
 //   dist/services/<id>.html        one per service       dist/sitemap.xml
+//   dist/about.html                the expert's profile
 //   dist/app.html                  empty shell for sign-in, the dashboard and ops (noindex)
 //   dist/404.html                  not-found page (served with status 404 by server/seo.js)
 //
@@ -58,10 +59,11 @@ for (const section of catalogue.sections) {
     counts.services++
   }
 }
+write('about.html', appPage(route('/about'), { embedCatalogue: true }))
 write('404.html', appPage(route('/404-not-found')))
 // The app shell for routes rendered only in the browser: no content, not indexed.
 write('app.html', appPage({ meta: { title: 'MyFoodLicense', description: '', path: null, robots: 'noindex, nofollow' } }))
-counts.app = 4
+counts.app = 5
 
 const blog = loadPosts()
 const index = ssr.renderBlogIndex(blog.posts, blog.updated)

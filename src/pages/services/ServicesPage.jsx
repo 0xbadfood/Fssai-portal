@@ -117,6 +117,11 @@ function Hero({ cat }) {
               <span className="pb-1 text-lg font-bold leading-tight text-slate-200">years in the<br />food industry</span>
             </div>
             <p className="mt-5 text-[15px] leading-relaxed text-slate-300">{x?.summary || 'Our regulatory lead has spent over two decades inside the food industry.'}</p>
+            {x?.name && (
+              <Link to="/about" className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-violet-200 hover:text-white">
+                Meet {x.name}, {x.title} <ArrowRight size={14} />
+              </Link>
+            )}
             <p className="mt-6 text-xs font-bold uppercase tracking-widest text-slate-400">Has worked with</p>
             <div className="mt-3 flex flex-wrap gap-2.5">
               {(x?.companies || ['Unilever', 'Reliance', 'MTR Foods']).map((c) => (
