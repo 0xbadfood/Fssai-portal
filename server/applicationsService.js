@@ -118,7 +118,7 @@ export async function listApplications(user) {
       applicant: r.info?.applicant_name || null,
       place: summary.find((x) => x.id === 'place')?.value || null,
       fee: plan.result?.fee ?? null,
-      premises: { address: r.info?.premises_address || null, city: r.info?.city || null, state: r.info?.state || null },
+      premises: { address: r.info?.premises_address || null, city: r.info?.city || null, pincode: r.info?.pincode || null, state: r.info?.state || null },
       licence: plan.result?.licence || null,
       ready: plan.ready,
       // Every premises is paid for on its own (one government fee per application).
