@@ -121,6 +121,7 @@ export async function listApplications(user) {
       premises: { address: r.info?.premises_address || null, city: r.info?.city || null, pincode: r.info?.pincode || null, state: r.info?.state || null },
       licence: plan.result?.licence || null,
       ready: plan.ready,
+      toCollect: plan.toCollect.length, // documents the customer will hand to the team
       // Every premises is paid for on its own (one government fee per application).
       payment: r.paid_paise != null ? { amount: r.paid_paise / 100, at: r.paid_at, reference: r.paid_reference } : null,
       case: r.case_status ? { status: r.case_status, label: CASE_LABELS[r.case_status] || r.case_status, arn: r.arn || null } : null,
