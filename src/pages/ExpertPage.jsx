@@ -77,8 +77,12 @@ function Hero({ x }) {
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-300">{x.summary}</p>
 
           <p className="mt-7 text-xs font-bold uppercase tracking-widest text-slate-400">Has worked with</p>
-          <div className="mt-3 flex flex-wrap gap-2.5">
-            {x.companies.map((c) => (
+          <div className="mt-3 flex flex-wrap gap-3">
+            {x.companies.map((c) => x.logos?.[c] ? (
+              <span key={c} className="flex h-20 items-center rounded-2xl bg-white px-6 shadow-lg shadow-black/20" title={c}>
+                <img src={x.logos[c]} alt={`${c} logo`} className="h-14 w-auto max-w-[160px] object-contain" />
+              </span>
+            ) : (
               <span key={c} className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-base font-extrabold tracking-tight ring-1 ring-white/15">
                 <Building2 size={16} className="text-violet-200" /> {c}
               </span>
