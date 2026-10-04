@@ -63,7 +63,7 @@ export default function DashboardLayout() {
 
         <div className="p-4">
           <Link
-            to="/services"
+            to="/dashboard/services"
             className="group block overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-orange-400 p-5 text-white shadow-lg shadow-violet-200"
           >
             <UserCheck size={22} />
