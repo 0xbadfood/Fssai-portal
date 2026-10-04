@@ -60,18 +60,27 @@ export default function LoginPage() {
   )
 }
 
-export function Field({ label, type = 'text', value, onChange, placeholder }) {
+/** `error` shows under the field once set; `hint` otherwise. `prefix` sits inside the box (e.g. +91); `end` on the right. */
+export function Field({ label, type = 'text', value, onChange, placeholder, error, hint, prefix, end, ...input }) {
+  const ring = error ? 'border-red-300 focus-within:border-red-400 focus-within:ring-red-100' : 'border-slate-200 focus-within:border-violet-500 focus-within:ring-violet-100'
   return (
     <label className="block">
       <span className="mb-1.5 block text-xs font-semibold text-slate-600">{label}</span>
-      <input
-        type={type}
-        required
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-100"
-      />
+      <span className={`flex items-center rounded-lg border bg-white focus-within:ring-2 ${ring}`}>
+        {prefix && <span className="pl-3 text-sm font-semibold text-slate-500">{prefix}</span>}
+        <input
+          type={type}
+          required
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          aria-invalid={!!error}
+          className="w-full min-w-0 rounded-lg bg-transparent px-3 py-2.5 text-sm focus:outline-none"
+          {...input}
+        />
+        {end}
+      </span>
+      {error ? <span className="mt-1 block text-xs font-medium text-red-600">{error}</span> : hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
     </label>
   )
 }

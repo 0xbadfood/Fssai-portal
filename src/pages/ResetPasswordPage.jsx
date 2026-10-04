@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { KeyRound } from 'lucide-react'
-import { AuthShell, Field } from './LoginPage.jsx'
+import { AuthShell } from './LoginPage.jsx'
+import PasswordFields from '../components/auth/PasswordFields.jsx'
+import { passwordProblem } from '../lib/accountRules.js'
 import { useMeta } from '../seo/useMeta.js'
 import { privateMeta } from '../seo/meta.js'
 
@@ -13,6 +15,7 @@ export default function ResetPasswordPage() {
   const [token] = useState(tokenFromHash)
   const [form, setForm] = useState({ password: '', confirm: '' })
   const [state, setState] = useState({ busy: false, error: '' })
+  const [submitted, setSubmitted] = useState(false)
 
   // Drop the token from the address bar and history once read.
   useEffect(() => {
@@ -21,7 +24,8 @@ export default function ResetPasswordPage() {
 
   async function submit(e) {
     e.preventDefault()
-    if (form.password !== form.confirm) return setState({ busy: false, error: "The two passwords don't match." })
+    setSubmitted(true)
+    if (passwordProblem(form.password) || form.password !== form.confirm) return
     setState({ busy: true, error: '' })
     const res = await fetch('/api/auth/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token, password: form.password }) })
     const data = await res.json().catch(() => ({}))
@@ -47,7 +51,7 @@ export default function ResetPasswordPage() {
         <KeyRound size={18} />
         <h1 className="text-xl font-bold text-slate-900">Choose a new password</h1>
       </div>
-      <p className="mb-5 text-sm text-slate-500">At least 8 characters. You'll be signed out on every other device.</p>
+      <p className="mb-5 text-sm text-slate-500">You'll be signed out on every other device.</p>
       {state.error && (
         <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {state.error}{' '}
@@ -58,9 +62,15 @@ export default function ResetPasswordPage() {
           )}
         </p>
       )}
-      <form onSubmit={submit} className="space-y-4">
-        <Field label="New password" type="password" value={form.password} onChange={(v) => setForm({ ...form, password: v })} placeholder="••••••••" />
-        <Field label="Type it again" type="password" value={form.confirm} onChange={(v) => setForm({ ...form, confirm: v })} placeholder="••••••••" />
+      <form onSubmit={submit} noValidate className="space-y-4">
+        <PasswordFields
+          label="New password"
+          password={form.password}
+          confirm={form.confirm}
+          onPassword={(v) => setForm({ ...form, password: v })}
+          onConfirm={(v) => setForm({ ...form, confirm: v })}
+          showErrors={submitted}
+        />
         <button type="submit" disabled={state.busy} className="w-full rounded-lg bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60">
           {state.busy ? 'Saving…' : 'Save new password'}
         </button>

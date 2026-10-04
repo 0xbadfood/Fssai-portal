@@ -1,7 +1,9 @@
 import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
+import { resolveMx, resolve4, resolve6 } from 'node:dns/promises'
 import { ensureSchema, pool } from './db.js'
 import { sendMail } from './mailer.js'
+import { emailProblem, mobileProblem, normalizeMobile, passwordProblem } from '../src/lib/accountRules.js'
 
 const scryptAsync = promisify(scrypt)
 const N = 32768, R = 8, P = 1
@@ -51,9 +53,36 @@ async function createSession(userId, userAgent, role = 'customer') {
   return { token, maxAge: hours * 3600 }
 }
 
-function checkNewPassword(password) {
-  if (typeof password !== 'string' || password.length < 8) throw httpError(400, 'Password must be at least 8 characters.')
-  if (password.length > 128) throw httpError(400, 'Password is too long.')
+/** `who`: { email, name, phone } of the account, so the password can't be built from them. */
+function checkNewPassword(password, who) {
+  if (typeof password !== 'string') throw httpError(400, 'Enter a password.')
+  const problem = passwordProblem(password, who)
+  if (problem) throw httpError(400, problem)
+}
+
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(Object.assign(new Error('timeout'), { code: 'ETIMEOUT' })), ms))])
+
+/** New addresses only: the domain must exist and accept mail (MX, or an address record as the fallback).
+ * DNS trouble on our side (timeouts, SERVFAIL) lets the address through rather than blocking sign-up. */
+async function checkMailDomain(email) {
+  const domain = email.split('@')[1]
+  const gone = (e) => e.code === 'ENOTFOUND' || e.code === 'ENODATA'
+  try {
+    const mx = await withTimeout(resolveMx(domain), 4000)
+    if (mx.length && mx.every((r) => !r.exchange || r.exchange === '.')) throw httpError(400, `${domain} doesn't accept email. Check the address.`)
+    if (mx.length) return
+  } catch (e) {
+    if (e.status) throw e
+    if (!gone(e)) return
+  }
+  for (const lookup of [resolve4, resolve6]) {
+    try {
+      if ((await withTimeout(lookup(domain), 4000)).length) return
+    } catch (e) {
+      if (!gone(e)) return
+    }
+  }
+  throw httpError(400, `We couldn't find the email domain ${domain}. Check the address for typos.`)
 }
 
 function validateEmail(email) {
@@ -72,10 +101,14 @@ export async function signup({ businessName, name, email, phone, password }, { u
   // Optional: the business is named on each application. Older mobile builds still send it.
   const biz = typeof businessName === 'string' && businessName.trim() ? businessName.trim().slice(0, 150) : null
   const nm = clean(name, 'Your name')
-  const ph = clean(phone, 'Phone number', 20)
-  if (!/^[0-9+()\-\s]{7,20}$/.test(ph)) throw httpError(400, 'Enter a valid phone number.')
-  const mail = validateEmail(email)
-  checkNewPassword(password)
+  const phoneError = mobileProblem(typeof phone === 'string' ? phone.slice(0, 30) : '')
+  if (phoneError) throw httpError(400, phoneError)
+  const ph = normalizeMobile(phone)
+  const emailError = emailProblem(typeof email === 'string' ? email : '')
+  if (emailError) throw httpError(400, emailError)
+  const mail = email.trim().toLowerCase()
+  checkNewPassword(password, { email: mail, name: nm, phone: ph })
+  await checkMailDomain(mail)
 
   const hash = await hashPassword(password)
   let user
@@ -179,6 +212,8 @@ export async function resetPassword({ token, password }, { userAgent }) {
     )
     if (!rows[0]) throw httpError(400, 'This reset link has expired or was already used. Ask for a new one.')
     const userId = rows[0].user_id
+    const { rows: who } = await client.query('SELECT email, name, phone FROM users WHERE id = $1', [userId])
+    checkNewPassword(password, who[0])
     const { rows: users } = await client.query('UPDATE users SET password_hash = $2 WHERE id = $1 RETURNING *', [userId, hash])
     await client.query('DELETE FROM sessions WHERE user_id = $1', [userId])
     await client.query('COMMIT')
