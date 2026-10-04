@@ -89,7 +89,7 @@ export default function DashboardLayout() {
 }
 
 // Pages that work on one application: with several, say which one and let the customer switch.
-const PER_APPLICATION = ['/dashboard/apply', '/dashboard/overview', '/dashboard/documents']
+const PER_APPLICATION = ['/dashboard/apply', '/dashboard/documents']
 
 /** Which business and premises the page is about, with a way back to the tables to pick another. */
 function WorkingOn() {
