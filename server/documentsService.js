@@ -4,6 +4,8 @@ import path from 'node:path'
 import { dbConfig, ensureSchema, pool, resolveStoragePath } from './db.js'
 import { verifyDocument } from './verifier.js'
 import { decrypt, encrypt } from './storageCrypto.js'
+import { compareNames } from './compare.js'
+import { isDocOk } from './intake/plan.js'
 
 const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' }
 const MAX_PDF_BYTES = 10 * 1024 * 1024
@@ -45,6 +47,29 @@ export const isEncryptedPdf = (bytes) => bytes.includes('/Encrypt')
 
 const decodeDataUrl = (url) => ({ mime: url.slice(5, url.indexOf(';')), bytes: Buffer.from(url.slice(url.indexOf(',') + 1), 'base64') })
 
+// The ID proof and the address proof must name the same person: an address proof in someone else's name (a
+// landlord's, a relative's) is hard to justify at a government office, so it is rejected rather than explained away.
+const NAME_PAIR = { identity: 'address', address: 'identity' }
+
+/** Rejects `verification` in place when its holder name differs from the one on the user's other current document. */
+async function checkHolderName(userId, docTypeId, verification) {
+  const otherType = NAME_PAIR[docTypeId]
+  const name = verification.extracted?.holder_name
+  if (!otherType || !name || verification.decision === 'rejected') return
+  const { rows } = await pool.query('SELECT * FROM documents WHERE user_id = $1 AND doc_type_id = $2 AND superseded_at IS NULL', [userId, otherType])
+  const other = rows[0] && toRecord(rows[0])
+  const otherName = isDocOk(other) ? other.verification?.extracted?.holder_name : null
+  if (compareNames(name, otherName) !== 'mismatch') return
+  verification.decision = 'rejected'
+  verification.nameMismatch = { holder: name, [otherType]: otherName }
+  verification.issues = [
+    ...(verification.issues || []),
+    docTypeId === 'address'
+      ? `This is in the name of ${name}, but your ID proof is in the name of ${otherName}. Upload an address proof in your own name.`
+      : `This is in the name of ${name}, but your address proof is in the name of ${otherName}. Upload your own ID, or replace the address proof if that is the wrong one.`,
+  ]
+}
+
 /** pages: 1-4 page images (JPEG from the browser); original: the uploaded PDF as a data URL, if the user sent a PDF. */
 /** uploadedBy: the ops member uploading on the customer's behalf (null when the customer uploads). */
 export async function uploadDocument(userId, { docTypeId, pages, original, pdfText, fileName, sizeBytes, pageCount: reportedPages }, { uploadedBy = null } = {}) {
@@ -59,6 +84,7 @@ export async function uploadDocument(userId, { docTypeId, pages, original, pdfTe
   // pdfText: the PDF's text layer, extracted in the browser (which has the password for protected PDFs). Not stored.
   const text = pdf != null && typeof pdfText === 'string' ? pdfText.slice(0, 20000) : ''
   const verification = await verifyDocument({ docTypeId, pages, fromPdf: pdf != null, pdfText: text })
+  await checkHolderName(userId, docTypeId, verification)
   const first = decodeDataUrl(pages[0])
   const stored = pdf || first
   const id = randomUUID()
