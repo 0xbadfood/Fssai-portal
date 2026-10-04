@@ -237,6 +237,7 @@ function DocCard({ row, base, busy, act }) {
             <p className="font-bold text-slate-900">{row.label}</p>
             {row.required && <span className="text-xs font-semibold text-slate-400">required</span>}
             {row.optional && <span className="text-xs font-semibold text-slate-400">optional</span>}
+            {row.toCollect && <span className="rounded-full bg-sky-50 px-2 py-0.5 text-xs font-bold text-sky-700">🤝 Customer will send it to us: collect and upload</span>}
             {ai && (
               <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${ai.tone}`}>
                 <ai.Icon size={11} /> {ai.text}

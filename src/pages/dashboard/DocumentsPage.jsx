@@ -14,7 +14,9 @@ export default function DocumentsPage() {
   const neededIds = needed.map((d) => d.id)
   const others = Object.keys(DOC_TYPES).filter((id) => !neededIds.includes(id))
   const required = needed.filter((d) => !d.optional)
-  const done = required.filter((d) => isDocOk(docs[d.id])).length
+  // Documents the customer will hand to our team count as done (chosen on the application's Documents step).
+  const done = required.filter((d) => isDocOk(docs[d.id]) || d.deferred).length
+  const withTeam = r?.toCollect?.length || 0
   const pct = required.length ? Math.round((done / required.length) * 100) : 0
 
   return (
@@ -30,7 +32,9 @@ export default function DocumentsPage() {
           <div className="rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 p-5 ring-1 ring-amber-100">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-lg font-extrabold text-amber-900">Needed for your {r.result?.licence}</p>
-              <span className="text-base font-extrabold text-amber-900">{done}/{required.length} ready</span>
+              <span className="text-base font-extrabold text-amber-900">
+                {done}/{required.length} ready{withTeam > 0 && <span className="ml-1 text-sm font-semibold text-sky-800">({withTeam} with our team)</span>}
+              </span>
             </div>
             <div className="mt-3 h-3 overflow-hidden rounded-full bg-amber-100">
               <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-emerald-500 transition-all" style={{ width: `${pct}%` }} />

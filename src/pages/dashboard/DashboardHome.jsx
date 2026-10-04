@@ -82,8 +82,8 @@ export default function DashboardHome() {
           to="/dashboard/documents"
           emoji="📂"
           label="Documents"
-          value={r?.docs.length ? `${r.docs.filter((d) => !d.optional && isDocOk(docs[d.id])).length} of ${r.docs.filter((d) => !d.optional).length} ready` : `${Object.values(docs).filter(isDocOk).length} uploaded`}
-          note={r?.docs.some((d) => !d.optional && !isDocOk(docs[d.id])) ? `Still needed: ${r.docs.filter((d) => !d.optional && !isDocOk(docs[d.id])).length}` : r?.docs.length ? 'All required documents in' : 'Kept safe in your vault'}
+          value={r?.docs.length ? `${r.docs.filter((d) => !d.optional && (isDocOk(docs[d.id]) || d.deferred)).length} of ${r.docs.filter((d) => !d.optional).length} ready` : `${Object.values(docs).filter(isDocOk).length} uploaded`}
+          note={r?.missingDocs?.length ? `Still needed: ${r.missingDocs.length}` : r?.toCollect?.length ? `${r.toCollect.length} to hand to our team` : r?.docs.length ? 'All required documents in' : 'Kept safe in your vault'}
         />
         <Tile
           to="/dashboard/premises"

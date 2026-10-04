@@ -56,6 +56,7 @@ function flagsFor(plan, docs, row) {
   if (row.rated_wrong) flags.push('rated_wrong')
   if (plan.result?.handover?.length) flags.push('expert')
   if (plan.missingDocs.length) flags.push('docs_missing')
+  if (plan.toCollect.length) flags.push('docs_to_collect')
   if (plan.docs.some((d) => docs[d.id]?.status === 'review')) flags.push('doc_review')
   if (crossCheck(row.info || {}, docs).some((c) => c.result === 'mismatch')) flags.push('mismatch')
   if (Object.values(docs).some((d) => d.pdfEncrypted)) flags.push('pdf_locked')
@@ -199,6 +200,7 @@ export async function getCase(user, id, { logView = true } = {}) {
       why: need?.why || null,
       required: !!need && !need.optional,
       optional: !!need?.optional,
+      toCollect: plan.toCollect.includes(typeId), // the customer will hand it to us instead of uploading
       doc: d ? { ...d, opsReviewedBy: staffOf[d.id]?.reviewer || null, uploadedByName: staffOf[d.id]?.uploader || null } : null,
     }
   }

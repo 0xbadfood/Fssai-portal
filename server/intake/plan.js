@@ -7,7 +7,7 @@ import { repoRoot } from '../db.js'
 import { E, resultFor, summaryFor } from './index.js'
 
 const DOC_MAP = JSON.parse(readFileSync(path.join(repoRoot, 'config/intake/documents.json'), 'utf8'))
-const DOC_TYPES = JSON.parse(readFileSync(path.join(repoRoot, 'config/document-types.json'), 'utf8')).types
+export const DOC_TYPES = JSON.parse(readFileSync(path.join(repoRoot, 'config/document-types.json'), 'utf8')).types
 
 const acts = (f) => f.activities || []
 const trade = (f) => f.trade_kinds || []
@@ -113,6 +113,10 @@ function prefill(facts, user, info, read) {
 // ---------- Documents ----------
 
 /** Upload types for the result's documents, plus the ones prepared on the filing call. */
+// The customer must upload these themselves (they are checked against each other at upload); any other document
+// can be left for the team to collect ("I'll send it to the MyFoodLicense team"), so a missing paper doesn't block.
+export const SELF_UPLOAD_ONLY = new Set(['identity', 'address'])
+
 function documentsFor(result, kind, info) {
   const upload = new Map()
   const filingCall = []
@@ -132,7 +136,11 @@ function documentsFor(result, kind, info) {
   if (kind === 'B' && info.entity_type && info.entity_type !== 'Proprietorship') {
     upload.set('authority-letter', { id: 'authority-letter', why: `Needed for ${info.entity_type === 'LLP' ? 'an LLP' : `a ${info.entity_type.toLowerCase()}`} to authorise the applicant`, optional: false })
   }
-  return { docs: [...upload.values()].filter((d) => DOC_TYPES[d.id]), filingCall }
+  const deferred = new Set(Array.isArray(info.deferred_docs) ? info.deferred_docs : [])
+  const docs = [...upload.values()]
+    .filter((d) => DOC_TYPES[d.id])
+    .map((d) => ({ ...d, deferrable: !SELF_UPLOAD_ONLY.has(d.id), deferred: !SELF_UPLOAD_ONLY.has(d.id) && deferred.has(d.id) }))
+  return { docs, filingCall }
 }
 
 /**
@@ -199,7 +207,7 @@ function buildForm(facts, info, result, kind, docs, docsByType) {
     title: 'Documents enclosed',
     rows: docs.map((d) => {
       const doc = docsByType[d.id]
-      return [DOC_TYPES[d.id].label, isDocOk(doc) ? `✓ ${doc.file?.name || 'uploaded'}` : d.optional ? 'Not enclosed (optional)' : null]
+      return [DOC_TYPES[d.id].label, isDocOk(doc) ? `✓ ${doc.file?.name || 'uploaded'}` : d.deferred ? 'To be sent to the MyFoodLicense team' : d.optional ? 'Not enclosed (optional)' : null]
     }),
   })
   return { kind, title: kind === 'A' ? 'Form A — Application for Registration' : `Form B — Application for ${result.licence}`, licence: result.licence, sections }
@@ -209,7 +217,7 @@ function buildForm(facts, info, result, kind, docs, docsByType) {
 
 /**
  * The plan for an application: { result, kind, intakeDone, fields, prefill, readFromDocs, docs, filingCall,
- * checklist, missingFields, missingDocs, ready, form }. user: { name, businessName, phone, email }.
+ * checklist, missingFields, missingDocs, toCollect, ready, form }. user: { name, businessName, phone, email }.
  */
 export function planFor(facts, info = {}, docsByType = {}, user = {}) {
   const result = resultFor(facts)
@@ -219,7 +227,9 @@ export function planFor(facts, info = {}, docsByType = {}, user = {}) {
   const fields = intakeDone && kind ? fieldsFor(facts, kind) : []
   const { docs, filingCall } = intakeDone && kind ? documentsFor(result, kind, info) : { docs: [], filingCall: [] }
   const missingFields = fields.filter((fd) => !filled(info[fd.id])).map((fd) => fd.id)
-  const missingDocs = docs.filter((d) => !d.optional && !isDocOk(docsByType[d.id])).map((d) => d.id)
+  const missingDocs = docs.filter((d) => !d.optional && !d.deferred && !isDocOk(docsByType[d.id])).map((d) => d.id)
+  // Left for the team to collect and not uploaded since.
+  const toCollect = docs.filter((d) => d.deferred && !isDocOk(docsByType[d.id])).map((d) => d.id)
   const checklist = intakeDone && kind ? checklistFor(result, info) : []
   const { documents, ...publicResult } = result || {}
   return {
@@ -234,6 +244,7 @@ export function planFor(facts, info = {}, docsByType = {}, user = {}) {
     checklist,
     missingFields,
     missingDocs,
+    toCollect,
     ready: intakeDone && !!kind && !missingFields.length && !missingDocs.length,
     form: intakeDone && kind ? buildForm(facts, info, publicResult, kind, docs, docsByType) : null,
   }

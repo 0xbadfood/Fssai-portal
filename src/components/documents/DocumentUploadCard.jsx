@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, CheckCircle2, ExternalLink, Eye, FileImage, FileText, Loader2, Lock, RefreshCcw, ScanSearch, UploadCloud, XCircle } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ExternalLink, Eye, FileImage, FileText, Handshake, Loader2, Lock, RefreshCcw, ScanSearch, Undo2, UploadCloud, XCircle } from 'lucide-react'
 import { DOC_TYPES, PdfPasswordError, prepareFile, uploadDocument, useDocumentImage } from '../../lib/documents.js'
 
 const RESULT_STYLE = {
@@ -13,7 +13,30 @@ const RESULT_STYLE = {
 const outcome = (doc) => (doc?.opsStatus === 'approved' ? 'approved' : doc?.opsStatus === 'rejected' ? 'opsRejected' : doc?.status)
 const needsNewCopy = (doc) => ['rejected', 'opsRejected'].includes(outcome(doc))
 
-export default function DocumentUploadCard({ docTypeId, label, tag, doc, onSave }) {
+/** "I'll send it to the MyFoodLicense team": leaves the document for our team to collect, so it doesn't block. */
+function SendToTeam({ deferred, onDefer, busy }) {
+  if (deferred) {
+    return (
+      <div className="mt-3 rounded-lg bg-sky-50 px-3 py-2 text-xs text-sky-900">
+        <p className="flex items-center gap-1.5 font-semibold">
+          <Handshake size={13} /> You'll send this to the MyFoodLicense team
+        </p>
+        <p className="mt-0.5 text-sky-800">We'll collect it from you before filing. You can still upload it here any time.</p>
+        <button type="button" disabled={busy} onClick={() => onDefer(false)} className="mt-1.5 inline-flex items-center gap-1 font-semibold text-sky-700 hover:underline disabled:opacity-50">
+          <Undo2 size={12} /> I'll upload it myself
+        </button>
+      </div>
+    )
+  }
+  return (
+    <button type="button" disabled={busy} onClick={() => onDefer(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-sky-300 hover:text-sky-700 disabled:opacity-50">
+      <Handshake size={13} /> I'll send it to the MyFoodLicense team
+    </button>
+  )
+}
+
+/** onDefer(bool), when given, offers "I'll send it to the MyFoodLicense team" while there is no usable copy. */
+export default function DocumentUploadCard({ docTypeId, label, tag, doc, onSave, deferred = false, onDefer, deferBusy = false }) {
   const spec = DOC_TYPES[docTypeId]
   const [snap, setSnap] = useState(null) // local preview of the just-uploaded file, until the stored copy loads
   const storedImage = useDocumentImage(doc)
@@ -149,14 +172,20 @@ export default function DocumentUploadCard({ docTypeId, label, tag, doc, onSave 
                 <a href={`/api/documents/${doc.id}/file`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-white">
                   <ExternalLink size={12} /> Open file
                 </a>
+                {onDefer && needsNewCopy(doc) && !deferred && <SendToTeam onDefer={onDefer} busy={deferBusy} />}
               </div>
+              {onDefer && needsNewCopy(doc) && deferred && <SendToTeam deferred onDefer={onDefer} busy={deferBusy} />}
             </div>
           ) : (
             <div className="mt-2">
               <p className="text-xs text-slate-500">{spec.description}</p>
-              <button onClick={() => inputRef.current?.click()} className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700">
-                <UploadCloud size={13} /> Upload
-              </button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button onClick={() => inputRef.current?.click()} className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700">
+                  <UploadCloud size={13} /> Upload
+                </button>
+                {onDefer && !deferred && <SendToTeam onDefer={onDefer} busy={deferBusy} />}
+              </div>
+              {onDefer && deferred && <SendToTeam deferred onDefer={onDefer} busy={deferBusy} />}
             </div>
           )}
           {locked && (

@@ -6,8 +6,10 @@ import { BigButton } from './ApplyPage.jsx'
 
 export default function DocumentsStep({ flow, r, docs, putDoc, go }) {
   const required = r.docs.filter((d) => !d.optional)
-  const done = required.filter((d) => isDocOk(docs[d.id])).length
-  const missing = required.filter((d) => !isDocOk(docs[d.id]))
+  // A document left for our team to collect counts as done here; the server's plan has the final say.
+  const done = required.filter((d) => isDocOk(docs[d.id]) || d.deferred).length
+  const deferredIds = r.docs.filter((d) => d.deferred).map((d) => d.id)
+  const defer = (id) => (on) => flow.update({ info: { deferred_docs: on ? [...deferredIds, id] : deferredIds.filter((x) => x !== id) } })
   const pct = required.length ? Math.round((done / required.length) * 100) : 100
 
   return (
@@ -35,6 +37,9 @@ export default function DocumentsStep({ flow, r, docs, putDoc, go }) {
             tag={d.why}
             doc={docs[d.id]}
             onSave={putDoc}
+            deferred={d.deferred}
+            onDefer={d.deferrable ? defer(d.id) : undefined}
+            deferBusy={flow.busy}
           />
         ))}
       </div>
@@ -51,7 +56,14 @@ export default function DocumentsStep({ flow, r, docs, putDoc, go }) {
         </div>
       )}
 
-      <BigButton disabled={flow.busy || missing.length > 0} onClick={() => go('forms')}>
+      {r.toCollect?.length > 0 && (
+        <p className="rounded-2xl bg-sky-50 px-4 py-3 text-base text-sky-900">
+          🤝 You'll send {r.toCollect.length === 1 ? 'one document' : `${r.toCollect.length} documents`} to the MyFoodLicense team. We'll collect{' '}
+          {r.toCollect.length === 1 ? 'it' : 'them'} from you before filing.
+        </p>
+      )}
+
+      <BigButton disabled={flow.busy || r.missingDocs.length > 0} onClick={() => go('forms')}>
         See my {r.kind === 'A' ? 'Form A' : 'Form B'} <ArrowRight size={20} />
       </BigButton>
     </div>

@@ -4,7 +4,7 @@ import { ensureSchema, pool } from './db.js'
 import { listDocuments } from './documentsService.js'
 import { GRAPH_VERSION, E, cleanFacts, intakeView, isCompatible } from './intake/index.js'
 import { applyAnswer, openClarify, publicTranscript, reaskFacts, undoFacts } from './intake/answer.js'
-import { FIELDS, planFor } from './intake/plan.js'
+import { DOC_TYPES, FIELDS, SELF_UPLOAD_ONLY, planFor } from './intake/plan.js'
 import { claimSession } from './intake/sessions.js'
 import { logEvent } from './intake/events.js'
 
@@ -115,6 +115,8 @@ export async function restartIntake(user, id) {
   return respond(await save(id, { facts: {}, transcript: [], step: 'intake' }), user)
 }
 
+const DOC_TYPE_IDS = new Set(Object.keys(DOC_TYPES))
+
 function sanitizeInfo(input) {
   const out = {}
   for (const fd of FIELDS) {
@@ -122,6 +124,8 @@ function sanitizeInfo(input) {
     if (typeof v === 'string') out[fd.id] = v.slice(0, 300)
     else if (Array.isArray(v)) out[fd.id] = v.map((x) => String(x).slice(0, 80)).slice(0, 30)
   }
+  // Documents the customer will hand to the team instead of uploading (the whole list is sent each time).
+  if (Array.isArray(input?.deferred_docs)) out.deferred_docs = [...new Set(input.deferred_docs.filter((t) => DOC_TYPE_IDS.has(t) && !SELF_UPLOAD_ONLY.has(t)))]
   return out
 }
 
