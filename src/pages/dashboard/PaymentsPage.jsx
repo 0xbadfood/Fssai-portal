@@ -4,7 +4,6 @@ import { ArrowRight, Building2, CheckCircle2, Clock, CreditCard, FlaskConical, L
 import { Card, Loading, PageHeader } from '../../components/dashboard/ui.jsx'
 import { openCheckout } from '../../lib/cashfree.js'
 import { useSelectedApplicationId } from '../../lib/selectedApplication.js'
-import { useAuth } from '../../lib/auth.jsx'
 
 const METHODS = [
   { id: 'upi', label: 'UPI', icon: Smartphone },
@@ -18,7 +17,6 @@ const rupees = (n) => `₹${Number(n).toLocaleString('en-IN')}`
 const when = (d) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
 
 export default function PaymentsPage() {
-  const { session } = useAuth()
   const selected = useSelectedApplicationId()
   const [data, setData] = useState(null)
   // The fee shown is the selected application's; the receipts are every application's.
@@ -35,12 +33,8 @@ export default function PaymentsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      {/* The account's payments (every business and premises), so they go by the account holder's name. */}
-      <PageHeader emoji="💳" title="Payments" subtitle="Each premises has its own government fee. Pay it here and keep your receipts.">
-        {session?.name && (
-          <span className="rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-100">{session.name}</span>
-        )}
-      </PageHeader>
+      {/* The account's payments (every business and premises): no premises in the top bar, just the account holder. */}
+      <PageHeader emoji="💳" title="Payments" subtitle="Each premises has its own government fee. Pay it here and keep your receipts." />
       {quote?.payable ? (
         <Checkout quote={quote} onDone={load} />
       ) : quote && !quote.paid ? (
