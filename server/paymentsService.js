@@ -59,7 +59,8 @@ export async function currentQuote(userId, applicationId = null) {
   const { rows: paid } = await pool.query("SELECT * FROM payments WHERE application_id = $1 AND status = 'paid'", [rows[0].id])
   try {
     const q = quoteFor(rows[0], await documentsFor(userId, rows[0].id))
-    return { applicationId: rows[0].id, licence: q.r.licence, form: q.r.kind, items: q.items, total: q.total, mode: q.mode, payable: q.r.ready && !paid[0], paid: paid[0] ? toPayment(paid[0]) : null }
+    const info = rows[0].info || {}
+    return { applicationId: rows[0].id, business: info.legal_name || null, premises: [info.premises_address, info.city].filter(Boolean).join(', ') || null, licence: q.r.licence, form: q.r.kind, items: q.items, total: q.total, mode: q.mode, payable: q.r.ready && !paid[0], paid: paid[0] ? toPayment(paid[0]) : null }
   } catch {
     return null
   }

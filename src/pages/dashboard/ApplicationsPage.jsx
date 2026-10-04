@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Building2, Clock, Loader2, MapPinPlus, Plus } from 'lucide-react'
+import { ArrowRight, Building2, CheckCircle2, Clock, CreditCard, Loader2, MapPinPlus, Plus } from 'lucide-react'
 import { Card, Loading, PageHeader } from '../../components/dashboard/ui.jsx'
 import { newApplication, useApplications } from '../../lib/applications.js'
 import { selectApplication, useSelectedApplicationId } from '../../lib/selectedApplication.js'
@@ -55,6 +55,36 @@ function groupByBusiness(list) {
     .sort((x, y) => latest(y.rows) - latest(x.rows))
 }
 
+/** One premises' government fee: paid (with its receipt), payable now, or not yet. */
+function Payment({ a, onPay }) {
+  if (a.payment) {
+    return (
+      <div>
+        <p className="flex items-center gap-1 font-semibold text-emerald-700">
+          <CheckCircle2 size={14} /> Paid {rupees(a.payment.amount)}
+        </p>
+        <p className="text-xs text-slate-500">
+          {new Date(a.payment.at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+          {a.payment.reference ? ` · ${a.payment.reference}` : ''}
+        </p>
+      </div>
+    )
+  }
+  if (a.ready && a.status !== 'ready') {
+    return (
+      <button onClick={onPay} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700">
+        <CreditCard size={13} /> Pay {a.fee != null ? rupees(a.fee) : 'fee'}
+      </button>
+    )
+  }
+  return (
+    <div>
+      <p className="text-slate-700">{a.fee != null ? `${rupees(a.fee)}/yr` : '—'}</p>
+      <p className="text-xs text-slate-400">{a.fee != null ? 'Payable after the forms' : 'Licence not worked out yet'}</p>
+    </div>
+  )
+}
+
 /** "My applications": one table per business, one row per premises (each place needs its own registration or licence). */
 export default function ApplicationsPage() {
   const navigate = useNavigate()
@@ -67,6 +97,12 @@ export default function ApplicationsPage() {
   const open = (id) => {
     selectApplication(id)
     navigate('/dashboard/apply')
+  }
+  // Payments shows the selected application's fee.
+  const pay = (e, id) => {
+    e.stopPropagation()
+    selectApplication(id)
+    navigate('/dashboard/payments')
   }
   const create = async (anotherPremisesOf, key) => {
     setBusy(key)
@@ -129,7 +165,7 @@ export default function ApplicationsPage() {
                   <tr>
                     <th className="px-5 py-2.5 sm:px-6">Premises</th>
                     <th className="hidden px-3 py-2.5 md:table-cell">Licence</th>
-                    <th className="hidden px-3 py-2.5 lg:table-cell">Fee</th>
+                    <th className="hidden px-3 py-2.5 sm:table-cell">Payment</th>
                     <th className="px-3 py-2.5">Status</th>
                     <th className="px-5 py-2.5 sm:px-6" />
                   </tr>
@@ -148,11 +184,16 @@ export default function ApplicationsPage() {
                           </p>
                         </td>
                         <td className="hidden px-3 py-3.5 text-slate-700 md:table-cell">{a.licence || '—'}</td>
-                        <td className="hidden px-3 py-3.5 text-slate-700 lg:table-cell">{a.fee != null ? `${rupees(a.fee)}/yr` : '—'}</td>
+                        <td className="hidden px-3 py-3.5 sm:table-cell">
+                          <Payment a={a} onPay={(e) => pay(e, a.id)} />
+                        </td>
                         <td className="px-3 py-3.5">
                           <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${s.tone}`}>
                             {s.Icon && <s.Icon size={12} />} {s.text}
                           </span>
+                          <div className="mt-1.5 sm:hidden">
+                            <Payment a={a} onPay={(e) => pay(e, a.id)} />
+                          </div>
                         </td>
                         <td className="px-5 py-3.5 text-right sm:px-6">
                           <span className="inline-flex items-center gap-1 whitespace-nowrap font-bold text-violet-700">

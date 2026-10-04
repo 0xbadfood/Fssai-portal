@@ -33,7 +33,7 @@ export default function PaymentsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader emoji="💳" title="Payments" subtitle="Pay the government fee for your application and keep your receipts here." />
+      <PageHeader emoji="💳" title="Payments" subtitle="Each premises has its own government fee. Pay it here and keep your receipts." />
       {quote?.payable ? (
         <Checkout quote={quote} onDone={load} />
       ) : quote && !quote.paid ? (
@@ -88,7 +88,9 @@ function Checkout({ quote, onDone }) {
       <Card>
         <p className="text-sm font-bold uppercase tracking-wide text-violet-500">Order summary</p>
         <p className="mt-1 text-xl font-extrabold text-slate-900">{quote.licence}</p>
-        <p className="text-sm text-slate-500">Form {quote.form} · Application {quote.applicationId.slice(0, 8).toUpperCase()}</p>
+        <p className="text-sm text-slate-500">
+          {[quote.business, quote.premises].filter(Boolean).join(' · ') || `Application ${quote.applicationId.slice(0, 8).toUpperCase()}`} · Form {quote.form}
+        </p>
         <ul className="mt-5 space-y-3 border-t border-slate-100 pt-4">
           {quote.items.map((i) => (
             <li key={i.label} className="flex justify-between gap-4 text-slate-700">

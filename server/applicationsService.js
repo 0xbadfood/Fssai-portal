@@ -97,9 +97,10 @@ const CASE_LABELS = { new: 'Received', in_review: 'In review', needs_customer: '
 export async function listApplications(user) {
   await ensureSchema()
   const { rows } = await pool.query(
-    `SELECT a.*, c.status AS case_status, c.arn,
-            EXISTS (SELECT 1 FROM payments p WHERE p.application_id = a.id AND p.status = 'paid') AS paid
-       FROM applications a LEFT JOIN cases c ON c.application_id = a.id WHERE a.user_id = $1 ORDER BY a.created_at DESC`,
+    `SELECT a.*, c.status AS case_status, c.arn, p.amount_paise AS paid_paise, p.created_at AS paid_at, p.reference AS paid_reference
+       FROM applications a LEFT JOIN cases c ON c.application_id = a.id
+       LEFT JOIN LATERAL (SELECT * FROM payments p WHERE p.application_id = a.id AND p.status = 'paid' ORDER BY p.created_at LIMIT 1) p ON true
+      WHERE a.user_id = $1 ORDER BY a.created_at DESC`,
     [user.id],
   )
   const docs = await documentsForApplications(rows.map((r) => ({ userId: user.id, applicationId: r.id })))
@@ -120,7 +121,8 @@ export async function listApplications(user) {
       premises: { address: r.info?.premises_address || null, city: r.info?.city || null, state: r.info?.state || null },
       licence: plan.result?.licence || null,
       ready: plan.ready,
-      paid: r.paid,
+      // Every premises is paid for on its own (one government fee per application).
+      payment: r.paid_paise != null ? { amount: r.paid_paise / 100, at: r.paid_at, reference: r.paid_reference } : null,
       case: r.case_status ? { status: r.case_status, label: CASE_LABELS[r.case_status] || r.case_status, arn: r.arn || null } : null,
       createdAt: r.created_at,
       updatedAt: r.updated_at,
