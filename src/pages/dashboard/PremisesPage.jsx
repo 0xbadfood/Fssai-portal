@@ -1,11 +1,12 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, MapPin, Plus } from 'lucide-react'
-import { useCurrentApplication } from '../../lib/applications.js'
+import { newApplication, useCurrentApplication } from '../../lib/applications.js'
 import { Card, Loading, PageHeader } from '../../components/dashboard/ui.jsx'
 
 export default function PremisesPage() {
   const { app } = useCurrentApplication()
+  const navigate = useNavigate()
   if (app === undefined) return <Loading />
   const info = app?.info || {}
   const row = (id) => app?.intake.summary.find((x) => x.id === id)?.value
@@ -54,20 +55,23 @@ export default function PremisesPage() {
             )}
           </Card>
 
-          <Link
-            to="/dashboard/support?topic=premises"
-            className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-violet-200 bg-violet-50/40 p-6 text-center transition hover:border-violet-400 hover:bg-violet-50"
-          >
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-violet-600 shadow-sm">
-              <Plus size={22} />
-            </span>
-            <p className="mt-3 text-lg font-extrabold text-slate-900">Another place of business?</p>
+          <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-violet-200 bg-violet-50/40 p-6 text-center">
+            <p className="text-lg font-extrabold text-slate-900">Another place of business?</p>
             <p className="mt-1 text-sm text-slate-500">
-              {several
-                ? `You told us: ${(row('locations') || 'more than one place').toLowerCase()}. Our team will set up an application for each one.`
-                : 'Tell us about it and our team will set up its application.'}
+              {several ? `You told us: ${(row('locations') || 'more than one place').toLowerCase()}. ` : ''}
+              Each place needs its own application. All of them are in{' '}
+              <Link to="/dashboard/applications" className="font-semibold text-violet-700 underline">
+                My applications
+              </Link>
+              .
             </p>
-          </Link>
+            <button
+              onClick={() => newApplication({ anotherPremisesOf: app.id }).then(() => navigate('/dashboard/apply'))}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-sm font-bold text-white hover:bg-violet-700"
+            >
+              <Plus size={16} /> Add another premises
+            </button>
+          </div>
         </div>
       )}
     </div>

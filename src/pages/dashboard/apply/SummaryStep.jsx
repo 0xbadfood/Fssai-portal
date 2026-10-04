@@ -22,19 +22,6 @@ export default function SummaryStep({ app, flow, r, go }) {
 
   return (
     <div className="space-y-5">
-      {app.anotherPremises?.length > 0 && (
-        <div className="rounded-3xl bg-sky-50 p-5 text-base text-sky-900 ring-1 ring-sky-100">
-          <p className="font-extrabold">🏘️ You run it from more than one place</p>
-          <p className="mt-1">
-            Every place needs its own FSSAI registration or licence. This application is for one of them; we've added an application for your next
-            place to{' '}
-            <Link to="/dashboard/applications" className="font-bold underline">
-              My applications
-            </Link>{' '}
-            with your business details filled in. Finish this one first, then open that one. You can add more places there.
-          </p>
-        </div>
-      )}
       {e.outcome === 'notfood' ? (
         <div className="rounded-3xl bg-gradient-to-br from-sky-500 to-indigo-500 p-6 text-white shadow-lg sm:p-8">
           <p className="text-5xl">👍</p>
@@ -117,6 +104,15 @@ export default function SummaryStep({ app, flow, r, go }) {
                   {t.licence && <span className="ml-2 text-base font-semibold text-violet-700">{t.licence}{t.fee ? `, ${rupees(t.fee)}/year` : ''}</span>}
                 </p>
                 <p className="mt-1 text-base text-slate-600">{t.text}</p>
+                {t.task === 'another_premises' && app.anotherPremises?.length > 0 && (
+                  <p className="mt-2 text-base text-slate-700">
+                    We've added an application for your next place to{' '}
+                    <Link to="/dashboard/applications" className="font-bold text-violet-700 underline">
+                      My applications
+                    </Link>
+                    , with your business details filled in. Finish this one first, then open it there.
+                  </p>
+                )}
               </div>
             </div>
           ))}
