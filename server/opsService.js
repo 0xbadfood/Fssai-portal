@@ -57,6 +57,7 @@ function flagsFor(plan, docs, row) {
   if (plan.result?.handover?.length) flags.push('expert')
   if (plan.missingDocs.length) flags.push('docs_missing')
   if (plan.docs.some((d) => docs[d.id]?.status === 'review')) flags.push('doc_review')
+  if (crossCheck(row.info || {}, docs).some((c) => c.result === 'mismatch')) flags.push('mismatch')
   if (Object.values(docs).some((d) => d.pdfEncrypted)) flags.push('pdf_locked')
   if (plan.result?.provisional) flags.push('provisional')
   if (row.pay_mode === 'test') flags.push('test_payment')

@@ -11,6 +11,7 @@ const FLAGS = {
   pdf_locked: { label: '🔒 PDF password', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
   provisional: { label: 'Provisional result', tone: 'bg-slate-50 text-slate-500 ring-slate-200' },
   test_payment: { label: 'Test payment', tone: 'bg-sky-50 text-sky-700 ring-sky-100' },
+  mismatch: { label: 'Details don’t match', tone: 'bg-red-50 text-red-700 ring-red-100' },
 }
 const CLOSED = ['granted', 'rejected']
 const rupees = (n) => `₹${Number(n).toLocaleString('en-IN')}`

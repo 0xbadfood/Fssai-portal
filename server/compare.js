@@ -36,3 +36,18 @@ export function compareAddress(a, b) {
   const share = x.filter((w) => y.has(w)).length / x.length
   return share >= 0.8 ? 'match' : share >= 0.4 ? 'close' : 'mismatch'
 }
+
+// "Sharma Foods Pvt. Ltd." and "M/s Sharma Foods" are the same business.
+const LEGAL_WORDS = new Set(['pvt', 'private', 'ltd', 'limited', 'llp', 'co', 'company', 'corp', 'inc', 'm', 's', 'the', 'and'])
+
+/** Business names: like compareNames, ignoring legal forms and filler (Pvt Ltd, LLP, M/s, The). */
+export function compareBusinessNames(a, b) {
+  const strip = (s) => words(s).filter((w) => !LEGAL_WORDS.has(w)).join(' ')
+  return compareNames(strip(a), strip(b))
+}
+
+/** The best of several results (a document may name the person or the business): match > close > mismatch. */
+export function best(...results) {
+  for (const r of ['match', 'close', 'mismatch']) if (results.includes(r)) return r
+  return null
+}

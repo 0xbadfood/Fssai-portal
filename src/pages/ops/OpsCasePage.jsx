@@ -165,7 +165,7 @@ const MARK = {
 
 function CrossCheck({ rows }) {
   return (
-    <Section title="Cross-check" note="The application's details against what was read from the accepted documents.">
+    <Section title="Cross-check" note="The application's details against what was read from the accepted documents. Mismatches don't stop the customer: check them with them on the filing call.">
       <table className="w-full text-sm">
         <thead className="text-left text-xs text-slate-400">
           <tr>
