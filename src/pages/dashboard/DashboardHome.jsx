@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, CheckCircle2, FileText, PhoneCall } from 'lucide-react'
 import { useAuth } from '../../lib/auth.jsx'
-import { groupByBusiness, useApplications } from '../../lib/applications.js'
+import { useApplications } from '../../lib/applications.js'
 import { selectApplication } from '../../lib/selectedApplication.js'
 import { SERVICES } from '../../lib/services.js'
 import { Card, Loading } from '../../components/dashboard/ui.jsx'
@@ -32,7 +32,6 @@ export default function DashboardHome() {
   const open = list.filter((a) => a.status !== 'ready')
   // The one to carry on with: the latest opened draft, else a pending one.
   const next = [...open].sort((a, b) => (a.status === 'pending') - (b.status === 'pending') || new Date(b.updatedAt) - new Date(a.updatedAt))[0]
-  const businesses = groupByBusiness(list)
   const paid = list.filter((a) => a.payment)
   const paidTotal = paid.reduce((n, a) => n + a.payment.amount, 0)
   const paidOrders = (orders || []).filter((o) => o.paidAt)
@@ -40,7 +39,7 @@ export default function DashboardHome() {
   const continueTo = (a) => () => selectApplication(a.id)
   const name = (a) => [a.business || 'New business', a.premises.address || a.premises.city].filter(Boolean).join(' · ')
 
-  // Everything our team has in hand: submitted applications until granted, open expert orders, documents to collect.
+  // Everything our team has in hand: submitted applications until granted, and open expert-service orders.
   const withTeam = [
     ...submitted
       .filter((a) => a.case?.status !== 'granted')
@@ -64,18 +63,6 @@ export default function DashboardHome() {
       tone: o.status === 'awaiting_customer' ? 'bg-amber-50 text-amber-800' : 'bg-sky-50 text-sky-700',
       to: '/dashboard/services',
     })),
-    ...list
-      .filter((a) => a.toCollect > 0)
-      .map((a) => ({
-        key: `docs:${a.id}`,
-        kind: 'Documents to collect',
-        title: name(a),
-        detail: `You'll hand ${a.toCollect === 1 ? 'one document' : `${a.toCollect} documents`} to our team; we'll collect ${a.toCollect === 1 ? 'it' : 'them'} before filing.`,
-        status: 'We collect',
-        tone: 'bg-sky-50 text-sky-700',
-        to: '/dashboard/documents',
-        onClick: continueTo(a),
-      })),
   ]
 
   return (
@@ -115,20 +102,13 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Tile
           to="/dashboard/applications"
           emoji="🏛️"
           label="Applications"
           value={list.length ? `${list.length} ${list.length === 1 ? 'application' : 'applications'}` : 'None yet'}
           note={list.length ? [submitted.length && `${submitted.length} submitted`, open.length && `${open.length} in progress`].filter(Boolean).join(' · ') : 'A few taps to find your licence'}
-        />
-        <Tile
-          to="/dashboard/premises"
-          emoji="📍"
-          label="Premises"
-          value={list.length ? `${list.length} ${list.length === 1 ? 'place' : 'places'}` : 'Not added yet'}
-          note={businesses.length ? `${businesses.length} ${businesses.length === 1 ? 'business' : 'businesses'}` : 'Added during your application'}
         />
         <Tile
           to="/dashboard/payments"
