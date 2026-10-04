@@ -8,12 +8,14 @@ import { emailProblem, emailSuggestion, mobileProblem, normalizeMobile, password
 import { useMeta } from '../seo/useMeta.js'
 import { privateMeta } from '../seo/meta.js'
 
-// The box already shows +91: drop a typed or pasted +91 / 91 / 0 in front, and anything that isn't a digit, space or dash.
+// The box already shows +91: drop a typed or pasted +91 / 91 / 0 in front, anything that isn't a digit, space or dash,
+// and everything after the 10th digit.
 function localMobile(v) {
   const s = v.replace(/^\s*\+\s*91[\s-]*/, '').replace(/[^\d\s-]/g, '')
   const d = s.replace(/\D/g, '')
   if ((d.length === 12 && d.startsWith('91')) || (d.length === 11 && d.startsWith('0'))) return d.slice(-10)
-  return s.slice(0, 14)
+  let digits = 0 // keep spaces and dashes, stop at the 10th digit
+  return [...s].filter((c) => (/\d/.test(c) ? ++digits <= 10 : digits < 10)).join('')
 }
 
 export default function SignupPage() {
