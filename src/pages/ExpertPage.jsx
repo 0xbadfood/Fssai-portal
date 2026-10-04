@@ -67,6 +67,7 @@ function Hero({ x }) {
           </span>
           <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">{x.name || 'Our regulatory lead'}</h1>
           <p className="mt-2 text-xl font-bold text-violet-200">{x.title}</p>
+          {x.formerly && <p className="mt-1 text-sm text-slate-400">Formerly {x.formerly}</p>}
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-300">
             {x.location && <span className="inline-flex items-center gap-1.5"><MapPin size={15} /> {x.location}</span>}
             {x.education.map((e) => (
