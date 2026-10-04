@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS documents (
 ALTER TABLE documents ADD COLUMN IF NOT EXISTS preview_path text;   -- JPEG snapshot (first page for PDFs)
 ALTER TABLE documents ADD COLUMN IF NOT EXISTS page_count integer NOT NULL DEFAULT 1;
 
-CREATE UNIQUE INDEX IF NOT EXISTS documents_current_uq ON documents (user_id, doc_type_id) WHERE superseded_at IS NULL;
+-- One current document per type: see documents_current_app_uq below (premises documents are per application).
 CREATE INDEX IF NOT EXISTS documents_user_idx ON documents (user_id, uploaded_at DESC);
 
 -- A guided application. facts = intake answers, info = Form A/B details. Documents are per user (see documents).
@@ -318,3 +318,22 @@ CREATE UNIQUE INDEX IF NOT EXISTS case_files_current_uq ON case_files (case_id, 
 -- 2026-10-04: sign-up no longer asks for a business name (an owner can have outlets under different names);
 -- each application carries its own (info.legal_name). Older accounts keep theirs as a pre-fill.
 ALTER TABLE users ALTER COLUMN business_name DROP NOT NULL;
+
+-- 2026-10-04: several applications per account (one per premises). A pending application was added for the
+-- customer's next premises (when they said they have several places) and hasn't been opened yet.
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS parent_id uuid REFERENCES applications(id) ON DELETE SET NULL;
+ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_status_check;
+ALTER TABLE applications ADD CONSTRAINT applications_status_check CHECK (status IN ('draft', 'pending', 'ready'));
+CREATE INDEX IF NOT EXISTS applications_user_idx ON applications (user_id, created_at DESC);
+
+-- Premises documents (types with "perPremises" in config/document-types.json) belong to one application; the
+-- person's own documents (ID, address proof…) have no application and are shared by all of them.
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS application_id uuid REFERENCES applications(id) ON DELETE CASCADE;
+DROP INDEX IF EXISTS documents_current_uq;
+CREATE UNIQUE INDEX IF NOT EXISTS documents_current_app_uq
+  ON documents (user_id, doc_type_id, COALESCE(application_id, '00000000-0000-0000-0000-000000000000'::uuid)) WHERE superseded_at IS NULL;
+-- Premises documents uploaded before this: the application that was the latest when they were uploaded.
+UPDATE documents d SET application_id = COALESCE(
+    (SELECT a.id FROM applications a WHERE a.user_id = d.user_id AND a.created_at <= d.uploaded_at ORDER BY a.created_at DESC LIMIT 1),
+    (SELECT a.id FROM applications a WHERE a.user_id = d.user_id ORDER BY a.created_at LIMIT 1))
+  WHERE d.application_id IS NULL AND d.doc_type_id IN ('premise', 'layout', 'noc', 'water-test');

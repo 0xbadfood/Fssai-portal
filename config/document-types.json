@@ -89,6 +89,7 @@
       }
     },
     "premise": {
+      "perPremises": true,
       "label": "Premise Proof",
       "description": "Proof of right to use the premises: sale deed / ownership document, registered rent or lease agreement, or NOC from the owner.",
       "extract": [
@@ -137,6 +138,7 @@
       ]
     },
     "layout": {
+      "perPremises": true,
       "label": "Layout Plan",
       "description": "A floor/layout plan of the food premises showing rooms, processing areas, storage, entry/exit and dimensions.",
       "extract": [
@@ -163,6 +165,7 @@
       ]
     },
     "noc": {
+      "perPremises": true,
       "label": "NOC from Local Authority",
       "description": "No-Objection Certificate from the municipal corporation, panchayat, fire or other local authority.",
       "extract": [
@@ -205,6 +208,7 @@
       ]
     },
     "water-test": {
+      "perPremises": true,
       "label": "Water Test Report",
       "description": "Laboratory report of potable water analysis (chemical and microbiological) for the food premises, from an accredited lab.",
       "extract": [

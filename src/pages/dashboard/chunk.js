@@ -3,6 +3,7 @@ export { default as DashboardLayout } from '../../components/dashboard/Dashboard
 export { default as DashboardHome } from './DashboardHome.jsx'
 export { default as DashboardIndex } from './DashboardIndex.jsx'
 export { default as ApplyPage } from './apply/ApplyPage.jsx'
+export { default as ApplicationsPage } from './ApplicationsPage.jsx'
 export { default as DocumentsPage } from './DocumentsPage.jsx'
 export { default as PremisesPage } from './PremisesPage.jsx'
 export { default as SupportPage } from './SupportPage.jsx'

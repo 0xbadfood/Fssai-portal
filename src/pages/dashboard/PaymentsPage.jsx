@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Building2, CheckCircle2, Clock, CreditCard, FlaskConical, Loader2, Lock, Receipt, ShieldCheck, Smartphone, Wallet, XCircle } from 'lucide-react'
 import { Card, Loading, PageHeader } from '../../components/dashboard/ui.jsx'
 import { openCheckout } from '../../lib/cashfree.js'
+import { useSelectedApplicationId } from '../../lib/selectedApplication.js'
 
 const METHODS = [
   { id: 'upi', label: 'UPI', icon: Smartphone },
@@ -16,15 +17,17 @@ const rupees = (n) => `₹${Number(n).toLocaleString('en-IN')}`
 const when = (d) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
 
 export default function PaymentsPage() {
+  const selected = useSelectedApplicationId()
   const [data, setData] = useState(null)
+  // The fee shown is the selected application's; the receipts are every application's.
   const load = () =>
-    fetch('/api/payments', { cache: 'no-store' })
+    fetch(selected ? `/api/payments?application=${selected}` : '/api/payments', { cache: 'no-store' })
       .then((r) => r.json())
       .then(setData)
       .catch(() => setData({ payments: [], quote: null }))
   useEffect(() => {
     load()
-  }, [])
+  }, [selected])
   if (!data) return <Loading />
   const { quote, payments } = data
 
@@ -397,6 +400,12 @@ function Receipts({ payments }) {
             <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-3.5">
               <div>
                 <p className="font-bold text-slate-800">{p.items[0]?.label}</p>
+                {p.application?.business && (
+                  <p className="text-sm font-semibold text-slate-600">
+                    {p.application.business}
+                    {p.application.city ? ` · ${p.application.city}` : ''}
+                  </p>
+                )}
                 <p className="text-sm text-slate-500">
                   {when(p.createdAt)} · {METHOD_LABEL[p.method] || 'Online'} · <span className="font-mono">{p.reference}</span>
                   {p.mode !== 'live' && <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-bold text-amber-700">{p.mode === 'sandbox' ? 'SANDBOX' : 'TEST'}</span>}

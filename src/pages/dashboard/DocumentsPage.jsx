@@ -7,8 +7,8 @@ import { useCurrentApplication } from '../../lib/applications.js'
 import { PageHeader } from '../../components/dashboard/ui.jsx'
 
 export default function DocumentsPage() {
-  const { docs, put } = useUserDocuments()
   const { app } = useCurrentApplication()
+  const { docs, put } = useUserDocuments(app?.id ?? null)
   const r = app?.plan || null
   const needed = r?.docs || []
   const neededIds = needed.map((d) => d.id)
@@ -47,7 +47,7 @@ export default function DocumentsPage() {
           </div>
           <div className="grid gap-3 xl:grid-cols-2">
             {needed.map((d) => (
-              <DocumentUploadCard key={d.id} docTypeId={d.id} label={`${DOC_TYPES[d.id].label}${d.optional ? ' (optional)' : ''}`} tag={d.why} doc={docs[d.id]} onSave={put} />
+              <DocumentUploadCard key={d.id} docTypeId={d.id} applicationId={app?.id} label={`${DOC_TYPES[d.id].label}${d.optional ? ' (optional)' : ''}`} tag={d.why} doc={docs[d.id]} onSave={put} />
             ))}
           </div>
         </section>
@@ -58,7 +58,7 @@ export default function DocumentsPage() {
         <p className="text-sm text-slate-500">Not needed for your current application, but handy to keep here for later filings.</p>
         <div className="grid gap-3 xl:grid-cols-2">
           {others.map((id) => (
-            <DocumentUploadCard key={id} docTypeId={id} label={DOC_TYPES[id].label} doc={docs[id]} onSave={put} />
+            <DocumentUploadCard key={id} docTypeId={id} applicationId={app?.id} label={DOC_TYPES[id].label} doc={docs[id]} onSave={put} />
           ))}
         </div>
       </section>

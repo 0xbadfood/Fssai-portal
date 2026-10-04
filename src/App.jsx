@@ -19,6 +19,7 @@ const DashboardLayout = from(dashboard, 'DashboardLayout')
 const DashboardHome = from(dashboard, 'DashboardHome')
 const DashboardIndex = from(dashboard, 'DashboardIndex')
 const ApplyPage = from(dashboard, 'ApplyPage')
+const ApplicationsPage = from(dashboard, 'ApplicationsPage')
 const DocumentsPage = from(dashboard, 'DocumentsPage')
 const PremisesPage = from(dashboard, 'PremisesPage')
 const SupportPage = from(dashboard, 'SupportPage')
@@ -65,6 +66,7 @@ export default function App() {
         >
           <Route index element={<DashboardIndex />} />
           <Route path="apply" element={<ApplyPage />} />
+          <Route path="applications" element={<ApplicationsPage />} />
           <Route path="overview" element={<DashboardHome />} />
           <Route path="documents" element={<DocumentsPage />} />
           <Route path="premises" element={<PremisesPage />} />

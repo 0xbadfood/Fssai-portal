@@ -22,7 +22,7 @@ const JOURNEY = [
 export default function DashboardHome() {
   const { session } = useAuth()
   const { app } = useCurrentApplication()
-  const { docs } = useUserDocuments()
+  const { docs } = useUserDocuments(app?.id ?? null)
   const firstName = session?.name?.split(' ')[0] || 'there'
   if (app === undefined) return <Loading />
 

@@ -9,8 +9,9 @@ export const MAX_PDF_PAGES = 4
 /** Accepted, or waiting for an officer's check: good enough to continue. Our team's review overrides the AI either way. */
 export const isDocOk = (doc) => (doc?.opsStatus ? doc.opsStatus === 'approved' : doc?.status === 'accepted' || doc?.status === 'review')
 
-/** Documents for the signed-in user (loaded from the server), keyed by docTypeId. */
-export function useUserDocuments() {
+/** Documents an application uses (the person's own plus its premises ones), keyed by docTypeId.
+ * applicationId undefined: the current application's. */
+export function useUserDocuments(applicationId) {
   const { session } = useAuth()
   const email = session?.email
   const [docs, setDocs] = useState({})
@@ -23,7 +24,7 @@ export function useUserDocuments() {
     }
     let cancelled = false
     setLoading(true)
-    fetch('/api/documents', { cache: 'no-store' })
+    fetch(applicationId ? `/api/documents?application=${applicationId}` : '/api/documents', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : []))
       .then((list) => {
         if (!cancelled) setDocs(Object.fromEntries(list.map((d) => [d.docTypeId, d])))
@@ -33,7 +34,7 @@ export function useUserDocuments() {
     return () => {
       cancelled = true
     }
-  }, [email])
+  }, [email, applicationId])
 
   const put = useCallback((record) => setDocs((prev) => ({ ...prev, [record.docTypeId]: record })), [])
 
@@ -154,11 +155,12 @@ export async function prepareFile(file, password) {
   }
 }
 
-export async function uploadDocument({ docTypeId, pages, original, pdfText, pageCount, fileName, sizeBytes }) {
+/** applicationId: the application a premises document belongs to (ignored for the person's own documents). */
+export async function uploadDocument({ docTypeId, applicationId, pages, original, pdfText, pageCount, fileName, sizeBytes }) {
   const res = await fetch('/api/documents/verify', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ docTypeId, pages, original, pdfText, pageCount, fileName, sizeBytes }),
+    body: JSON.stringify({ docTypeId, applicationId, pages, original, pdfText, pageCount, fileName, sizeBytes }),
   })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.error || `Verification failed (${res.status})`)

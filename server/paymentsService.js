@@ -5,7 +5,7 @@ import { randomBytes } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { ensureSchema, pool, repoRoot } from './db.js'
-import { listDocuments } from './documentsService.js'
+import { currentApplicationId, documentsFor } from './documentsService.js'
 import { cleanFacts } from './intake/index.js'
 import { planFor } from './intake/plan.js'
 import { openCase } from './opsService.js'
@@ -38,22 +38,27 @@ function quoteFor(row, docs) {
   return { r, items, total: items.reduce((s, i) => s + i.amount, 0), mode: paymentMode() }
 }
 
-const byType = async (userId) => Object.fromEntries((await listDocuments(userId)).map((d) => [d.docTypeId, d]))
 
 export async function listPayments(userId) {
   await ensureSchema()
-  const { rows } = await pool.query('SELECT * FROM payments WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50', [userId])
-  return rows.map(toPayment)
+  const { rows } = await pool.query(
+    `SELECT p.*, a.info->>'legal_name' AS app_business, a.info->>'city' AS app_city
+       FROM payments p LEFT JOIN applications a ON a.id = p.application_id WHERE p.user_id = $1 ORDER BY p.created_at DESC LIMIT 50`,
+    [userId],
+  )
+  // Which application a fee was for, now that an account can have several.
+  return rows.map((r) => ({ ...toPayment(r), application: r.application_id ? { business: r.app_business || null, city: r.app_city || null } : null }))
 }
 
-/** What the user's current application costs, and whether it can be paid now. */
-export async function currentQuote(userId) {
+/** What an application (default: the current one) costs, and whether it can be paid now. */
+export async function currentQuote(userId, applicationId = null) {
   await ensureSchema()
-  const { rows } = await pool.query('SELECT * FROM applications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1', [userId])
+  const id = applicationId || (await currentApplicationId(userId))
+  const { rows } = id && /^[0-9a-f-]{36}$/.test(id) ? await pool.query('SELECT * FROM applications WHERE id = $1 AND user_id = $2', [id, userId]) : { rows: [] }
   if (!rows[0]) return null
   const { rows: paid } = await pool.query("SELECT * FROM payments WHERE application_id = $1 AND status = 'paid'", [rows[0].id])
   try {
-    const q = quoteFor(rows[0], await byType(userId))
+    const q = quoteFor(rows[0], await documentsFor(userId, rows[0].id))
     return { applicationId: rows[0].id, licence: q.r.licence, form: q.r.kind, items: q.items, total: q.total, mode: q.mode, payable: q.r.ready && !paid[0], paid: paid[0] ? toPayment(paid[0]) : null }
   } catch {
     return null
@@ -82,8 +87,8 @@ export async function recordApplicationPayment(client, userId, row, { items, tot
  * Refuses when it is already paid or not ready. Runs inside the caller's transaction.
  */
 export async function applicationCharge(client, userId, applicationId) {
-  const docs = await byType(userId)
   const row = await loadApp(userId, applicationId, client)
+  const docs = await documentsFor(userId, row.id)
   const { rows: done } = await client.query("SELECT 1 FROM payments WHERE application_id = $1 AND status = 'paid'", [row.id])
   if (done[0]) throw httpError(409, 'This application is already paid.')
   const q = quoteFor(row, docs)
@@ -96,7 +101,8 @@ export async function payApplication(userId, { applicationId, method, outcome })
   await ensureSchema()
   if (!METHODS.includes(method)) throw httpError(400, 'Choose a payment method.')
   if (paymentMode() !== 'test') throw httpError(503, 'Online payment is not available yet.')
-  const docs = await byType(userId)
+  if (!/^[0-9a-f-]{36}$/.test(String(applicationId))) throw httpError(404, 'Application not found')
+  const docs = await documentsFor(userId, applicationId) // ownership is checked by loadApp below
   const client = await pool.connect()
   try {
     await client.query('BEGIN')

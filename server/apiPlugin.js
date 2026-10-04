@@ -11,7 +11,7 @@ import { paymentMode } from './cashfree.js'
 import { addOrderNote, cancelMyOrder, chargeOrder, createOrder, getMyOrder, getOrder, isStaff, listMyOrders, listOrders, myOrderMessages, payOrder, publicCatalogue, replyToOrder, setOrderStatus, takeOrder, transferOrder } from './servicesService.js'
 import { addNote, caseDocumentFile, caseFileDownload, getCase, listCases, reviewDocument, setCaseFile, setStatus, takeCase, transferCase, updateDetail, uploadForCustomer } from './opsService.js'
 import { CONTACT_VIA, SUPPORT_TOPICS } from '../src/lib/supportTopics.js'
-import { answerQuestion, createApplication, currentApplication, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
+import { answerQuestion, createApplication, currentApplication, getApplication, listApplications, markReady, rateResult, reask, restartIntake, undoLastAnswer, updateApplication } from './applicationsService.js'
 
 const MAX_BODY = 30_000_000
 // The portal's public addresses (config/site.json, also vite's allowedHosts). Emailed links use the host the
@@ -95,6 +95,7 @@ function assertSameOrigin(req) {
 
 async function handler(req, res, next) {
   const url = (req.url || '').split('?')[0]
+  const queryParam = (r, key) => new URLSearchParams((r.url || '').split('?')[1] || '').get(key)
   if (!url.startsWith('/api/')) return next()
   // API responses skip the preview server's page headers, so set the basics here. (Document files are opened
   // inline, so they get frame-ancestors only: a stricter CSP can stop the browser's PDF viewer.)
@@ -242,7 +243,8 @@ async function handler(req, res, next) {
     }
 
     const file = url.match(/^\/api\/documents\/([^/]+)\/(file|preview)$/)
-    if (req.method === 'GET' && url === '/api/documents') return json(res, 200, await listDocuments(user.id))
+    // ?application=<id>: that application's documents (the person's own plus its premises ones); default the current one.
+    if (req.method === 'GET' && url === '/api/documents') return json(res, 200, await listDocuments(user.id, queryParam(req, 'application')))
     if (req.method === 'GET' && file) {
       const { mime, fileName, data } = await readDocumentFile(user.id, file[1], { preview: file[2] === 'preview' })
       res.setHeader('content-type', mime)
@@ -254,7 +256,7 @@ async function handler(req, res, next) {
     if (req.method === 'POST' && url === '/api/documents/verify') {
       return json(res, 200, await uploadDocument(user.id, JSON.parse(await readBody(req))))
     }
-    if (req.method === 'GET' && url === '/api/payments') return json(res, 200, { payments: await listPayments(user.id), quote: await currentQuote(user.id) })
+    if (req.method === 'GET' && url === '/api/payments') return json(res, 200, { payments: await listPayments(user.id), quote: await currentQuote(user.id, queryParam(req, 'application')) })
     // Gateway checkout (sandbox / live): start one, and confirm it on the return page.
     if (req.method === 'POST' && url === '/api/payments/checkout') return json(res, 200, await startCheckout(user.id, JSON.parse((await readBody(req)) || '{}'), publicOrigin(req)))
     if (req.method === 'POST' && url === '/api/payments/confirm') return json(res, 200, { checkout: await syncCheckout(JSON.parse((await readBody(req)) || '{}').id, user.id) })
@@ -263,7 +265,10 @@ async function handler(req, res, next) {
     if (req.method === 'POST' && url === '/api/support') {
       return json(res, 200, { request: await createSupportRequest(user.id, JSON.parse((await readBody(req)) || '{}')) })
     }
+    if (req.method === 'GET' && url === '/api/applications') return json(res, 200, { applications: await listApplications(user) })
     if (req.method === 'GET' && url === '/api/applications/current') return json(res, 200, { application: await currentApplication(user) })
+    const oneApp = url.match(/^\/api\/applications\/([0-9a-f-]{36})$/)
+    if (req.method === 'GET' && oneApp) return json(res, 200, { application: await getApplication(user, oneApp[1]) })
     if (req.method === 'POST' && url === '/api/applications') {
       return json(res, 200, { application: await createApplication(user, JSON.parse((await readBody(req)) || '{}')) })
     }

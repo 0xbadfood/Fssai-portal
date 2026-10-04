@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, PhoneCall, RotateCcw, Send } from 'lucide-react'
+import { CheckCircle2, Layers, MapPinPlus, PhoneCall, Send } from 'lucide-react'
+import { newApplication } from '../../../lib/applications.js'
 import { BigButton } from './ApplyPage.jsx'
 
 export default function ReadyStep({ app, flow, r }) {
@@ -43,8 +44,11 @@ export default function ReadyStep({ app, flow, r }) {
         <BigButton tone="white" onClick={() => navigate('/dashboard/overview')}>
           Go to dashboard
         </BigButton>
-        <BigButton tone="white" disabled={flow.busy} onClick={flow.startNew}>
-          <RotateCcw size={18} /> Start another application
+        <BigButton tone="white" disabled={flow.busy} onClick={() => newApplication({ anotherPremisesOf: app.id })}>
+          <MapPinPlus size={18} /> Add another premises
+        </BigButton>
+        <BigButton tone="white" onClick={() => navigate('/dashboard/applications')}>
+          <Layers size={18} /> My applications
         </BigButton>
       </div>
     </div>

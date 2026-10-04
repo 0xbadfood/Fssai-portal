@@ -1,5 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { takeLandingSession } from './landingHandoff.js'
+import { selectApplication, useSelectedApplicationId } from './selectedApplication.js'
+
+/** The selected application, else the latest one; a stale selection (another account's, deleted) is dropped. */
+async function loadSelected(id) {
+  if (id) {
+    try {
+      return await call(`/api/applications/${id}`)
+    } catch {
+      selectApplication(null)
+    }
+  }
+  return call('/api/applications/current')
+}
 
 async function call(path, body) {
   const res = await fetch(path, body === undefined ? { cache: 'no-store' } : {
@@ -13,7 +26,7 @@ async function call(path, body) {
 }
 
 /**
- * The signed-in user's latest application (created on first visit).
+ * The selected application (else the latest; one is created on first visit).
  * Requests run one at a time, so responses always arrive in the order the actions were taken.
  * Details being edited are kept as a draft: autosaved after a pause, sent along with the next update
  * (e.g. a step change), and flushed when the page is left, so edits are never lost.
@@ -28,12 +41,22 @@ export function useApplication() {
   const timer = useRef(null)
   const appId = useRef(null)
 
+  const selected = useSelectedApplicationId()
   useEffect(() => {
-    call('/api/applications/current')
+    if (app && selected === app.id) return
+    let cancelled = false
+    loadSelected(selected)
       .then((a) => a || call('/api/applications', { intakeSession: takeLandingSession() }))
-      .then(setApp)
+      .then((a) => {
+        if (cancelled) return
+        setApp(a)
+        if (a && a.id !== selected) selectApplication(a.id)
+      })
       .catch((e) => setError(e.message))
-  }, [])
+    return () => {
+      cancelled = true
+    }
+  }, [selected])
   useEffect(() => {
     appId.current = app?.id
   }, [app?.id])
@@ -129,21 +152,56 @@ export function useApplication() {
     undo: () => run(() => call(`/api/applications/${id}/undo`, {})),
     restart: () => run(() => call(`/api/applications/${id}/restart`, {})),
     markReady: () => run(() => call(`/api/applications/${id}/ready`, {})),
-    startNew: () => run(() => call('/api/applications', {})),
     // After a document upload: the plan (documents, details read from them) is worked out on the server.
-    refresh: () => run(() => call('/api/applications/current'), { quiet: true }),
+    refresh: () => run(() => call(`/api/applications/${id}`), { quiet: true }),
     rate: (rating, note) =>
       fetch(`/api/applications/${id}/rate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rating, note }) }).catch(() => {}),
   }
 }
 
-/** Read-only view of the user's latest application (null if none yet). Never creates one. */
+/** Read-only view of the selected application (else the latest; null if none yet). Never creates one. */
 export function useCurrentApplication() {
+  const selected = useSelectedApplicationId()
   const [state, setState] = useState({ app: undefined, error: '' })
   useEffect(() => {
-    call('/api/applications/current')
-      .then((app) => setState({ app: app || null, error: '' }))
-      .catch((e) => setState({ app: null, error: e.message }))
-  }, [])
+    let cancelled = false
+    loadSelected(selected)
+      .then((app) => !cancelled && setState({ app: app || null, error: '' }))
+      .catch((e) => !cancelled && setState({ app: null, error: e.message }))
+    return () => {
+      cancelled = true
+    }
+  }, [selected])
   return state
+}
+
+/** "My applications": summaries, newest first. reload() after creating one. */
+export function useApplications() {
+  const [state, setState] = useState({ list: undefined, error: '' })
+  const reload = useCallback(
+    () =>
+      fetch('/api/applications', { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error('Could not load your applications.'))))
+        .then((d) => setState({ list: d.applications, error: '' }))
+        .catch((e) => setState({ list: [], error: e.message })),
+    [],
+  )
+  useEffect(() => {
+    reload()
+  }, [reload])
+  return { ...state, reload }
+}
+
+/** New application: blank, or for another premises of an existing one (business details carried over). Selects it. */
+export async function newApplication({ anotherPremisesOf } = {}) {
+  const app = await call('/api/applications', anotherPremisesOf ? { anotherPremisesOf } : {})
+  selectApplication(app.id)
+  return app
+}
+
+/** A short name for an application: its business and place, or a fallback. */
+export function applicationName(a) {
+  const business = a?.business || a?.info?.legal_name
+  const city = a?.premises?.city || a?.info?.city
+  return [business || 'New application', city].filter(Boolean).join(' · ')
 }

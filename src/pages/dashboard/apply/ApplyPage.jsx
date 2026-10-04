@@ -22,8 +22,8 @@ const STEPS = [
 
 export default function ApplyPage() {
   const flow = useApplication()
-  const { docs, put } = useUserDocuments()
   const { app } = flow
+  const { docs, put } = useUserDocuments(app?.id ?? null)
 
   // Braces matter: an effect's return value is its cleanup, and Chrome's smooth scrollTo returns a Promise.
   useEffect(() => {

@@ -36,7 +36,7 @@ function SendToTeam({ deferred, onDefer, busy }) {
 }
 
 /** onDefer(bool), when given, offers "I'll send it to the MyFoodLicense team" while there is no usable copy. */
-export default function DocumentUploadCard({ docTypeId, label, tag, doc, onSave, deferred = false, onDefer, deferBusy = false }) {
+export default function DocumentUploadCard({ docTypeId, applicationId, label, tag, doc, onSave, deferred = false, onDefer, deferBusy = false }) {
   const spec = DOC_TYPES[docTypeId]
   const [snap, setSnap] = useState(null) // local preview of the just-uploaded file, until the stored copy loads
   const storedImage = useDocumentImage(doc)
@@ -70,6 +70,7 @@ export default function DocumentUploadCard({ docTypeId, label, tag, doc, onSave,
     try {
       const record = await uploadDocument({
         docTypeId,
+        applicationId,
         pages: prepared.pages,
         original: prepared.original,
         pdfText: prepared.pdfText,

@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { dbConfig, ensureSchema, pool, repoRoot, resolveStoragePath } from './db.js'
-import { documentsByUser, isEncryptedPdf, readDocumentFile, uploadDocument } from './documentsService.js'
+import { documentsFor, documentsForApplications, isEncryptedPdf, readDocumentFile, uploadDocument } from './documentsService.js'
 import { cleanFacts, intakeView } from './intake/index.js'
 import { FIELDS, isDocOk, planFor } from './intake/plan.js'
 import { crossCheck } from './opsCheck.js'
@@ -78,9 +78,9 @@ export async function listCases(user) {
        LEFT JOIN users asg ON asg.id = c.assignee_id
       ORDER BY c.opened_at DESC`,
   )
-  const docsByUser = await documentsByUser([...new Set(rows.map((r) => r.user_id))])
+  const docsByApp = await documentsForApplications(rows.map((r) => ({ userId: r.user_id, applicationId: r.app_id })))
   const cases = rows.map((r) => {
-    const docs = docsByUser[r.user_id] || {}
+    const docs = docsByApp[r.app_id] || {}
     const plan = planFor(cleanFacts(r.facts), r.info, docs, {})
     const required = plan.docs.filter((d) => !d.optional)
     return {
@@ -175,7 +175,7 @@ export async function getCase(user, id, { logView = true } = {}) {
   if (!r) throw httpError(404, 'Case not found')
   if (logView) await logCaseEvent(pool, id, user.id, 'case_viewed')
 
-  const docs = (await documentsByUser([r.user_id]))[r.user_id] || {}
+  const docs = await documentsFor(r.user_id, r.app_id)
   const facts = cleanFacts(r.facts)
   const plan = planFor(facts, r.info, docs, { name: r.name, businessName: r.business_name, phone: r.phone, email: r.email })
   const view = intakeView(facts)
@@ -299,10 +299,10 @@ export async function reviewDocument(user, id, docId, { decision, note }) {
 /** Upload a document on the customer's behalf (checked by the AI like any upload; marked as uploaded by ops). */
 export async function uploadForCustomer(user, id, body) {
   requireOps(user)
-  const { rows } = await pool.query('SELECT user_id FROM cases WHERE id = $1', [id])
+  const { rows } = await pool.query('SELECT user_id, application_id FROM cases WHERE id = $1', [id])
   if (!rows[0]) throw httpError(404, 'Case not found')
   if (!DOC_TYPES[body?.docTypeId]) throw httpError(400, 'Unknown document type')
-  const doc = await uploadDocument(rows[0].user_id, body, { uploadedBy: user.id })
+  const doc = await uploadDocument(rows[0].user_id, { ...body, applicationId: rows[0].application_id }, { uploadedBy: user.id })
   await logCaseEvent(pool, id, user.id, 'document_uploaded', { docType: doc.docTypeId, ai: doc.status, fileName: doc.file.name })
   return getCase(user, id, { logView: false })
 }
@@ -377,12 +377,12 @@ export async function setCaseFile(user, id, slot, body = {}) {
   await ensureSchema()
   if (!/^[0-9a-f-]{36}$/.test(String(id))) throw httpError(404, 'Case not found')
   const { rows } = await pool.query(
-    'SELECT c.user_id, a.facts, a.info FROM cases c JOIN applications a ON a.id = c.application_id WHERE c.id = $1',
+    'SELECT c.user_id, a.id AS app_id, a.facts, a.info FROM cases c JOIN applications a ON a.id = c.application_id WHERE c.id = $1',
     [id],
   )
   if (!rows[0]) throw httpError(404, 'Case not found')
   const userId = rows[0].user_id
-  const docs = (await documentsByUser([userId]))[userId] || {}
+  const docs = await documentsFor(userId, rows[0].app_id)
   const item = planFor(cleanFacts(rows[0].facts), rows[0].info, docs, {}).checklist.find((c) => c.id === slot)
   if (!item) throw httpError(400, 'This document is not on the case\'s FoSCoS list.')
 

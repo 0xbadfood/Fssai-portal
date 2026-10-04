@@ -4,7 +4,7 @@ import DocumentUploadCard from '../../../components/documents/DocumentUploadCard
 import { DOC_TYPES, isDocOk } from '../../../lib/documents.js'
 import { BigButton } from './ApplyPage.jsx'
 
-export default function DocumentsStep({ flow, r, docs, putDoc, go }) {
+export default function DocumentsStep({ app, flow, r, docs, putDoc, go }) {
   const required = r.docs.filter((d) => !d.optional)
   // A document left for our team to collect counts as done here; the server's plan has the final say.
   const done = required.filter((d) => isDocOk(docs[d.id]) || d.deferred).length
@@ -33,6 +33,7 @@ export default function DocumentsStep({ flow, r, docs, putDoc, go }) {
           <DocumentUploadCard
             key={d.id}
             docTypeId={d.id}
+            applicationId={app.id}
             label={`${DOC_TYPES[d.id].label}${d.optional ? ' (optional)' : ''}`}
             tag={d.why}
             doc={docs[d.id]}
